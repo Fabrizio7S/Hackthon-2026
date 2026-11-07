@@ -10,6 +10,9 @@ export type ListState<T> =
 export const LIST_ERROR_MESSAGE =
   'No se pudieron cargar las ofertas. Revisa tu conexión e inténtalo de nuevo.';
 
+/** Error con un mensaje ya pensado para el vecino; se muestra tal cual. */
+export class ListLoadError extends Error {}
+
 export type ListLoader = {
   /** Inicia una carga. Si había otra en curso, su respuesta se descarta. */
   load: () => Promise<void>;
@@ -33,8 +36,9 @@ export function createListLoader<T>(
     try {
       const items = await fetchItems();
       next = items.length === 0 ? { status: 'vacio' } : { status: 'listo', items };
-    } catch {
-      next = { status: 'error', message: LIST_ERROR_MESSAGE };
+    } catch (error) {
+      const message = error instanceof ListLoadError ? error.message : LIST_ERROR_MESSAGE;
+      next = { status: 'error', message };
     }
     if (request === latest) onState(next);
   }
