@@ -8,7 +8,7 @@ Contratos de comportamiento previstos; no describen una aplicación ya existente
 - El representante crea comunidad e invita usando el código; el vecino acepta.
 - Resultado: ambos ven al vecino como integrante de la comunidad.
 - Comprobar que otra cuenta no pueda aceptar esa invitación.
-- Q01–Q03 resueltas en D17–D19; la implementación de comunidad/invitaciones y su verificación siguen pendientes.
+- Q01–Q03 resueltas en D17–D19. Flujo implementado en G01, con migraciones y verificación real pendientes; consultar las fichas T01.1–T01.5.
 
 ## Servicios y productos
 - Un vecino publica una oferta y otro consulta sus datos dentro del alcance geográfico aprobado.

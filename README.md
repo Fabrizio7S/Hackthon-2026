@@ -6,7 +6,7 @@ Reto de El Comercio y UTP: conectar vecinos con productos y servicios cercanos, 
 - Stack acordado: React Native con Expo, TypeScript y Supabase.
 - Autenticación por correo y contraseña conectada a Supabase, con registro, inicio, persistencia y cierre implementados. Verificación completa con cuenta real y teléfono pendiente; ver [T01.1](docs/tareas/T01-1-autenticacion.md).
 - Entrada: index.ts registra App.tsx. Configuración: app.json. Nombre provisional.
-- Perfil/código, creación autorizada de comunidad e invitaciones implementados; migraciones remotas y pruebas reales pendientes: [T01.2](docs/tareas/T01-2-perfil.md), [T01.3](docs/tareas/T01-3-crear-comunidad.md), [T01.4](docs/tareas/T01-4-invitaciones.md). Q01–Q03 resueltas en D17–D19. Listado de integrantes y contratos compartidos pendientes.
+- Perfil/código, creación autorizada de comunidad, invitaciones e integrantes implementados; migraciones remotas y pruebas reales pendientes: [T01.2](docs/tareas/T01-2-perfil.md), [T01.3](docs/tareas/T01-3-crear-comunidad.md), [T01.4](docs/tareas/T01-4-invitaciones.md), [T01.5](docs/tareas/T01-5-integrantes.md). Q01–Q03 resueltas en D17–D19. Contratos compartidos pendientes.
 
 ## Instalación y ejecución
 Requisitos: Node.js compatible con Expo SDK 58 y npm. Entorno usado: Node 24.17.0 y npm 12.0.1.
@@ -41,7 +41,7 @@ Pruebas unitarias de autenticación, con cliente simulado:
 node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs
 ```
 
-Para incluir perfil, comunidad e invitaciones, añade `src/features/profile/profileService.test.cjs src/features/community/communityService.test.cjs src/features/community/invitationService.test.cjs` al comando. Las pruebas SQL aisladas y las migraciones pendientes se describen en [perfil](src/features/profile/README.md), [comunidad](src/features/community/README.md) e [invitaciones](src/features/community/INVITATIONS.md).
+Para incluir perfil, comunidad, invitaciones e integrantes, añade `src/features/profile/profileService.test.cjs src/features/community/communityService.test.cjs src/features/community/invitationService.test.cjs src/features/community/membersService.test.cjs` al comando. Las pruebas SQL aisladas y las migraciones pendientes se describen en [perfil](src/features/profile/README.md), [comunidad](src/features/community/README.md), [invitaciones](src/features/community/INVITATIONS.md) e [integrantes](src/features/community/MEMBERS.md).
 
 Ejecuta typecheck y export por separado. En el entorno restringido del agente Hermes falló con código 6; la exportación fuera del sandbox pasó en las tres plataformas.
 

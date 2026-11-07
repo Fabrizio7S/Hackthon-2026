@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { normalizeCommunityName } from './communityService';
 import { useCommunity } from './useCommunity';
 import { InvitationPanel } from './InvitationPanel';
+import { MembersPanel } from './MembersPanel';
 
 export function CommunityPanel({ client, userId, refreshVersion }: {
   client: SupabaseClient;
@@ -14,6 +15,8 @@ export function CommunityPanel({ client, userId, refreshVersion }: {
   const community = useCommunity(client, userId, refreshVersion);
   const [name, setName] = useState('');
   const [validation, setValidation] = useState<string | null>(null);
+  const [membersVersion, setMembersVersion] = useState(0);
+  const refreshMembers = useCallback(() => setMembersVersion(value => value + 1), []);
 
   async function create() {
     try {
@@ -32,6 +35,8 @@ export function CommunityPanel({ client, userId, refreshVersion }: {
       {community.data?.membership ? <>
         <Text>{community.data.membership.community_name}</Text>
         <Text>{community.data.membership.role === 'representative' ? 'Eres el representante de esta comunidad.' : 'Eres integrante de esta comunidad.'}</Text>
+        <MembersPanel key={`${userId}:${community.data.membership.community_id}`} client={client}
+          communityId={community.data.membership.community_id} refreshVersion={membersVersion} />
       </> : community.data && <>
         <Text>Todavía no perteneces a una comunidad.</Text>
         {!community.data.has_profile ? <Text>Completa y guarda tu perfil para continuar.</Text>
@@ -48,7 +53,7 @@ export function CommunityPanel({ client, userId, refreshVersion }: {
       <Button title="Actualizar comunidad" disabled={community.creating} onPress={community.refresh} />
       {community.data && <InvitationPanel key={userId} client={client}
         canInvite={community.data.can_create && community.data.membership?.role === 'representative'}
-        onMembershipChanged={community.refresh} />}
+        onMembershipChanged={community.refresh} onAcceptedListChanged={refreshMembers} />}
     </>}
   </View>;
 }

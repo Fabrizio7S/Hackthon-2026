@@ -1,18 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { normalizePersonalCode } from './invitationService';
 import { useInvitations } from './useInvitations';
 
-export function InvitationPanel({ client, canInvite, onMembershipChanged }: {
+export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcceptedListChanged }: {
   client: SupabaseClient;
   canInvite: boolean;
   onMembershipChanged: () => void;
+  onAcceptedListChanged?: () => void;
 }) {
   const invitations = useInvitations(client);
   const [code, setCode] = useState('');
   const [validation, setValidation] = useState<string | null>(null);
+  const acceptedKey = invitations.items.filter(item => item.status === 'accepted').map(item => item.id).sort().join('|');
+
+  useEffect(() => {
+    if (acceptedKey) onAcceptedListChanged?.();
+  }, [acceptedKey, onAcceptedListChanged]);
 
   async function find() {
     try {
