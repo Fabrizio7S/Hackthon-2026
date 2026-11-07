@@ -28,7 +28,7 @@ Un representante del sector crea la comunidad. El vecino se registra, completa e
 ## Límites
 - Funcionalidad antes de colores, animaciones o acabado visual.
 - No se ha aprobado procesar pagos ni registrar contratación de servicios dentro de la app.
-- Devolución de préstamos deseable según tiempo disponible; completar un favor no demuestra devolver un objeto.
+- La devolución de objetos queda fuera de la primera entrega de G03, según [D14](decisiones.md#confirmadas).
 - Banco de tiempo con créditos, compras grupales, voz, SMS y publicación por terceros son ampliaciones del prototipo de referencia sin aprobación.
 - Tutorial, geolocalización y offline siguen siendo requisitos del reto aunque no estén detallados en el esquema.
 

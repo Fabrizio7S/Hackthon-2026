@@ -18,6 +18,7 @@ Actualizado: 2026-11-07. Fuente: acuerdos del usuario en esta conversación. Reg
 | D11 | Agentes sin git add, cambios de staging, commits ni git push. Sugieren archivos y mensaje de commit para ejecución humana. |
 | D12 | Inicializar React Native ahora: base Expo con TypeScript, npm y pantalla inicial; sin servicios externos ni funciones de negocio. |
 | D13 | Actualizar a Expo SDK 58 para coincidir con Expo Go instalado por el usuario. T00.2 registra la verificación. |
+| D14 | Q05 resuelta para la primera entrega de G03. El solicitante finaliza. Antes de aceptar, solo el solicitante puede cancelar. Durante la coordinación, puede cancelar el solicitante o el vecino cuyo ofrecimiento se aceptó. Al aceptar uno, se cierran los demás ofrecimientos. La ayuda se ofrece sobre una necesidad publicada. La devolución de objetos queda fuera de esta entrega. |
 
 ## Provisional
 Emergencias siempre disponible. Falta confirmar reglas de atención y cierre.
@@ -36,7 +37,6 @@ Emergencias siempre disponible. Falta confirmar reglas de atención y cierre.
 | Q02 | ¿Cómo se reconoce al representante? ¿Quién más invita? ¿Qué pasa al rechazar o repetir invitaciones? | Roles e invitaciones de G01. |
 | Q03 | ¿Qué datos de perfil son obligatorios y qué ubicación se muestra a otros? | Perfil y privacidad. |
 | Q04 | ¿Qué rango tienen las estrellas, quién califica y cuántas veces? | G02. |
-| Q05 | ¿Quién confirma finalización? ¿Cómo se cancela y qué pasa con otros ofrecimientos? ¿También se publica ayuda ofrecida sin necesidad previa? | G03. |
 | Q06 | ¿Quién atiende y cierra emergencias? ¿Qué niveles, recursos y grupos se muestran? | G04. |
 | Q07 | ¿Qué funciona offline y cómo se manejan reintentos y conflictos? | Modelo inicial y sincronización. |
 | Q08 | ¿Desde dónde se cuentan tres clics? ¿Cómo se acepta tutorial y accesibilidad? | Validación transversal. |

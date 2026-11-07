@@ -1,6 +1,6 @@
 # Tareas y estado
 
-Actualizado: 2026-11-07. Base técnica lista y apertura en teléfono confirmada por el usuario. Sin tarea en curso; siguiente grupo propuesto: G01.
+Actualizado: 2026-11-07. Base técnica lista y apertura inicial en teléfono confirmada por el usuario. G03 incluye una demo de frontend para revisión.
 
 | Grupo | Alcance | Estado |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ Actualizado: 2026-11-07. Base técnica lista y apertura en teléfono confirmada 
 | [T00.2](T00-2-sdk58.md) (G00) | Compatibilidad con Expo Go SDK 58 | Verificada; apertura en teléfono confirmada por el usuario. |
 | G01 | Acceso, perfil, comunidad e invitaciones | Propuesto; cerrar Q01–Q03, Q07 y Q10 según afecten al modelo. |
 | G02 | Servicios/productos, contacto y estrellas | Propuesto; depende de G01 y Q04/Q09. |
-| G03 | Favores y coordinación | Propuesto; depende de G01 y Q05. |
+| [G03](G03-cadena-favores.md) | Favores y coordinación | Demo frontend de Persona 3 implementada. Verificación en teléfono y acuerdos de integración pendientes. |
 | G04 | Emergencias y apoyo | Propuesto; depende de comunidad y Q06. |
 
 El orden es propuesto. Muro, favoritos, historial, tutorial, mapa y offline necesitan asignación al cerrar alcance; no están descartados. Permisos, ubicación y persistencia deben contemplarse antes de implementar modelos dependientes.

@@ -4,9 +4,8 @@ Reto de El Comercio y UTP: conectar vecinos con productos y servicios cercanos, 
 
 ## Estado
 - Stack acordado: React Native con Expo, TypeScript y Supabase.
-- Base técnica con una pantalla inicial en español, sin funciones de producto ni conexión a Supabase.
+- Demo de frontend de Cadena de favores con datos de ejemplo. El estado se conserva mientras la app está abierta.
 - Entrada: index.ts registra App.tsx. Configuración: app.json. Nombre provisional.
-- Inicialización autorizada; las funciones del producto requieren asignación posterior.
 
 ## Instalación y ejecución
 Requisitos: Node.js compatible con Expo SDK 58 y npm. Entorno usado: Node 24.17.0 y npm 12.0.1.
@@ -34,6 +33,13 @@ npm start -- --clear
 | npm run export | Genera bundles Android, iOS y web en dist/. No publica ni despliega. |
 
 Los iconos son los de la plantilla oficial. No se requieren credenciales para iniciar esta base. No hay todavía pruebas automatizadas de funciones del producto.
+
+## Probar Cadena de favores
+
+1. Abre «Taladro percutor» desde **Explorar**. Guárdalo para encontrarlo en **Guardadas** o elige **Solicitar préstamo**.
+2. En **Mi actividad**, comprueba que la solicitud aparece pendiente de aceptación.
+
+La demo usa un perfil de ejemplo fijo. WhatsApp abre un mensaje preparado y permite elegir el contacto porque los vecinos de ejemplo no tienen números asociados.
 
 ## Supabase
 Completa EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY en el archivo local .env usando los valores públicos del proyecto compartido. .env.example contiene la plantilla sin valores; .env está ignorado por Git. Después reinicia Expo.
