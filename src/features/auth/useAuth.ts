@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
 import { authErrorMessage, createAuthService, validateCredentials, type AccessMode } from './authService';
+import { observeSession } from './observeSession';
 
 // Estado interno del módulo; no constituye todavía el contrato compartido del equipo.
 export function useAuth(client: SupabaseClient) {
@@ -22,31 +23,16 @@ export function useAuth(client: SupabaseClient) {
   }, []);
 
   useEffect(() => {
-    let active = true;
-    let eventReceived = false;
     setRestoring(true);
     setRestoreError(null);
     setSession(null);
-    const { data: { subscription } } = client.auth.onAuthStateChange((_event, next) => {
-      if (!active) return;
-      eventReceived = true;
-      setSession(next);
-      setRestoreError(null);
+    return observeSession(client, state => {
+      setSession(state.session);
+      setRestoreError(state.status === 'error'
+        ? 'No pudimos recuperar la sesión. Revisa tu conexión y vuelve a intentar.'
+        : null);
       setRestoring(false);
     });
-    // Una lectura atrasada nunca debe sobrescribir un evento más reciente (p. ej. cierre).
-    void client.auth.getSession().then(({ data, error: failure }) => {
-      if (!active || eventReceived) return;
-      if (failure) throw failure;
-      setSession(data.session);
-      setRestoring(false);
-    }).catch(() => {
-      if (!active || eventReceived) return;
-      setSession(null);
-      setRestoreError('No pudimos recuperar la sesión. Revisa tu conexión y vuelve a intentar.');
-      setRestoring(false);
-    });
-    return () => { active = false; subscription.unsubscribe(); };
   }, [client, attempt]);
 
   async function run(action: () => Promise<void>) {

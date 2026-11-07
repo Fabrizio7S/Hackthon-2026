@@ -82,6 +82,7 @@ No introducir biblioteca de navegación ni modificar `app.json` sin coordinació
 - `src/features/auth/authService.ts`: cliente inyectado, validación, llamadas reales a la API del SDK y bloqueo de solicitudes simultáneas. El cierre solicita alcance local y mantiene el error si falla.
 - `src/features/auth/authService.test.cjs`: seis pruebas del servicio con cliente simulado, sin nuevas dependencias. No constituyen evidencia de integración remota.
 - `src/features/auth/README.md`: punto de montaje propuesto y pendientes de integración.
+- Segunda iteración: extraída la observación interna a `observeSession.ts` y añadidas seis pruebas en `observeSession.test.cjs`. `useAuth.ts` utiliza esta observación. Se corrigió un caso donde `INITIAL_SESSION` podía ocultar un fallo de lectura inicial; los eventos posteriores siguen prevaleciendo sobre resultados atrasados. Se comprueban cancelación, reintento, renovación recibida y cambio de cuenta con eventos simulados.
 - Se conservaron intactos los archivos compartidos. No se cambiaron variables, configuración remota, navegación ni dependencias.
 
 ## Verificación de esta implementación
@@ -89,6 +90,8 @@ No introducir biblioteca de navegación ni modificar `app.json` sin coordinació
 | Criterio | Comando o recorrido | Resultado | Límites |
 | --- | --- | --- | --- |
 | Servicio | `node --test src/features/auth/authService.test.cjs` | 6 pruebas correctas, código 0 | Cliente simulado: validación sin llamadas, normalización de correo sin alterar contraseña, confirmación sin sesión, doble envío, reintento tras error y cierre local. No prueba el hook ni la interfaz. |
+| Servicio y observación de sesión, segunda iteración | `node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs` | 12 pruebas correctas, código 0 | Incluye errores de restauración, orden de eventos, cancelación y cambio de cuenta. No prueba montaje de React ni almacenamiento real. |
+| Exportación, segunda iteración | `npm run export` | Falló, código 1; Hermes terminó con código 6 en Android e iOS | Persiste el fallo previo. El módulo sigue sin montarse; no demuestra ejecución de su interfaz. |
 | TypeScript | `npm run typecheck` | Correcto, código 0 | Incluye las piezas nuevas. |
 | Exportación | `npm run export` | Falló, código 1; Hermes terminó con código 6 en Android e iOS. Web llegó a empaquetarse. | Mismo fallo observado antes de los cambios. Causa raíz pendiente. Como el módulo no está montado, el bundle no prueba su interfaz. |
 | Teléfono y Auth remoto | No ejecutados | Pendientes | No se puede considerar autenticación integrada ni persistente con la configuración actual. |
@@ -100,6 +103,7 @@ No introducir biblioteca de navegación ni modificar `app.json` sin coordinació
 - Pendientes posteriores: Q03 para perfil; Q01 y Q02 para comunidad/invitaciones; permisos y pruebas con dos participantes y una cuenta ajena.
 - Archivos propuestos para revisión y eventual `git add` humano: `docs/tareas/T01-1-autenticacion.md`, `src/features/auth/AuthPanel.tsx`, `src/features/auth/useAuth.ts`, `src/features/auth/authService.ts`, `src/features/auth/authService.test.cjs`, `src/features/auth/README.md`.
 - Mensaje de commit sugerido: `feat(auth): preparar acceso independiente con correo y contraseña`.
+- Para la segunda iteración, archivos propuestos: `src/features/auth/observeSession.ts`, `src/features/auth/observeSession.test.cjs`, `src/features/auth/useAuth.ts`, `src/features/auth/README.md` y esta ficha. Mensaje sugerido: `fix(auth): comprobar restauración y orden de eventos de sesión`.
 - No se ejecutaron git add, commit, push ni despliegues.
 
 ## Referencia técnica consultada

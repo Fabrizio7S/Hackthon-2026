@@ -6,6 +6,7 @@ Implementación parcial del issue #1. No está montada en `App.tsx` y no restaur
 
 - `AuthPanel.tsx`: formulario de registro/inicio y vista mínima de sesión/cierre; recibe `client: SupabaseClient | null`.
 - `useAuth.ts`: estado interno, lectura inicial, suscripción y reintento. La suscripción se cancela al desmontar; un resultado inicial atrasado no sobrescribe un evento posterior.
+- `observeSession.ts`: observación interna comprobable sin React. Los eventos posteriores prevalecen sobre la lectura inicial; `INITIAL_SESSION` no oculta sus errores.
 - `authService.ts`: llamadas al cliente inyectado y exclusión de solicitudes simultáneas. El cierre solicita alcance `local`, correspondiente a la sesión actual.
 
 No se recogen datos de perfil ni se asignan roles. El correo se recorta; la contraseña se envía sin transformaciones. La política de contraseña la valida Supabase. Los errores remotos se traducen sin mostrar diagnósticos internos.
@@ -27,9 +28,9 @@ Antes de considerar completo el flujo:
 Desde la raíz:
 
 ```powershell
-node --test src/features/auth/authService.test.cjs
+node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs
 npm run typecheck
 npm run export
 ```
 
-Ejecutar typecheck y export por separado. Las pruebas del servicio usan un cliente simulado; verifican validación, registro pendiente de confirmación, bloqueo, reintento y errores. No prueban React, persistencia, correo, conexión real ni autorización de Supabase.
+Ejecutar typecheck y export por separado. Las 12 pruebas usan un cliente simulado; verifican validación, registro pendiente de confirmación, bloqueo, reintento, errores y orden de eventos de sesión. Incluyen cierre durante lectura inicial, error inicial, cancelación y cambio de cuenta. No prueban el montaje de React, persistencia, correo, conexión real ni autorización de Supabase.
