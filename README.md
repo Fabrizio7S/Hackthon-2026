@@ -35,6 +35,11 @@ npm start -- --clear
 
 Los iconos son los de la plantilla oficial. No se requieren credenciales para iniciar esta base. No hay todavía pruebas automatizadas de funciones del producto.
 
+## Supabase
+Completa EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY en el archivo local .env usando los valores públicos del proyecto compartido. .env.example contiene la plantilla sin valores; .env está ignorado por Git. Después reinicia Expo.
+
+El cliente mínimo está en src/lib/supabase.ts y devuelve null sin configuración. No está conectado a la pantalla inicial; la autenticación y persistencia de sesión se implementarán después. No uses claves secretas ni service_role en estas variables.
+
 ## Retomar con cualquier agente
 Entrega este mensaje al iniciar una sesión con cualquier agente:
 

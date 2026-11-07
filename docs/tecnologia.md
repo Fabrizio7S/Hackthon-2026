@@ -1,7 +1,7 @@
 # Tecnología
 
 ## Acordado y estado
-React Native con Expo y TypeScript para interfaz; Supabase para autenticación, datos y archivos cuando corresponda. La base técnica está inicializada; Supabase sigue sin instalar ni conectar y no existe esquema SQL.
+React Native con Expo y TypeScript para interfaz; Supabase para autenticación, datos y archivos cuando corresponda. Hay un cliente mínimo en src/lib/supabase.ts y variables públicas en .env.example; falta configurar el proyecto remoto. Sin autenticación, persistencia de sesión ni esquema SQL todavía.
 
 Entrada: index.ts y App.tsx. Gestor: npm, con package-lock.json. Comandos en README.md. TypeScript estricto; sin navegación ni estructura de datos de negocio todavía.
 
