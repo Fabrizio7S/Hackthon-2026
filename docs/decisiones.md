@@ -22,6 +22,10 @@ Las propuestas y preguntas pendientes no son requisitos confirmados.
 | D13 | Actualizar a Expo SDK 58 para coincidir con Expo Go instalado por el usuario. La ficha T00.2 registra la verificación. |
 | D14 | Repartir el proyecto entre cinco responsabilidades: acceso/comunidades; servicios/productos; favores; emergencias; integración/mapas/offline. |
 | D15 | Cada responsable implementa y comprueba interfaz, datos y permisos de su módulo. Integración coordina los contratos y recorridos conjuntos. |
+| D16 | G02, campos de oferta para la primera entrega: tipo (servicio o producto, mismos campos), título, descripción, teléfono, ubicación opcional y estado activa/retirada. Sin precio, categoría ni foto. Decidido por Persona 2 el 2026-11-07; comunicar al equipo. Detalle en [T02.1](tareas/T02-1-contrato-ofertas.md). |
+| D17 | G02, el teléfono de contacto se escribe en cada oferta y se muestra completo a los vecinos que pueden ver la oferta. No depende del perfil. Decidido por Persona 2 el 2026-11-07. |
+| D18 | G02, estrellas de 1 a 5: cualquier vecino que pueda ver la oferta califica una vez por oferta, puede cambiar su nota y no califica su propia oferta. Resuelve Q04. Decidido por Persona 2 el 2026-11-07. |
+| D19 | G02, edición y retiro: solo el autor edita (todos los campos salvo el tipo), retira y reactiva su oferta. Decidido por Persona 2 el 2026-11-07. |
 
 ## Organización prevista
 
@@ -54,12 +58,12 @@ Falta confirmar reglas de atención, coordinación y cierre.
 | Q01 | ¿Una o varias comunidades por usuario? ¿Qué se ve fuera de la propia? | Pertenencia, consultas y permisos. |
 | Q02 | ¿Cómo se reconoce al representante? ¿Quién más invita? ¿Qué ocurre al rechazar o repetir invitaciones? | Roles e invitaciones. |
 | Q03 | ¿Qué datos de perfil son obligatorios y qué ubicación se muestra a otros? | Perfil y privacidad. |
-| Q04 | ¿Qué rango tienen las estrellas, quién califica y cuántas veces? | Servicios y productos. |
+| Q04 | ¿Qué rango tienen las estrellas, quién califica y cuántas veces? Resuelta en D18. | Servicios y productos. |
 | Q05 | ¿Quién confirma finalización? ¿Cómo se cancela? ¿Qué ocurre con otros ofrecimientos? ¿Se publica ayuda disponible sin necesidad previa? | Favores y coordinación. |
 | Q06 | ¿Quién atiende y cierra emergencias? ¿Qué niveles, recursos y grupos se muestran? | Emergencias. |
 | Q07 | ¿Qué funciona offline? ¿Cómo se gestionan reintentos, duplicados y conflictos? | Modelos, persistencia y sincronización. |
 | Q08 | ¿Desde dónde se cuentan tres clics? ¿Cómo se verifica tutorial y accesibilidad? | Publicación y validación transversal. |
-| Q09 | ¿Cuál es el alcance inicial de productos, muro, adjuntos, reacciones, favoritos e historial? | Cobertura y reparto de subtareas. |
+| Q09 | ¿Cuál es el alcance inicial de productos, muro, adjuntos, reacciones, favoritos e historial? Productos resuelto en D16; el resto sigue abierto. | Cobertura y reparto de subtareas. |
 | Q10 | ¿Quién ocupa cada responsabilidad, quién integra y quién revisa cada entrega? | Coordinación del equipo. |
 
 Q10 está parcialmente resuelta por el reparto en cinco responsabilidades.
