@@ -21,9 +21,12 @@ cuando afecten al equipo.
 Entrada: index.ts registra App.tsx.
 Configuración de la aplicación: app.json.
 
-La base inicial contiene una pantalla de bienvenida y un cliente mínimo de
-Supabase en src/lib/supabase.ts. La existencia del cliente no demuestra
-autenticación, persistencia ni integración funcional.
+App.tsx monta el flujo de acceso de src/features/auth/ con el cliente único
+de src/lib/supabase.ts. La sesión se persiste en AsyncStorage 2.2.0 en nativo
+y mediante el almacenamiento del SDK en web. AppState coordina renovación
+en primer plano. La identidad se consulta al servidor antes de mostrar la
+vista de sesión; no se implementa acceso privado offline. AsyncStorage no
+cifra en reposo. Evidencia y pruebas nativas pendientes en T01.1.
 
 El estado vigente de implementación se registra en tareas/README.md.
 

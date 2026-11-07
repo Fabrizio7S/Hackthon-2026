@@ -31,12 +31,12 @@ export function useAuth(client: SupabaseClient) {
       setRestoreError(state.status === 'error'
         ? 'No pudimos recuperar la sesión. Revisa tu conexión y vuelve a intentar.'
         : null);
-      setRestoring(false);
+      setRestoring(state.status === 'checking');
     });
   }, [client, attempt]);
 
-  async function run(action: () => Promise<void>) {
-    if (operation.current || restoring || restoreError) return false;
+  async function run(action: () => Promise<void>, allowRestoreFailure = false) {
+    if (operation.current || restoring || (restoreError && !allowRestoreFailure)) return false;
     operation.current = true;
     setPending(true);
     setError(null);
@@ -71,7 +71,10 @@ export function useAuth(client: SupabaseClient) {
     },
     signOut: () => run(async () => {
       await service.signOut();
-      if (mounted.current) setSession(null);
-    }),
+      if (mounted.current) {
+        setSession(null);
+        setRestoreError(null);
+      }
+    }, true),
   };
 }

@@ -13,13 +13,14 @@ const sandbox = { exports: {} };
 vm.runInNewContext(compiled, sandbox);
 const { observeSession } = sandbox.exports;
 
-function setup() {
+function setup(verify = async token => ({ data: { user: { id: token } }, error: null })) {
   let callback, resolve, reject;
   let unsubscribed = 0;
   const states = [];
   const initial = new Promise((yes, no) => { resolve = yes; reject = no; });
   const client = { auth: {
     getSession: () => initial,
+    getUser: verify,
     onAuthStateChange: listener => {
       callback = listener;
       return { data: { subscription: { unsubscribe: () => { unsubscribed++; } } } };
@@ -36,13 +37,12 @@ function setup() {
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
 test('recupera una sesión o el estado sin sesión desde la lectura inicial', async () => {
-  for (const session of [null, { user: { id: 'A' } }]) {
+  for (const session of [null, { user: { id: 'A' }, access_token: 'A' }]) {
     const h = setup();
     h.resolve({ data: { session }, error: null });
     await settle();
-    assert.equal(h.states.length, 1);
-    assert.equal(h.states[0].status, 'ready');
-    assert.equal(h.states[0].session, session);
+    assert.equal(h.states.at(-1).status, 'ready');
+    assert.equal(h.states.at(-1).session?.user.id ?? null, session?.user.id ?? null);
     h.stop();
   }
 });
@@ -50,7 +50,7 @@ test('recupera una sesión o el estado sin sesión desde la lectura inicial', as
 test('un cierre posterior gana a la lectura inicial atrasada', async () => {
   const h = setup();
   h.emit('SIGNED_OUT', null);
-  h.resolve({ data: { session: { user: { id: 'A' } } }, error: null });
+  h.resolve({ data: { session: { user: { id: 'A' }, access_token: 'A' } }, error: null });
   await settle();
   assert.equal(h.states.length, 1);
   assert.equal(h.states[0].session, null);
@@ -96,12 +96,41 @@ test('renovación y cambio de cuenta reemplazan el estado de la cuenta anterior'
   h.resolve({ data: { session: { user: { id: 'A' } } }, error: null });
   await settle();
   h.emit('SIGNED_OUT', null);
-  const next = { user: { id: 'B' } };
+  const next = { user: { id: 'B' }, access_token: 'B' };
   h.emit('SIGNED_IN', next);
-  const refreshed = { user: { id: 'B' }, access_token: 'simulated-token' };
+  await settle();
+  const refreshed = { user: { id: 'B' }, access_token: 'B' };
   h.emit('TOKEN_REFRESHED', refreshed);
-  assert.equal(h.states[1].session, null);
-  assert.equal(h.states[2].session, next);
-  assert.equal(h.states[3].session, refreshed);
+  await settle();
+  assert.equal(h.states.filter(state => state.session?.user.id === 'A').length, 0);
+  assert.equal(h.states.at(-1).session.user.id, 'B');
+  h.stop();
+});
+
+test('no muestra una sesión que el servidor rechaza o atribuye a otra identidad', async () => {
+  for (const response of [
+    { data: { user: null }, error: { code: 'bad_jwt' } },
+    { data: { user: { id: 'otro' } }, error: null },
+  ]) {
+    const h = setup(async () => response);
+    h.resolve({ data: { session: { user: { id: 'A' }, access_token: 'A' } }, error: null });
+    await settle();
+    assert.equal(h.states.at(-1).status, 'error');
+    assert.equal(h.states.every(state => state.session === null), true);
+    h.stop();
+  }
+});
+
+test('una verificación de identidad atrasada no reabre una sesión cerrada', async () => {
+  let complete;
+  const h = setup(() => new Promise(resolve => { complete = resolve; }));
+  h.resolve({ data: { session: { user: { id: 'A' }, access_token: 'A' } }, error: null });
+  await settle();
+  assert.equal(h.states.at(-1).status, 'checking');
+  h.emit('SIGNED_OUT', null);
+  complete({ data: { user: { id: 'A' } }, error: null });
+  await settle();
+  assert.equal(h.states.at(-1).status, 'ready');
+  assert.equal(h.states.at(-1).session, null);
   h.stop();
 });

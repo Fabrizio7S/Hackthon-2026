@@ -4,9 +4,9 @@ Reto de El Comercio y UTP: conectar vecinos con productos y servicios cercanos, 
 
 ## Estado
 - Stack acordado: React Native con Expo, TypeScript y Supabase.
-- Base técnica con una pantalla inicial en español, sin funciones de producto ni conexión a Supabase.
+- Autenticación por correo y contraseña conectada a Supabase, con registro, inicio, persistencia y cierre implementados. Verificación completa con cuenta real y teléfono pendiente; ver [T01.1](docs/tareas/T01-1-autenticacion.md).
 - Entrada: index.ts registra App.tsx. Configuración: app.json. Nombre provisional.
-- Inicialización autorizada; las funciones del producto requieren asignación posterior.
+- Perfil, comunidades e invitaciones pendientes de Q01–Q03.
 
 ## Instalación y ejecución
 Requisitos: Node.js compatible con Expo SDK 58 y npm. Entorno usado: Node 24.17.0 y npm 12.0.1.
@@ -33,12 +33,26 @@ npm start -- --clear
 | npm run typecheck | Comprueba TypeScript sin emitir archivos. |
 | npm run export | Genera bundles Android, iOS y web en dist/. No publica ni despliega. |
 
-Los iconos son los de la plantilla oficial. No se requieren credenciales para iniciar esta base. No hay todavía pruebas automatizadas de funciones del producto.
+Los iconos son los de la plantilla oficial. El formulario puede abrirse sin una cuenta; para acceder se necesita una cuenta del proyecto configurado.
+
+Pruebas unitarias de autenticación, con cliente simulado:
+
+```powershell
+node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs
+```
+
+Ejecuta typecheck y export por separado. En el entorno restringido del agente Hermes falló con código 6; la exportación fuera del sandbox pasó en las tres plataformas.
 
 ## Supabase
 Completa EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY en el archivo local .env usando los valores públicos del proyecto compartido. .env.example contiene la plantilla sin valores; .env está ignorado por Git. Después reinicia Expo.
 
-El cliente mínimo está en src/lib/supabase.ts y devuelve null sin configuración. No está conectado a la pantalla inicial; la autenticación y persistencia de sesión se implementarán después. No uses claves secretas ni service_role en estas variables.
+El cliente único está en src/lib/supabase.ts y devuelve null sin configuración. App.tsx monta el acceso y coordina la renovación al pasar entre primer y segundo plano en nativo. La sesión se guarda mediante AsyncStorage 2.2.0 en Android/iOS y el almacenamiento del SDK en web. AsyncStorage no cifra los datos en reposo; no almacena la contraseña del formulario. No uses claves secretas ni service_role en estas variables.
+
+Antes de mostrar la vista de sesión se comprueba la identidad contra Supabase. Si falla la red o la validación, se permite reintentar o cerrar la sesión guardada. Actualmente no se implementa acceso privado offline.
+
+Consulta la configuración de correo del proyecto compartido antes de probar. El proyecto configurado se consultó el 2026-11-07: registro por correo habilitado y confirmación automática activa. No se modificó ese ajuste. Si el equipo exige confirmación por correo, debe coordinar su destino antes de cambiarlo.
+
+Para verificar en teléfono: reinicia con `npm start -- --clear`, registra una cuenta de prueba propia, cierra por completo y abre la app, comprueba la sesión restaurada y cierra sesión. Repite con otra cuenta; no deben reaparecer datos de la anterior. Registra dispositivo y resultados en T01.1. No compartas contraseñas ni tokens en el chat o la documentación.
 
 ## Retomar con cualquier agente
 Entrega este mensaje al iniciar una sesión con cualquier agente:

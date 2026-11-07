@@ -22,6 +22,7 @@ Las propuestas y preguntas pendientes no son requisitos confirmados.
 | D13 | Actualizar a Expo SDK 58 para coincidir con Expo Go instalado por el usuario. La ficha T00.2 registra la verificación. |
 | D14 | Repartir el proyecto entre cinco responsabilidades: acceso/comunidades; servicios/productos; favores; emergencias; integración/mapas/offline. |
 | D15 | Cada responsable implementa y comprueba interfaz, datos y permisos de su módulo. Integración coordina los contratos y recorridos conjuntos. |
+| D16 | Para T01.1, el usuario acordó registro e inicio mediante correo y contraseña. No determina datos del perfil ni resuelve Q01–Q03. |
 
 ## Organización prevista
 

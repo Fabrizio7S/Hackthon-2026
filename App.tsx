@@ -1,13 +1,29 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { AppState, Platform, StyleSheet, View } from 'react-native';
+
+import { AuthPanel } from './src/features/auth/AuthPanel';
+import { supabase } from './src/lib/supabase';
 
 export default function App() {
+  useEffect(() => {
+    if (!supabase || Platform.OS === 'web') return;
+    const client = supabase;
+    const refresh = (state: string | null | undefined) => {
+      if (state === 'active') client.auth.startAutoRefresh();
+      else client.auth.stopAutoRefresh();
+    };
+    refresh(AppState.currentState);
+    const subscription = AppState.addEventListener('change', refresh);
+    return () => {
+      subscription.remove();
+      client.auth.stopAutoRefresh();
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Text accessibilityRole="header" style={styles.title}>
-        Aplicación vecinal
-      </Text>
-      <Text style={styles.description}>Tu comunidad, más cerca.</Text>
+      <AuthPanel client={supabase} />
       <StatusBar style="dark" />
     </View>
   );
@@ -16,21 +32,8 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
+    paddingTop: 48,
+    paddingBottom: 24,
     backgroundColor: '#fff',
-  },
-  title: {
-    color: '#111',
-    fontSize: 28,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  description: {
-    marginTop: 12,
-    color: '#444',
-    fontSize: 18,
-    textAlign: 'center',
   },
 });

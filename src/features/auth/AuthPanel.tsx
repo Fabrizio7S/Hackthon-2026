@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { ActivityIndicator, Button, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, BackHandler, Button, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { AccessMode } from './authService';
 import { useAuth } from './useAuth';
 
-// Componente independiente para montar cuando se acuerde la integración con Persona 5.
+// Una sola fuente de sesión para el flujo de acceso montado en App.tsx.
 export function AuthPanel({ client }: { client: SupabaseClient | null }) {
   if (!client) {
     return <View style={styles.container}><Text>No se ha configurado el servicio de acceso. Revisa las variables públicas de Supabase y reinicia Expo.</Text></View>;
@@ -19,6 +19,19 @@ function ConfiguredAuthPanel({ client }: { client: SupabaseClient }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    if (mode !== 'signUp' || auth.session) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (!auth.pending) {
+        setMode('signIn');
+        setPassword('');
+        auth.clearFeedback();
+      }
+      return true;
+    });
+    return () => subscription.remove();
+  }, [mode, auth.session, auth.pending, auth.clearFeedback]);
+
   async function submit() {
     if (await auth.submit(mode, email, password)) setPassword('');
   }
@@ -27,7 +40,16 @@ function ConfiguredAuthPanel({ client }: { client: SupabaseClient }) {
     return <View style={styles.container}><ActivityIndicator accessibilityLabel="Recuperando sesión" /><Text>Recuperando sesión…</Text></View>;
   }
   if (auth.restoreError) {
-    return <View style={styles.container}><Text accessibilityRole="alert">{auth.restoreError}</Text><Button title="Reintentar" onPress={auth.retry} /></View>;
+    return <View style={styles.container}>
+      <Text accessibilityRole="alert">{auth.restoreError}</Text>
+      {auth.error && <Text accessibilityRole="alert">{auth.error}</Text>}
+      <Button title="Reintentar" disabled={auth.pending} onPress={auth.retry} />
+      <Button title={auth.pending ? 'Cerrando sesión…' : 'Cerrar sesión guardada'} disabled={auth.pending} onPress={() => {
+        setPassword('');
+        setEmail('');
+        void auth.signOut();
+      }} />
+    </View>;
   }
   if (auth.session) {
     return (
