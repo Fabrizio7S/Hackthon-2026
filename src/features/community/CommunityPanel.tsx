@@ -4,6 +4,7 @@ import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from 're
 
 import { normalizeCommunityName } from './communityService';
 import { useCommunity } from './useCommunity';
+import { InvitationPanel } from './InvitationPanel';
 
 export function CommunityPanel({ client, userId, refreshVersion }: {
   client: SupabaseClient;
@@ -45,6 +46,9 @@ export function CommunityPanel({ client, userId, refreshVersion }: {
             </>}
       </>}
       <Button title="Actualizar comunidad" disabled={community.creating} onPress={community.refresh} />
+      {community.data && <InvitationPanel key={userId} client={client}
+        canInvite={community.data.can_create && community.data.membership?.role === 'representative'}
+        onMembershipChanged={community.refresh} />}
     </>}
   </View>;
 }

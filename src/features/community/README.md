@@ -1,6 +1,6 @@
 # Creación de comunidad — T01.3
 
-Implementa D18/D19 para creación y pertenencia propia. No incluye todavía invitaciones ni listado de integrantes. El estado privado se monta por usuario en AuthPanel, no se guarda offline y descarta respuestas al desmontar o recargar.
+Describe T01.3: creación y pertenencia propia bajo D18/D19. T01.4 añade el flujo de invitaciones descrito en `INVITATIONS.md`. Listado de integrantes pendiente. El estado privado se monta por usuario en AuthPanel, no se guarda offline y descarta respuestas al desmontar o recargar.
 
 ## Interfaz y datos
 
@@ -60,4 +60,4 @@ PGlite ejecuta PostgreSQL con fixtures de auth y roles. No verifica Supabase Aut
 
 ## Siguiente integración
 
-Inspeccionar primero el esquema del proyecto exacto de .env; revisar y aplicar las dos migraciones en orden, mantener el esquema interno no expuesto y ejecutar asesores. Probar con representante autorizado, vecino y cuenta ajena. Teléfono pendiente; el usuario indicó que no dispone de uno en esta sesión. El issue #1 sigue abierto para invitaciones y los demás criterios pendientes.
+Inspeccionar primero el esquema del proyecto exacto de .env; revisar y aplicar las migraciones en el orden documentado en `supabase/README.md`, mantener el esquema interno no expuesto y ejecutar asesores. Probar con representante autorizado, vecino y cuenta ajena. Teléfono pendiente; el usuario indicó que no dispone de uno en esta sesión. El issue #1 sigue abierto para integrantes, contratos y pruebas reales pendientes.
