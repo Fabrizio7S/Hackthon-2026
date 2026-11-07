@@ -6,7 +6,7 @@ Reto de El Comercio y UTP: conectar vecinos con productos y servicios cercanos, 
 - Stack acordado: React Native con Expo, TypeScript y Supabase.
 - Autenticación por correo y contraseña conectada a Supabase, con registro, inicio, persistencia y cierre implementados. Verificación completa con cuenta real y teléfono pendiente; ver [T01.1](docs/tareas/T01-1-autenticacion.md).
 - Entrada: index.ts registra App.tsx. Configuración: app.json. Nombre provisional.
-- Perfil, comunidades e invitaciones pendientes de Q01–Q03.
+- Perfil propio y código personal implementados; aplicación de migración y pruebas remotas pendientes: [T01.2](docs/tareas/T01-2-perfil.md). Q01–Q03 resueltas en D17–D19. Comunidades e invitaciones pendientes de implementación.
 
 ## Instalación y ejecución
 Requisitos: Node.js compatible con Expo SDK 58 y npm. Entorno usado: Node 24.17.0 y npm 12.0.1.
@@ -40,6 +40,8 @@ Pruebas unitarias de autenticación, con cliente simulado:
 ```powershell
 node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs
 ```
+
+Para incluir las pruebas del perfil, añade `src/features/profile/profileService.test.cjs` al comando. Las pruebas SQL aisladas y la aplicación pendiente de la migración se describen en [perfil](src/features/profile/README.md).
 
 Ejecuta typecheck y export por separado. En el entorno restringido del agente Hermes falló con código 6; la exportación fuera del sandbox pasó en las tres plataformas.
 

@@ -24,7 +24,7 @@ No marcar tareas como en curso sin inicio confirmado por el responsable.
 
 | Grupo | Responsable | Alcance | Issue | Estado |
 | --- | --- | --- | --- | --- |
-| G01 | Persona 1: pendiente de nombre | Acceso, perfil, comunidades e invitaciones | [#1](https://github.com/Fabrizio7S/Hackthon-2026/issues/1) | [T01.1](T01-1-autenticacion.md): autenticación integrada, pendiente de recorrido real en teléfono. Perfil y comunidades pendientes. |
+| G01 | Persona 1: pendiente de nombre | Acceso, perfil, comunidades e invitaciones | [#1](https://github.com/Fabrizio7S/Hackthon-2026/issues/1) | [T01.1](T01-1-autenticacion.md): autenticación integrada, teléfono pendiente. [T01.2](T01-2-perfil.md): perfil implementado; migración remota y verificación real pendientes. Comunidades/invitaciones pendientes. |
 | G02 | Persona 2: pendiente de nombre | Servicios, productos, contacto y estrellas | Pendiente de enlazar | Pendiente |
 | G03 | Persona 3: pendiente de nombre | Cadena de favores y coordinación | Pendiente de enlazar | Pendiente |
 | G04 | Persona 4: pendiente de nombre | Emergencias y recursos de apoyo | Pendiente de enlazar | Pendiente |
@@ -47,7 +47,7 @@ El procedimiento completo está en ../flujo-trabajo.md.
 
 | Grupo | Dependencias principales | Decisiones pendientes |
 | --- | --- | --- |
-| G01 | Configuración del proyecto y contratos compartidos | Q01, Q02 y Q03 |
+| G01 | Acceso al proyecto compartido, revisión/aplicación de migración y contratos compartidos | Q01–Q03 resueltas en D17–D19; verificación real pendiente. |
 | G02 | Sesión/comunidad y ubicación/mapa | Q04 y Q09 |
 | G03 | Sesión/comunidad y contratos de estados | Q05 |
 | G04 | Sesión/comunidad, ubicación y coordinación de apoyo | Q06 |

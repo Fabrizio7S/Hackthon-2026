@@ -23,6 +23,9 @@ Las propuestas y preguntas pendientes no son requisitos confirmados.
 | D14 | Repartir el proyecto entre cinco responsabilidades: acceso/comunidades; servicios/productos; favores; emergencias; integración/mapas/offline. |
 | D15 | Cada responsable implementa y comprueba interfaz, datos y permisos de su módulo. Integración coordina los contratos y recorridos conjuntos. |
 | D16 | Para T01.1, el usuario acordó registro e inicio mediante correo y contraseña. No determina datos del perfil ni resuelve Q01–Q03. |
+| D17 | Q03, aprobada por el usuario para esta entrega: nombre visible obligatorio, correo privado obtenido de la sesión y código personal único generado por el servidor que el cliente no puede modificar. No se incorporan teléfono, dirección ni coordenadas. El perfil completo solo lo consulta su dueño; la búsqueda por código para invitaciones devolverá únicamente nombre y código a representantes autorizados. |
+| D18 | Q01, aprobada por el usuario: una comunidad por vecino. Sin comunidad puede gestionar su perfil e invitaciones. Los datos de comunidad e integrantes solo son accesibles a miembros de esa comunidad. No determina la visibilidad de emergencias ni otros módulos. |
+| D19 | Q02, aprobada por el usuario: representante autorizado manualmente en backend, sin asignación de roles desde el cliente. Solo el representante crea comunidad e invita. No se duplican invitaciones pendientes ni se invita a quien ya es miembro. Aceptar o rechazar repetidamente la misma invitación no produce cambios adicionales; después de rechazar puede enviarse una nueva invitación. |
 
 ## Organización prevista
 
@@ -42,7 +45,6 @@ Falta confirmar reglas de atención, coordinación y cierre.
 
 ## Propuestas sin aprobación
 
-- Una comunidad por usuario para la primera entrega.
 - SQLite para persistencia y cola offline.
 - PostGIS para consultas de cercanía.
 - Devolución de objetos dentro de la primera entrega.
@@ -52,9 +54,9 @@ Falta confirmar reglas de atención, coordinación y cierre.
 
 | ID | Decisión por resolver | Afecta |
 | --- | --- | --- |
-| Q01 | ¿Una o varias comunidades por usuario? ¿Qué se ve fuera de la propia? | Pertenencia, consultas y permisos. |
-| Q02 | ¿Cómo se reconoce al representante? ¿Quién más invita? ¿Qué ocurre al rechazar o repetir invitaciones? | Roles e invitaciones. |
-| Q03 | ¿Qué datos de perfil son obligatorios y qué ubicación se muestra a otros? | Perfil y privacidad. |
+| Q01 | Resuelta para esta entrega en D18. | Pertenencia, consultas y permisos. |
+| Q02 | Resuelta para esta entrega en D19. | Roles e invitaciones. |
+| Q03 | Resuelta para esta entrega en D17. | Perfil y privacidad. |
 | Q04 | ¿Qué rango tienen las estrellas, quién califica y cuántas veces? | Servicios y productos. |
 | Q05 | ¿Quién confirma finalización? ¿Cómo se cancela? ¿Qué ocurre con otros ofrecimientos? ¿Se publica ayuda disponible sin necesidad previa? | Favores y coordinación. |
 | Q06 | ¿Quién atiende y cierra emergencias? ¿Qué niveles, recursos y grupos se muestran? | Emergencias. |

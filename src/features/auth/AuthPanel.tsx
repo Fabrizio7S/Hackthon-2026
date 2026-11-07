@@ -4,6 +4,7 @@ import { ActivityIndicator, BackHandler, Button, KeyboardAvoidingView, Platform,
 
 import type { AccessMode } from './authService';
 import { useAuth } from './useAuth';
+import { ProfilePanel } from '../profile/ProfilePanel';
 
 // Una sola fuente de sesión para el flujo de acceso montado en App.tsx.
 export function AuthPanel({ client }: { client: SupabaseClient | null }) {
@@ -53,16 +54,17 @@ function ConfiguredAuthPanel({ client }: { client: SupabaseClient }) {
   }
   if (auth.session) {
     return (
-      <View style={styles.container}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.container}>
         <Text accessibilityRole="header" style={styles.title}>Sesión iniciada</Text>
         <Text>{auth.session.user.email}</Text>
+        <ProfilePanel key={auth.session.user.id} client={client} userId={auth.session.user.id} email={auth.session.user.email} />
         {auth.error && <Text accessibilityRole="alert">{auth.error}</Text>}
         <Button title={auth.pending ? 'Cerrando sesión…' : 'Cerrar sesión'} disabled={auth.pending} onPress={() => {
           setPassword('');
           setEmail('');
           void auth.signOut();
         }} />
-      </View>
+      </ScrollView>
     );
   }
   return (
