@@ -25,7 +25,7 @@ No marcar tareas como en curso sin inicio confirmado por el responsable.
 | Grupo | Responsable | Alcance | Issue | Estado |
 | --- | --- | --- | --- | --- |
 | G01 | Persona 1: pendiente de nombre | Acceso, perfil, comunidades e invitaciones | Pendiente de enlazar | Pendiente |
-| G02 | Persona 2: pendiente de nombre | Servicios, productos, contacto y estrellas | [#2](https://github.com/Fabrizio7S/Hackthon-2026/issues/2) | En curso: [T02.1](T02-1-contrato-ofertas.md) contrato de ofertas; [T02.2](T02-2-contacto.md) contacto y [T02.3](T02-3-doble-envio.md) doble envío implementados sin verificar en teléfono; [T02.4](T02-4-estados-lista.md) estados de lista verificados en navegador |
+| G02 | Persona 2: pendiente de nombre | Servicios, productos, contacto y estrellas | [#2](https://github.com/Fabrizio7S/Hackthon-2026/issues/2) | En curso: [T02.1](T02-1-contrato-ofertas.md) contrato de ofertas; [T02.2](T02-2-contacto.md) contacto y [T02.3](T02-3-doble-envio.md) doble envío implementados sin verificar en teléfono; [T02.4](T02-4-estados-lista.md) estados de lista y [T02.5](T02-5-resumen-calificacion.md) resumen de calificación verificados en navegador |
 | G03 | Persona 3: pendiente de nombre | Cadena de favores y coordinación | Pendiente de enlazar | Pendiente |
 | G04 | Persona 4: pendiente de nombre | Emergencias y recursos de apoyo | Pendiente de enlazar | Pendiente |
 | G05 | Persona 5: pendiente de nombre | Integración, navegación, mapas, offline y entrega | Pendiente de enlazar | Pendiente |
