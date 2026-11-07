@@ -1,46 +1,91 @@
 # Decisiones y pendientes
 
-Actualizado: 2026-11-07. Fuente: acuerdos del usuario en esta conversación. Registrar aquí cambios futuros, su motivo y tareas afectadas.
+Registrar acuerdos aprobados, su motivo y las tareas afectadas.
+Las propuestas y preguntas pendientes no son requisitos confirmados.
 
 ## Confirmadas
+
 | ID | Acuerdo |
 | --- | --- |
 | D01 | Las decisiones del equipo prevalecen sobre el prototipo de referencia. |
-| D02 | React Native con Expo, TypeScript y Supabase; base técnica y versiones en tecnologia.md. |
-| D03 | Funcionalidad antes de acabado visual. Inicialización técnica autorizada; funciones del producto aún sin comenzar. |
+| D02 | React Native con Expo, TypeScript y Supabase. |
+| D03 | Funcionalidad antes del acabado visual. El estado real de implementación se registra en el índice de tareas. |
 | D04 | Un representante perteneciente al sector crea la comunidad. |
-| D05 | Invita mediante el código personal del vecino; este acepta. |
+| D05 | El representante invita mediante el código personal del vecino; el vecino acepta. |
 | D06 | Los servicios se coordinan principalmente por contacto directo. |
 | D07 | Favores: publicar necesidad, ofrecer ayuda, aceptar y completar dentro de la app. |
-| D08 | Calificación con estrellas; elegibilidad pendiente. |
+| D08 | Calificación con estrellas; elegibilidad y reglas pendientes. |
 | D09 | Devolución de préstamos deseable según tiempo disponible. |
-| D10 | Un grupo funcional activo y una tarea por agente. |
-| D11 | Agentes sin git add, cambios de staging, commits ni git push. Sugieren archivos y mensaje de commit para ejecución humana. |
-| D12 | Inicializar React Native ahora: base Expo con TypeScript, npm y pantalla inicial; sin servicios externos ni funciones de negocio. |
-| D13 | Actualizar a Expo SDK 58 para coincidir con Expo Go instalado por el usuario. T00.2 registra la verificación. |
+| D10 | Desarrollo paralelo por módulos asignados; una tarea atómica por agente y coordinación previa de archivos y contratos compartidos. Sustituye la regla anterior de un único grupo funcional activo. |
+| D11 | Agentes sin git add, cambios de staging, commits ni git push. Proponen archivos y mensaje de commit para ejecución humana. |
+| D12 | La inicialización autorizada comprendió Expo con TypeScript, npm y pantalla inicial. No demuestra implementación de funciones de negocio. |
+| D13 | Actualizar a Expo SDK 58 para coincidir con Expo Go instalado por el usuario. La ficha T00.2 registra la verificación. |
+| D14 | Repartir el proyecto entre cinco responsabilidades: acceso/comunidades; servicios/productos; favores; emergencias; integración/mapas/offline. |
+| D15 | Cada responsable implementa y comprueba interfaz, datos y permisos de su módulo. Integración coordina los contratos y recorridos conjuntos. |
+
+## Organización prevista
+
+- Una copia local del mismo repositorio por integrante.
+- Ramas propias y entregas pequeñas mediante Pull Requests.
+- Revisión por otro integrante antes de integrar.
+- Nombres, usuarios de GitHub e integrador nominal pendientes de registrar.
+- La publicación o despliegue requiere solicitud explícita.
+
+El procedimiento se documenta en flujo-trabajo.md.
+No repetir sus reglas completas aquí.
 
 ## Provisional
-Emergencias siempre disponible. Falta confirmar reglas de atención y cierre.
+
+Emergencias siempre disponible.
+Falta confirmar reglas de atención, coordinación y cierre.
 
 ## Propuestas sin aprobación
+
 - Una comunidad por usuario para la primera entrega.
-- Una copia del repositorio por integrante, rama por tarea y una persona integradora.
-- SQLite para persistencia y cola offline; PostGIS para cercanía.
-- Orden de grupos del índice de tareas.
-- Ampliaciones del prototipo de referencia enumeradas en producto.
+- SQLite para persistencia y cola offline.
+- PostGIS para consultas de cercanía.
+- Devolución de objetos dentro de la primera entrega.
+- Ampliaciones del prototipo enumeradas en producto.md.
 
 ## Preguntas
+
 | ID | Decisión por resolver | Afecta |
 | --- | --- | --- |
-| Q01 | ¿Una o varias comunidades por usuario? ¿Qué se ve fuera de la propia? | Pertenencia y permisos de G01. |
-| Q02 | ¿Cómo se reconoce al representante? ¿Quién más invita? ¿Qué pasa al rechazar o repetir invitaciones? | Roles e invitaciones de G01. |
+| Q01 | ¿Una o varias comunidades por usuario? ¿Qué se ve fuera de la propia? | Pertenencia, consultas y permisos. |
+| Q02 | ¿Cómo se reconoce al representante? ¿Quién más invita? ¿Qué ocurre al rechazar o repetir invitaciones? | Roles e invitaciones. |
 | Q03 | ¿Qué datos de perfil son obligatorios y qué ubicación se muestra a otros? | Perfil y privacidad. |
-| Q04 | ¿Qué rango tienen las estrellas, quién califica y cuántas veces? | G02. |
-| Q05 | ¿Quién confirma finalización? ¿Cómo se cancela y qué pasa con otros ofrecimientos? ¿También se publica ayuda ofrecida sin necesidad previa? | G03. |
-| Q06 | ¿Quién atiende y cierra emergencias? ¿Qué niveles, recursos y grupos se muestran? | G04. |
-| Q07 | ¿Qué funciona offline y cómo se manejan reintentos y conflictos? | Modelo inicial y sincronización. |
-| Q08 | ¿Desde dónde se cuentan tres clics? ¿Cómo se acepta tutorial y accesibilidad? | Validación transversal. |
-| Q09 | ¿Cuál es el alcance inicial de productos, muro, adjuntos, favoritos e historial? | Cobertura y planificación. |
-| Q10 | ¿Quién integra cambios y cómo trabaja cada integrante? | Colaboración concurrente. |
+| Q04 | ¿Qué rango tienen las estrellas, quién califica y cuántas veces? | Servicios y productos. |
+| Q05 | ¿Quién confirma finalización? ¿Cómo se cancela? ¿Qué ocurre con otros ofrecimientos? ¿Se publica ayuda disponible sin necesidad previa? | Favores y coordinación. |
+| Q06 | ¿Quién atiende y cierra emergencias? ¿Qué niveles, recursos y grupos se muestran? | Emergencias. |
+| Q07 | ¿Qué funciona offline? ¿Cómo se gestionan reintentos, duplicados y conflictos? | Modelos, persistencia y sincronización. |
+| Q08 | ¿Desde dónde se cuentan tres clics? ¿Cómo se verifica tutorial y accesibilidad? | Publicación y validación transversal. |
+| Q09 | ¿Cuál es el alcance inicial de productos, muro, adjuntos, reacciones, favoritos e historial? | Cobertura y reparto de subtareas. |
+| Q10 | ¿Quién ocupa cada responsabilidad, quién integra y quién revisa cada entrega? | Coordinación del equipo. |
 
-Resolver las preguntas pertinentes antes de cada tarea. Las que afectan al modelo compartido deben resolverse antes de iniciar tareas dependientes.
+Q10 está parcialmente resuelta por el reparto en cinco responsabilidades.
+Falta completar nombres, usuarios y responsables de revisión.
+
+## Tratamiento de decisiones
+
+1. Resolver la pregunta con el equipo.
+2. Registrar acuerdo, motivo y alcance.
+3. Actualizar los documentos afectados.
+4. Identificar tareas desbloqueadas o que requieren cambios.
+5. Mantener trazabilidad de la decisión anterior cuando se sustituya.
+
+No dar por resuelta una pregunta por conveniencia técnica.
+
+Las decisiones que afectan al modelo compartido deben resolverse antes de
+implementar funciones dependientes.
+
+## Imagen de referencia
+
+La imagen orienta el diseño, pero no aprueba automáticamente:
+- Activación global de un modo emergencia.
+- Tarjetas deslizables.
+- Catálogo de préstamos como flujo principal de favores.
+- Polígonos de zonas confirmadas.
+- Reacciones o comentarios.
+- Contacto automático con servicios oficiales.
+
+Consultar producto.md y recorridos.md para el alcance funcional.

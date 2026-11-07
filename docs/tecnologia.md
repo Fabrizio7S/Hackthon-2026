@@ -1,31 +1,183 @@
 # Tecnología
 
-## Acordado y estado
-React Native con Expo y TypeScript para interfaz; Supabase para autenticación, datos y archivos cuando corresponda. Hay un cliente mínimo en src/lib/supabase.ts y variables públicas en .env.example; falta configurar el proyecto remoto. Sin autenticación, persistencia de sesión ni esquema SQL todavía.
+## Stack y estado
 
-Entrada: index.ts y App.tsx. Gestor: npm, con package-lock.json. Comandos en README.md. TypeScript estricto; sin navegación ni estructura de datos de negocio todavía.
+Stack acordado:
+- React Native con Expo.
+- TypeScript.
+- Supabase para autenticación, datos y archivos cuando corresponda.
+- npm con package-lock.json.
 
-Base inicial tomada de expo-template-blank-typescript 57.0.34 y actualizada a Expo SDK 58 para coincidir con Expo Go instalado en el teléfono del usuario: React Native 0.88.1, React 19.3.0 y TypeScript ~6.0.3. Las resoluciones exactas están en package-lock.json. Seguir la [guía oficial de actualización](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/) y alinear dependencias con expo install --fix al actualizar.
+Base técnica documentada:
+- Expo SDK 58.
+- React Native 0.88.1.
+- React 19.3.0.
+- TypeScript ~6.0.3.
 
-La versión web permite comprobar la pantalla inicial, pero no sustituye la verificación nativa. No se generan proyectos nativos ni se crean cuentas de compilación en esta tarea.
+Las versiones instaladas y sus resoluciones se consultan en package.json y
+package-lock.json. No actualizar dependencias por iniciativa individual
+cuando afecten al equipo.
 
-## Propuestas
-PostGIS para cercanía y SQLite para persistencia offline son propuestas, no dependencias instaladas ni decisiones cerradas. Mapas, navegación y herramientas de pruebas del producto pendientes.
+Entrada: index.ts registra App.tsx.
+Configuración de la aplicación: app.json.
 
-## Al comenzar
-- Elegir y registrar versiones y gestor de paquetes. Después respetar estructura y archivo de bloqueo existentes.
-- Separar presentación, estado y acceso a datos con la estructura mínima necesaria.
-- Definir permisos por usuario y comunidad; configurar y comprobar RLS en tablas expuestas de Supabase. No confiar solo en filtros de pantalla.
-- No poner claves administrativas ni secretos en la app. Documentar nombres de variables con ejemplos sin valores sensibles; variables de app móvil no almacenan secretos.
-- Mantener cambios de esquema en migraciones revisables. No aplicar cambios destructivos a servicios compartidos por iniciativa propia.
-- Impedir aceptaciones incompatibles entre participantes en cambios de estado.
-- Contemplar ubicación y offline desde el modelo inicial; Supabase no sustituye el diseño de persistencia y sincronización local.
-- No añadir chat, pagos, SMS o IA fuera del alcance aprobado.
+La base inicial contiene una pantalla de bienvenida y un cliente mínimo de
+Supabase en src/lib/supabase.ts. La existencia del cliente no demuestra
+autenticación, persistencia ni integración funcional.
+
+El estado vigente de implementación se registra en tareas/README.md.
+
+## Organización del código
+
+Separar presentación, estado y acceso a datos.
+
+Estructura objetivo para incorporar progresivamente:
+
+src/
+- navigation/: navegación y registro de rutas.
+- components/: componentes compartidos.
+- lib/: clientes y utilidades de infraestructura.
+- shared/: contratos y utilidades usados por varios módulos.
+- features/auth/: acceso y sesión.
+- features/profile/: perfil.
+- features/community/: comunidades e invitaciones.
+- features/services/: servicios, productos y calificaciones.
+- features/favors/: necesidades, ofrecimientos y coordinación.
+- features/emergencies/: reportes y recursos de apoyo.
+- features/location/: ubicación y mapas.
+- features/offline/: persistencia y sincronización compartida.
+
+Crear carpetas cuando exista una necesidad real.
+No generar archivos vacíos ni capas sin uso.
+
+Esta estructura no obliga a duplicar información ni a mantener un cliente
+de Supabase por módulo.
+
+## Responsabilidades
+
+- Persona 1 mantiene los contratos de identidad, sesión, perfil y comunidad.
+- Personas 2–4 mantienen interfaz, datos, permisos y estados de sus módulos.
+- Persona 5 coordina navegación, mapas, offline y contratos compartidos.
+- Cambios de contratos requieren coordinación con sus consumidores.
+- Cada migración tiene un responsable y un alcance identificable.
+
+## Contratos compartidos
+
+Definir antes de implementar consumidores:
+
+| Contrato | Aspectos que deben acordarse |
+| --- | --- |
+| Sesión | Cómo consultar usuario, carga inicial, ausencia y cierre de sesión |
+| Comunidad | Identificador, membresía, rol y visibilidad |
+| Ubicación | Coordenadas, precisión, origen y datos públicos |
+| Registros de mapa | Identificador, tipo, ubicación y destino del detalle |
+| Estados | Valores permitidos, actores y transiciones |
+| Errores | Validación, permisos, conexión y reintento |
+| Offline | Identificador local, pendiente de envío, confirmación y conflicto |
+
+No fijar aquí respuestas de negocio todavía pendientes.
+Registrar sus acuerdos en decisiones.md y documentar el contrato junto al código.
+
+## Navegación
+
+- Mantener un registro central coordinado.
+- Cada módulo entrega sus pantallas y parámetros.
+- Restringir rutas según sesión y permisos.
+- Comprobar navegación atrás y retorno desde aplicaciones externas.
+- No asumir que ocultar una pantalla protege los datos.
+- Elegir la biblioteca de navegación de forma coordinada.
+
+## Supabase y permisos
+
+- Usar el proyecto compartido acordado por el equipo.
+- Configurar variables públicas mediante el archivo local de entorno.
+- Mantener ejemplos sin credenciales reales.
+- No incluir claves secretas o service_role en la app.
+- Implementar políticas RLS en tablas expuestas.
+- Comprobar acceso con cuentas autorizadas y no autorizadas.
+- Validar actores y transiciones en backend.
+- Evitar estados incompatibles por operaciones simultáneas.
+
+## Migraciones
+
+- Versionar cambios de esquema mediante migraciones.
+- Coordinar nombres y orden antes de aplicarlas.
+- No modificar migraciones ya aplicadas por otros integrantes.
+- Añadir migraciones nuevas para cambios posteriores.
+- No aplicar cambios destructivos sobre datos compartidos sin autorización.
+- Documentar configuración adicional que no esté cubierta por migraciones.
+
+Una rama de Git no crea un entorno de Supabase independiente.
+Los cambios remotos pueden afectar inmediatamente a todo el equipo.
+
+## Ubicación y mapas
+
+- Elegir la solución compatible con Expo y los dispositivos de prueba.
+- Manejar permisos denegados y ubicación no disponible.
+- Respetar la privacidad acordada en Q03.
+- Compartir registros entre lista, mapa y detalle.
+- No inventar distancias cuando falten coordenadas válidas.
+- No deducir zonas confirmadas a partir de reportes sin reglas y fuente.
+
+PostGIS es una propuesta pendiente, no una dependencia aprobada.
+
+## Offline y sincronización
+
+Resolver Q07 antes de consolidar modelos dependientes.
+
+Definir:
+- Datos consultables sin conexión.
+- Operaciones permitidas sin conexión.
+- Duración y aislamiento de la caché.
+- Identificadores y prevención de duplicados.
+- Reintentos y resolución de conflictos.
+- Comportamiento al cerrar sesión o cambiar comunidad.
+
+Mostrar la diferencia entre:
+- Guardado en el dispositivo.
+- Pendiente de envío.
+- Enviado y confirmado.
+- Error que requiere intervención.
+
+Verificar sincronización desde otra cuenta o dispositivo.
+Guardar localmente no demuestra que otro vecino recibió la información.
+
+SQLite es una propuesta pendiente, no una decisión aprobada.
+
+## Dependencias y configuración
+
+Coordinar previamente cambios en:
+- package.json y package-lock.json.
+- app.json.
+- Cliente de Supabase.
+- Configuración de navegación.
+- Bibliotecas de ubicación, mapas y persistencia.
+
+Seguir la documentación compatible con las versiones elegidas.
+No introducir chat, pagos, SMS o IA fuera del alcance aprobado.
+
+## Comprobaciones
+
+Usar los comandos de README.md.
+
+Comprobaciones existentes:
+- npm run typecheck
+- npm run export
+
+La exportación correcta no sustituye las pruebas de uso.
+La versión web no sustituye la verificación nativa.
+
+Registrar:
+- Entorno y dispositivo.
+- Recorrido comprobado.
+- Resultado.
+- Errores y limitaciones.
+- Evidencia de ambos participantes cuando corresponda.
 
 ## Referencias oficiales
-- [Supabase con Expo](https://supabase.com/docs/guides/getting-started/quickstarts/expo-react-native)
-- [PostGIS](https://supabase.com/docs/guides/database/extensions/postgis)
-- [Ubicación](https://docs.expo.dev/versions/latest/sdk/location/)
-- [SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
 
-Consultar documentación compatible con las versiones que se elijan al implementar.
+- Expo: https://docs.expo.dev/
+- Supabase con Expo: https://supabase.com/docs/guides/getting-started/quickstarts/expo-react-native
+- Ubicación: https://docs.expo.dev/versions/latest/sdk/location/
+- SQLite: https://docs.expo.dev/versions/latest/sdk/sqlite/
+- PostGIS: https://supabase.com/docs/guides/database/extensions/postgis
