@@ -1,48 +1,39 @@
-AGENTS.md
-Reglas prioritarias
-- No ejecutes git add ni git push, incluidas sus variantes o automatizaciones que los ejecuten.
-- No modifiques el área de preparación de Git mediante comandos equivalentes.
-- No crees commits, publiques ni despliegues por iniciativa propia; realiza esas acciones solo ante una solicitud explícita.
-- Conserva los cambios ajenos y realiza únicamente modificaciones relacionadas con la tarea.
-- No guardes secretos en el código, los documentos, los registros ni los archivos versionados.
-- Implementa una funcionalidad atómica y verificable a la vez.
-Proyecto
-[Nombre proyecto] conecta productos y servicios cercanos, recomendaciones vecinales,
-favores sin dinero y apoyo comunitario durante emergencias.
-La referencia visual es el prototipo minimalista de Claude enlazado en docs/diseno.md.
-Tecnologías y etapa
-- Interfaz móvil en React Native.
-- Supabase para autenticación, datos y archivos cuando la tarea requiera integración.
-- Respeta el lenguaje, las versiones, la navegación y el gestor de paquetes existentes.
-- La etapa actual prioriza el prototipo navegable y sus recorridos completos.
-- Identifica los datos de ejemplo y las funciones simuladas.
-- No añadas servicios o integraciones ajenos al alcance solicitado.
-Preparación
-1. Inspecciona el repositorio y sus instrucciones locales.
-2. Identifica el punto de entrada y los comandos disponibles en sus archivos de configuración.
-3. Consulta la documentación temática necesaria.
-4. Define una acción del usuario, su resultado observable y cómo comprobarlo.
-5. Implementa el cambio mínimo que complete esa acción.
-6. Verifica el recorrido antes de ampliar la funcionalidad.
-Documentación por tarea
-Si vas a…	Lee primero
-Definir alcance, pantallas o reglas del producto	[Requisitos](docs/requisitos.md)
-Diseñar interfaz, textos o navegación	[Diseño](docs/diseno.md)
-Trabajar con React Native, Supabase o lógica de negocio	[Tecnología y desarrollo](docs/tecnologia.md)
-Conectar pantallas, cambiar estados o entregar una versión	[Validación](docs/validacion.md)
+# Instrucciones para agentes
 
+## Reglas prioritarias
+- No ejecutes git add ni git push, tampoco mediante variantes, scripts o automatizaciones. No modifiques el área de preparación mediante comandos equivalentes.
+- No crees commits. Al cerrar una tarea verificada, propon archivos concretos para git add y un mensaje para git commit; él los revisa y ejecuta.
+- No publiques ni despliegues sin solicitud explícita. No guardes secretos en código, documentos, registros o archivos versionados.
+- Conserva los cambios ajenos. No reviertas ni sobrescribas trabajo fuera de tu tarea.
+- Trabaja en una sola tarea a la vez y dentro del único grupo funcional activo del equipo. No abras otro grupo ni delegues tareas por iniciativa propia.
+- No conviertas propuestas, dudas o ampliaciones del prototipo de referencia en requisitos aprobados.
 
-Lee los detalles según su aplicabilidad; evita cargar documentación irrelevante.
-La referencia guía la apariencia y los requisitos del producto definen la cobertura.
-Las instrucciones explícitas del usuario prevalecen sobre decisiones anteriores.
-Calidad y entrega
-- Usa funciones con una responsabilidad y componentes con un propósito claro.
-- Separa presentación, estado y acceso a datos siguiendo la estructura existente.
-- Mantén coherentes lista, mapa, detalle y actividad después de cada cambio.
-- Verifica móvil, acciones de volver y los dos participantes de una coordinación.
-- Ejecuta comprobaciones disponibles y reporta resultados observados y límites concretos.
-- Entrega cambios, recorrido verificado y pendientes. No inventes comandos ni pruebas.
-Mantenimiento
-Mantén aquí las reglas globales; modifica los documentos temáticos para los detalles.
-Elimina instrucciones redundantes o sustituidas.
-Al cambiar de etapa, actualiza las restricciones de prototipado sin alterar las reglas de Git.
+## Proyecto y etapa
+Aplicación móvil para un sector vecinal: productos y servicios cercanos, calificaciones, favores sin dinero y apoyo durante emergencias. Stack acordado: React Native con Expo, TypeScript y Supabase. Funcionalidad antes del acabado visual.
+
+Etapa actual: inicialización de la base técnica, autorizada por el equipo. Entrada: index.ts y App.tsx. Gestor: npm; conserva package-lock.json. Usa los comandos de README.md. Esta autorización no incluye implementar funciones del producto ni conectar servicios externos.
+
+## Entrada y lectura por tarea
+1. Lee [README](README.md), [decisiones](docs/decisiones.md) y [estado de tareas](docs/tareas/README.md).
+2. Consulta solo los documentos pertinentes:
+
+| Trabajo | Documento |
+| --- | --- |
+| Alcance y bases del reto | [Producto](docs/producto.md) |
+| Acciones, participantes y estados | [Recorridos](docs/recorridos.md) |
+| Pantallas y referencias | [Diseño](docs/diseno.md) |
+| Arquitectura e integración | [Tecnología](docs/tecnologia.md) |
+| Comprobaciones y entrega | [Validación](docs/validacion.md) |
+| Colaboración y continuidad | [Flujo de trabajo](docs/flujo-trabajo.md) |
+
+La carpeta doc/ contiene material anterior pendiente de reformular: consérvala, pero no la uses como especificación vigente. El contexto actual vive en docs/.
+
+## Ejecución y cierre
+- Revisa el estado del repositorio y la ficha de tarea antes de editar. Define acción del usuario, resultado observable y comprobación.
+- Resuelve con el equipo las decisiones bloqueantes. Avanza solo partes independientes autorizadas; no inventes reglas del producto.
+- Usa componentes con propósito claro y separa presentación, estado y datos conforme a la estructura acordada.
+- Comprueba móvil, volver y ambos participantes cuando corresponda. Mantén coherentes las vistas de los mismos datos.
+- Identifica datos de ejemplo y simulaciones. Una simulación no demuestra una integración real.
+- Ejecuta comprobaciones existentes y pertinentes. Informa qué pasó, qué falló y qué no se pudo comprobar.
+- Actualiza la ficha con evidencia, límites y siguiente paso. Implementado no significa verificado.
+- Actualiza los documentos afectados por decisiones aprobadas y evita duplicar reglas.
