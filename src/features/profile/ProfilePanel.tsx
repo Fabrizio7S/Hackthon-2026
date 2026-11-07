@@ -6,10 +6,11 @@ import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from 're
 import { normalizeDisplayName } from './profileService';
 import { useProfile } from './useProfile';
 
-export function ProfilePanel({ client, userId, email }: {
+export function ProfilePanel({ client, userId, email, onSaved }: {
   client: SupabaseClient;
   userId: string;
   email: string | undefined;
+  onSaved?: () => void;
 }) {
   const profile = useProfile(client, userId);
   const [name, setName] = useState('');
@@ -46,7 +47,7 @@ export function ProfilePanel({ client, userId, email }: {
     try {
       const normalized = normalizeDisplayName(name);
       setValidation(null);
-      await profile.save(normalized);
+      if (await profile.save(normalized)) onSaved?.();
     } catch (failure) {
       setValidation(failure instanceof Error ? failure.message : 'Revisa el nombre.');
     }

@@ -34,7 +34,7 @@ export function useProfile(client: SupabaseClient, userId: string) {
   }, [service, attempt]);
 
   async function save(name: string) {
-    if (busy.current || state.status !== 'ready') return;
+    if (busy.current || state.status !== 'ready') return false;
     const current = version.current;
     busy.current = true;
     setSaving(true);
@@ -42,11 +42,13 @@ export function useProfile(client: SupabaseClient, userId: string) {
     setSaved(false);
     try {
       const profile = await service.save(name);
-      if (current !== version.current) return;
+      if (current !== version.current) return false;
       setState({ status: 'ready', profile });
       setSaved(true);
+      return true;
     } catch (failure) {
       if (current === version.current) setError(profileErrorMessage(failure));
+      return false;
     } finally {
       busy.current = false;
       if (current === version.current) setSaving(false);

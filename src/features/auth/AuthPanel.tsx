@@ -5,6 +5,7 @@ import { ActivityIndicator, BackHandler, Button, KeyboardAvoidingView, Platform,
 import type { AccessMode } from './authService';
 import { useAuth } from './useAuth';
 import { ProfilePanel } from '../profile/ProfilePanel';
+import { CommunityPanel } from '../community/CommunityPanel';
 
 // Una sola fuente de sesión para el flujo de acceso montado en App.tsx.
 export function AuthPanel({ client }: { client: SupabaseClient | null }) {
@@ -19,6 +20,7 @@ function ConfiguredAuthPanel({ client }: { client: SupabaseClient }) {
   const [mode, setMode] = useState<AccessMode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [communityVersion, setCommunityVersion] = useState(0);
 
   useEffect(() => {
     if (mode !== 'signUp' || auth.session) return;
@@ -57,7 +59,9 @@ function ConfiguredAuthPanel({ client }: { client: SupabaseClient }) {
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.container}>
         <Text accessibilityRole="header" style={styles.title}>Sesión iniciada</Text>
         <Text>{auth.session.user.email}</Text>
-        <ProfilePanel key={auth.session.user.id} client={client} userId={auth.session.user.id} email={auth.session.user.email} />
+        <ProfilePanel key={auth.session.user.id} client={client} userId={auth.session.user.id} email={auth.session.user.email}
+          onSaved={() => setCommunityVersion(value => value + 1)} />
+        <CommunityPanel key={auth.session.user.id} client={client} userId={auth.session.user.id} refreshVersion={communityVersion} />
         {auth.error && <Text accessibilityRole="alert">{auth.error}</Text>}
         <Button title={auth.pending ? 'Cerrando sesión…' : 'Cerrar sesión'} disabled={auth.pending} onPress={() => {
           setPassword('');
