@@ -28,6 +28,7 @@ El estado vive en memoria y se reinicia al recargar. La interfaz usa un perfil f
 - En el detalle, el estado de la publicación se muestra sobre la esquina superior derecha de la imagen. `npm run typecheck` pasó con el cambio.
 - En Explorar, Tarjetas muestra una publicación a la vez con contador y botones «Anterior» y «Pasar». Lista incluye la descripción. Pasaron `npm run typecheck` y la exportación de Android, iOS y web. En navegador se comprobaron el avance y el retroceso, los límites, la búsqueda sin resultados, abrir y volver del detalle y guardar desde una tarjeta.
 - Las tarjetas admiten arrastre horizontal y tienen más espacio entre la descripción y los botones. Explorar muestra seis publicaciones de ejemplo. Pasaron `npm run typecheck` y la exportación de Android, iOS y web. En el navegador se comprobó el arrastre con puntero en ambas direcciones, el límite de la primera tarjeta y la búsqueda de un ejemplo nuevo. El gesto táctil queda pendiente de comprobar en Expo Go.
+- El detalle destaca quién publicó el recurso y muestra su promedio sobre cinco, calculado a partir de las reseñas de ejemplo del vecino. Cada reseña incluye autor, estrellas y comentario. Pasaron `npm run typecheck` y la exportación para Android, iOS y web. También se comprobaron los promedios de Carlos y Luz con los datos de ejemplo.
 - Verificación en Expo Go y apertura de WhatsApp en teléfono pendientes.
 
 ## Resultado observable

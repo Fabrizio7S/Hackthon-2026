@@ -1,6 +1,24 @@
 export const neighbors = { ana: 'Ana', carlos: 'Carlos', luz: 'Luz' };
 export type Neighbor = keyof typeof neighbors;
 
+type Review = {
+  author: string;
+  stars: 1 | 2 | 3 | 4 | 5;
+  comment: string;
+};
+
+export const neighborReviews: Record<Neighbor, Review[]> = {
+  ana: [],
+  carlos: [
+    { author: 'María', stars: 5, comment: 'Coordinamos rápido y el taladro estaba en buen estado.' },
+    { author: 'Jorge', stars: 4, comment: 'El préstamo salió bien. Tuvimos que cambiar la hora de entrega.' },
+  ],
+  luz: [
+    { author: 'Elena', stars: 5, comment: 'Los esquejes estaban bien cuidados y Luz me explicó cómo trasplantarlos.' },
+    { author: 'Diego', stars: 5, comment: 'El intercambio fue fácil de coordinar y cumplió lo acordado.' },
+  ],
+};
+
 export type Publication = {
   id: string;
   owner: Neighbor;

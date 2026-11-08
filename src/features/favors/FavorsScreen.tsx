@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 
 import {
-  neighbors, publications, publicationStatus, requestLabels, updateRequests,
+  neighborReviews, neighbors, publications, publicationStatus, requestLabels, updateRequests,
   type Neighbor, type Publication,
 } from './demo';
 
@@ -13,6 +13,7 @@ const tabs = ['Explorar', 'Guardadas', 'Mi actividad'] as const;
 type Tab = (typeof tabs)[number];
 const actor: Neighbor = 'ana';
 const webSwipeStyle = { position: 'relative', touchAction: 'pan-y' } as const;
+const ratingFormat = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function Button({ label, onPress, primary = false, selected, disabled = false }: {
   label: string;
@@ -125,6 +126,10 @@ export function FavorsScreen() {
   }), [cardOffset]);
   const detailRequest = requests.find((request) => request.publicationId === detail?.id && request.requester === actor);
   const detailStatus = detail && publicationStatus(requests, detail.id);
+  const reviews = detail ? neighborReviews[detail.owner] : [];
+  const averageRating = reviews.length > 0
+    ? ratingFormat.format(reviews.reduce((sum, review) => sum + review.stars, 0) / reviews.length)
+    : null;
 
   const activity = requests.flatMap((request) => {
     const item = publications.find((publication) => publication.id === request.publicationId);
@@ -171,7 +176,16 @@ export function FavorsScreen() {
                 <View style={styles.cardBody}>
                   <Text style={styles.eyebrow}>{detail.kind.toUpperCase()}</Text>
                   <Text accessibilityRole="header" style={styles.cardTitle}>{detail.title}</Text>
-                  <Text style={styles.muted}>{neighbors[detail.owner]} · {detail.location}</Text>
+                  <View style={styles.publisher}>
+                    <Text style={styles.publisherName}>Publicado por {neighbors[detail.owner]}</Text>
+                    <View style={styles.row}>
+                      {averageRating && <Text aria-hidden style={styles.stars}>★</Text>}
+                      <Text style={styles.muted}>
+                        {averageRating ? `${averageRating} de 5 · ${reviews.length} reseñas` : 'Sin calificaciones'}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.muted}>{detail.location}</Text>
                   <Text style={styles.body}>{detail.description}</Text>
                   <Text style={styles.notice}>{detail.terms}</Text>
                   {detailRequest && <Badge label={requestLabels[detailRequest.status]} />}
@@ -195,6 +209,25 @@ export function FavorsScreen() {
                   )}
                   {contactError && <Text accessibilityRole="alert" style={styles.notice}>No se pudo abrir WhatsApp. Vuelve a intentarlo.</Text>}
                 </View>
+              </View>
+              <View style={[styles.card, styles.cardBody]}>
+                <Text accessibilityRole="header" style={styles.cardTitle}>Reseñas sobre {neighbors[detail.owner]}</Text>
+                {reviews.length > 0 ? (
+                  <>
+                    <Text style={styles.muted}>Calificaciones y reseñas de ejemplo</Text>
+                    {reviews.map((review) => (
+                      <View key={review.author} style={styles.review}>
+                        <View style={styles.row}>
+                          <Text style={styles.publisherName}>{review.author}</Text>
+                          <Text accessibilityLabel={`${review.stars} de 5 estrellas`} style={styles.stars}>
+                            {'★'.repeat(review.stars)}{'☆'.repeat(5 - review.stars)}
+                          </Text>
+                        </View>
+                        <Text style={styles.body}>{review.comment}</Text>
+                      </View>
+                    ))}
+                  </>
+                ) : <Text style={styles.muted}>Aún no hay reseñas.</Text>}
               </View>
             </View>
           ) : tab === 'Mi actividad' ? (
@@ -339,6 +372,10 @@ const styles = StyleSheet.create({
   section: { gap: 14 },
   title: { color: '#112b22', fontSize: 30, fontWeight: '800', letterSpacing: -0.6 },
   cardTitle: { color: '#112b22', fontSize: 21, fontWeight: '700' },
+  publisher: { backgroundColor: '#eef4f2', borderRadius: 10, padding: 12, gap: 4 },
+  publisherName: { color: '#112b22', fontSize: 15, fontWeight: '700' },
+  stars: { color: '#805700', fontSize: 16, letterSpacing: 1 },
+  review: { borderTopWidth: 1, borderTopColor: '#d9e4dc', paddingTop: 10, gap: 4 },
   body: { color: '#253e34', fontSize: 16, lineHeight: 23 },
   muted: { color: '#52645d', fontSize: 14, lineHeight: 20 },
   eyebrow: { color: '#216142', fontSize: 12, fontWeight: '800', letterSpacing: 0.9 },
