@@ -21,7 +21,7 @@ La migración `supabase/migrations/20261107233955_community_members.sql` se apli
 ## Pruebas
 
 ```powershell
-node --test src/features/community/membersService.test.cjs
+node --test src/features/community/data/membersService.test.cjs
 ```
 
 Ocho pruebas de servicio/observación: RPC sin comunidad elegida por cliente, proyección mínima, rechazo de otra comunidad/datos malformados, vacío, cancelación de resultado/error, reintento y permisos. Cliente simulado, sin montaje de React.

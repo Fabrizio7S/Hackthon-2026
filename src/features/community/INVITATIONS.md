@@ -31,7 +31,7 @@ No confundir la protección de funciones con las políticas de tablas: no se con
 ## Comprobación
 
 ```powershell
-node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs src/features/profile/profileService.test.cjs src/features/community/communityService.test.cjs src/features/community/invitationService.test.cjs
+node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs src/features/profile/data/profileService.test.cjs src/features/community/data/communityService.test.cjs src/features/community/data/invitationService.test.cjs
 ```
 
 38 pruebas de servicios correctas; nueve nuevas de invitaciones. Clientes simulados: no equivalen a Supabase real.

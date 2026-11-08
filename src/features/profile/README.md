@@ -32,7 +32,7 @@ Sin la migración, el formulario informa que el perfil no está disponible. No s
 ## Pruebas de servicios
 
 ```powershell
-node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs src/features/profile/profileService.test.cjs
+node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs src/features/profile/data/profileService.test.cjs
 npm run typecheck
 npm run export
 ```

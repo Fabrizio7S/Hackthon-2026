@@ -47,7 +47,7 @@ Stack: React Native, Expo SDK 58, TypeScript, Supabase y npm; conservar package-
 | `src/features/auth/` | Registro/inicio/cierre, validación/carga, sesión comprobada con getUser, restauración y eventos. AppState coordina renovación nativa desde App.tsx. |
 | `src/features/profile/` | Consulta/edición propia, código confirmado y copia con Expo Clipboard 58.0.4. |
 | `src/features/community/` | Creación autorizada, búsqueda, invitaciones entrantes/salientes, aceptación/rechazo, pertenencia e integrantes mínimos. |
-| `src/shared/identity.ts`, `IdentityContext.tsx` | Contratos/contextos de lectura y acciones; sin tokens en la identidad compartida. Usados por G01, recepción de personas 2–5 pendiente. |
+| `src/shared/identity/contracts.ts`, `IdentityContext.tsx` | Contratos/contextos de lectura y acciones; sin tokens en la identidad compartida. Usados por G01, recepción de personas 2–5 pendiente. |
 | `docs/tareas/T01-1…T01-6` | Evidencia por tarea y límites de las pruebas anteriores. |
 
 Los servicios actuales esperan `profiles`, `communities`, `memberships`, `community_invitations` y RPCs en inglés como `get_my_community`, `create_community`, `find_neighbor`, `send_invitation`, `get_my_invitations`, `process_invitation`, `get_my_community_members`. Eso **no coincide con el esquema español recibido**.

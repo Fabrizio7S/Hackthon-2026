@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 
 import type { OfertaMapa, SesionMapa } from '../types';
@@ -28,9 +27,7 @@ export function useFiltrosMapa(ofertas: OfertaMapa[], sesion?: SesionMapa) {
     const texto = busqueda.trim().toLocaleLowerCase();
 
     return ofertas.filter((oferta) => {
-      const coincideCategoria =
-        filtro === 'todos' ||
-        oferta.categoria === filtro;
+      const coincideCategoria = filtro === 'todos' || oferta.categoria === filtro;
 
       const coincideBusqueda =
         texto === '' ||

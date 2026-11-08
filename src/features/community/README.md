@@ -9,7 +9,7 @@ Describe T01.3: creación y pertenencia propia bajo D18/D19. T01.4 añade invita
 - La vista muestra nombre de comunidad y rol propios solo después de respuesta del servidor.
 - Carga, error, actualización manual y bloqueo de solicitudes simultáneas implementados. No se anuncian como disponibles las invitaciones, todavía pendientes.
 
-`communityService.ts` reutiliza los contratos de membresía/rol de `src/shared/identity.ts`. Los contextos compartidos se usan ya en G01; su guía y revisión pendiente por personas 2–5 están en `docs/contratos-identidad.md`.
+`communityService.ts` reutiliza los contratos de membresía/rol de `src/shared/identity/contracts.ts`. Los contextos compartidos se usan ya en G01; su guía y revisión pendiente por personas 2–5 están en `docs/contratos-identidad.md`.
 
 ## Migración y seguridad
 
@@ -43,7 +43,7 @@ No se ha ejecutado esta plantilla en remoto ni se ha autorizado a cuentas reales
 ## Pruebas
 
 ```powershell
-node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs src/features/profile/profileService.test.cjs src/features/community/communityService.test.cjs
+node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs src/features/profile/data/profileService.test.cjs src/features/community/data/communityService.test.cjs
 ```
 
 29 pruebas de servicios correctas; siete nuevas de comunidad. Clientes simulados, no integración real.

@@ -1,11 +1,11 @@
-
 import React from 'react';
 import { View } from 'react-native';
 import { Marker } from 'react-native-maps';
 
-import { NOMBRE_CATEGORIA, type CategoriaMapa } from '../types';
+import { NOMBRE_CATEGORIA } from '../constants/categoryLabels';
+import { type CategoriaMapa } from '../types';
 import { styles } from '../styles/MarcadorServicio.styles';
-import { colors } from '../../../theme/colors';
+import { colors } from '../styles/colors';
 
 interface MarcadorServicioProps {
   id: string;
@@ -46,14 +46,7 @@ export default function MarcadorServicio({
       accessibilityLabel={`${NOMBRE_CATEGORIA[categoria]}: ${nombre}`}
       accessibilityHint="Abre la tarjeta con los datos"
     >
-      <View
-        style={[
-          styles.circulo,
-          { backgroundColor: COLORES[categoria] },
-        ]}
-      />
+      <View style={[styles.circulo, { backgroundColor: COLORES[categoria] }]} />
     </Marker>
   );
 }
-
-

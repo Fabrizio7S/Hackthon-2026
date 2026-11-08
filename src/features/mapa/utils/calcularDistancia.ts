@@ -1,4 +1,3 @@
-
 /**
  * Calcula la distancia aproximada entre dos
  * coordenadas geográficas utilizando Haversine.
@@ -10,7 +9,7 @@ export function calcularDistanciaKm(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const radioTierra = 6371;
   const radianes = Math.PI / 180;
@@ -20,13 +19,7 @@ export function calcularDistanciaKm(
 
   const a =
     Math.sin(diferenciaLatitud / 2) ** 2 +
-    Math.cos(lat1 * radianes) *
-      Math.cos(lat2 * radianes) *
-      Math.sin(diferenciaLongitud / 2) ** 2;
+    Math.cos(lat1 * radianes) * Math.cos(lat2 * radianes) * Math.sin(diferenciaLongitud / 2) ** 2;
 
-  return (
-    2 *
-    radioTierra *
-    Math.asin(Math.min(1, Math.sqrt(a)))
-  );
+  return 2 * radioTierra * Math.asin(Math.min(1, Math.sqrt(a)));
 }

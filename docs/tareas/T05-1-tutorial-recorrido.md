@@ -18,14 +18,14 @@ Como vecino que abre e inicia sesión en la aplicación por primera vez, puedo s
   - Bloquear el acceso urgente a Emergencias (si ocurre una emergencia, el vecino puede saltar o ir directo al botón de Emergencias).
   - Nuevas dependencias pesadas de terceros si puede resolverse con componentes nativos (`Modal` / vistas superpuestas de React Native).
 - Archivos y contratos previstos:
-  - `src/shared/OnboardingTour.tsx` (nuevo componente del recorrido guiado)
-  - `src/shared/NeighborhoodUI.tsx` (integración en cabecera/inicio y disparo del recorrido)
-  - `src/features/auth/AuthPanel.tsx` (coordinación de sección activa durante el recorrido)
-  - `src/features/profile/ProfilePanel.tsx` (opción para volver a ver el tutorial)
+  - `src/features/onboarding/components/OnboardingTour.tsx` (nuevo componente del recorrido guiado)
+  - `src/app/layout/NeighborhoodShell.tsx` (integración en cabecera/inicio y disparo del recorrido)
+  - `src/app/AppRoot.tsx` (coordinación de sección activa durante el recorrido)
+  - `src/features/profile/components/ProfilePanel.tsx` (opción para volver a ver el tutorial)
 
 ## Recorrido vigente (18 pasos)
 
-Ampliación solicitada por el usuario después de revisar la primera entrega. La definición compartida vive en `src/shared/onboardingSteps.ts`.
+Ampliación solicitada por el usuario después de revisar la primera entrega. La definición compartida vive en `src/features/onboarding/model/steps.ts`.
 
 1. Perfil: nombre visible y guardar.
 2. Código personal y copiar.
@@ -61,7 +61,7 @@ Cada paso enmarca en rojo el acceso de navegación y el bloque real explicado. `
 | --- | --- | --- | --- |
 | Tipado e integración | `npm run typecheck` | Correcto. | No equivale a ejecución en dispositivo. |
 | Bundles de entrega | `npx expo export --platform all --output-dir .expo-bootstrap/export-v2`, con `TEMP` y `TMP` apuntando a `.expo-bootstrap/tmp` | Exportación correcta para Android, iOS y web. | Se usaron carpetas locales nuevas para evitar permisos del temporal y del `dist` anterior. La prueba se ejecutó sin cargar `.env`. |
-| Persistencia, cuentas y lecturas atrasadas | `node --test src/shared/onboardingState.test.cjs` | Cuatro pruebas aprobadas: primera vez, reapertura, aislamiento de cuentas, repetición, lectura tardía y reintento de escritura. | Almacenamiento simulado en estas pruebas. |
+| Persistencia, cuentas y lecturas atrasadas | `node --test src/features/onboarding/data/onboardingState.test.cjs` | Cuatro pruebas aprobadas: primera vez, reapertura, aislamiento de cuentas, repetición, lectura tardía y reintento de escritura. | Almacenamiento simulado en estas pruebas. |
 | Regresión | `node --test` con los archivos `*.test.cjs` de `src` y `supabase/tests` | 143 pruebas aprobadas, cero fallos; PGlite instalado en una carpeta de herramientas externa al proyecto y resuelto mediante `NODE_PATH`. | No contacta Supabase remoto; no se añadieron dependencias al proyecto. |
 | Recorrido en navegador | Chrome headless + Playwright, vista aislada con `AuthPanel` y las pantallas reales, usando un adaptador de Supabase de prueba | Aprobados: 18 pasos, marcos rojos, desplazamiento, anterior, finalizar, saltar, repetir, persistencia después de recargar, cuentas distintas, tres pestañas de Emergencias y conservación del formulario al retroceder. Sin errores de ejecución. | Sesión y datos simulados por el adaptador de pruebas; sin conexión al backend real ni envíos de reportes. |
 | Adaptación visual | Inspección de capturas en 1440×1000 y 390×844; comprobaciones de viewport en 320×568 y 844×390 | Sin desbordamiento horizontal. Saltar tutorial y la cabecera de Emergencias permanecen accesibles. | Falta comprobar lector de pantalla y escalado de texto en teléfono. |

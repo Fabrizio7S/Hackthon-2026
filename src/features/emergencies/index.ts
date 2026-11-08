@@ -1,4 +1,8 @@
-export { EmergenciesScreen, type EmergenciesTab } from './EmergenciesScreen';
-export { createEmergenciesApi, newClientRequestId, type EmergenciesApi } from './emergenciesApi';
-export { toEmergencyMapPoints, toResourceMapPoints } from './mapPoints';
-export type * from './types';
+export { EmergenciesScreen, type EmergenciesTab } from './screens/EmergenciesScreen';
+export {
+  createEmergenciesApi,
+  newClientRequestId,
+  type EmergenciesApi,
+} from './data/emergenciesApi';
+export { toEmergencyMapPoints, toResourceMapPoints } from './model/mapPoints';
+export type * from './model/types';

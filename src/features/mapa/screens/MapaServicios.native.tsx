@@ -1,17 +1,6 @@
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  ActivityIndicator,
-  Button,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Button, Pressable, Text, View } from 'react-native';
 
 import MapView, { type Region } from 'react-native-maps';
 
@@ -22,10 +11,10 @@ import TarjetaServicio from '../components/TarjetaServicio';
 import { REGION_INICIAL } from '../constants/mapa.constants';
 import { generarOfertasPrueba } from '../data/ofertasDemo';
 import { useFiltrosMapa } from '../hooks/useFiltrosMapa';
-import { useUbicacion } from '../hooks/useUbicacion';
+import { useUbicacion } from '../../../shared/location/useUbicacion';
 import { calcularDistanciaKm } from '../utils/calcularDistancia';
 import { styles } from '../styles/MapaServicios.styles';
-import { AppIcon } from '../../../shared/AppIcon';
+import { AppIcon } from '../../../shared/ui/AppIcon';
 
 import type { OfertaMapa, SesionMapa } from '../types';
 
@@ -36,17 +25,12 @@ interface MapaServiciosProps {
   sesion?: SesionMapa;
 }
 
-export default function MapaServicios({
-  ofertas,
-  onVerDetalles,
-  sesion,
-}: MapaServiciosProps) {
+export default function MapaServicios({ ofertas, onVerDetalles, sesion }: MapaServiciosProps) {
   // Referencia al mapa para controlar su posición.
   const mapaRef = useRef<MapView>(null);
 
   // Estado del marcador seleccionado.
-  const [ofertaSeleccionadaId, setSeleccion] =
-    useState<string | null>(sesion?.seleccionId ?? null);
+  const [ofertaSeleccionadaId, setSeleccion] = useState<string | null>(sesion?.seleccionId ?? null);
 
   const setOfertaSeleccionadaId = (id: string | null) => {
     if (sesion) sesion.seleccionId = id;
@@ -54,13 +38,7 @@ export default function MapaServicios({
   };
 
   // Obtener la ubicación mediante el hook.
-  const {
-    estado,
-    ubicacion,
-    mensaje,
-    reintentarUbicacion,
-    mostrarMensaje,
-  } = useUbicacion();
+  const { estado, ubicacion, mensaje, reintentarUbicacion, mostrarMensaje } = useUbicacion();
 
   // Centrar el mapa automáticamente al obtener el GPS (o en las ofertas de la comunidad si están lejos).
   useEffect(() => {
@@ -75,7 +53,7 @@ export default function MapaServicios({
           ubicacion.latitude,
           ubicacion.longitude,
           primera.latitud,
-          primera.longitud
+          primera.longitud,
         ) <= 5;
       const destino = cercaDelUsuario
         ? { latitude: ubicacion.latitude, longitude: ubicacion.longitude }
@@ -86,7 +64,7 @@ export default function MapaServicios({
           latitudeDelta: 0.02,
           longitudeDelta: 0.02,
         },
-        600
+        600,
       );
       return;
     }
@@ -100,16 +78,14 @@ export default function MapaServicios({
         latitudeDelta: 0.02,
         longitudeDelta: 0.02,
       },
-      600
+      600,
     );
   }, [ubicacion, ofertas, sesion]);
 
   // Centrar el mapa manualmente.
   const centrarEnMiUbicacion = () => {
     if (!ubicacion) {
-      mostrarMensaje(
-        'Tu ubicación no está disponible. Puedes reintentar obtenerla.'
-      );
+      mostrarMensaje('Tu ubicación no está disponible. Puedes reintentar obtenerla.');
       return;
     }
 
@@ -120,7 +96,7 @@ export default function MapaServicios({
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       },
-      600
+      600,
     );
   };
 
@@ -132,24 +108,19 @@ export default function MapaServicios({
 
     return generarOfertasPrueba(
       ubicacion?.latitude ?? REGION_INICIAL.latitude,
-      ubicacion?.longitude ?? REGION_INICIAL.longitude
+      ubicacion?.longitude ?? REGION_INICIAL.longitude,
     );
   }, [ofertas, ubicacion]);
 
   // Gestionar búsqueda y filtros.
-  const {
-    busqueda,
-    setBusqueda,
-    filtro,
-    setFiltro,
-    ofertasFiltradas,
-  } = useFiltrosMapa(ofertasVisibles, sesion);
+  const { busqueda, setBusqueda, filtro, setFiltro, ofertasFiltradas } = useFiltrosMapa(
+    ofertasVisibles,
+    sesion,
+  );
 
   // Identificar la oferta seleccionada.
   const ofertaSeleccionada =
-    ofertasFiltradas.find(
-      (oferta) => oferta.id === ofertaSeleccionadaId
-    ) ?? null;
+    ofertasFiltradas.find((oferta) => oferta.id === ofertaSeleccionadaId) ?? null;
 
   // Calcular distancia entre el usuario y la oferta.
   const distanciaSeleccionada =
@@ -158,7 +129,7 @@ export default function MapaServicios({
           ubicacion.latitude,
           ubicacion.longitude,
           ofertaSeleccionada.latitud,
-          ofertaSeleccionada.longitud
+          ofertaSeleccionada.longitud,
         )
       : null;
 
@@ -228,22 +199,15 @@ export default function MapaServicios({
           {estado === 'buscando' && (
             <View style={styles.filaAviso}>
               <ActivityIndicator size="small" />
-              <Text style={styles.textoAviso}>
-                Buscando tu ubicación...
-              </Text>
+              <Text style={styles.textoAviso}>Buscando tu ubicación...</Text>
             </View>
           )}
 
           {mensaje !== '' && (
             <>
-              <Text style={styles.textoAviso}>
-                {mensaje}
-              </Text>
+              <Text style={styles.textoAviso}>{mensaje}</Text>
 
-              <Button
-                title="Reintentar ubicación"
-                onPress={reintentarUbicacion}
-              />
+              <Button title="Reintentar ubicación" onPress={reintentarUbicacion} />
             </>
           )}
         </View>
@@ -255,21 +219,14 @@ export default function MapaServicios({
           oferta={ofertaSeleccionada}
           distanciaKm={distanciaSeleccionada}
           onVerDetalles={onVerDetalles}
-          onCerrar={() =>
-            setOfertaSeleccionadaId(null)
-          }
+          onCerrar={() => setOfertaSeleccionadaId(null)}
         />
       )}
 
       {/* Aviso temporal de demostración */}
       {ofertas === undefined && (
-        <View
-          style={styles.etiquetaDemo}
-          pointerEvents="none"
-        >
-          <Text style={styles.textoDemo}>
-            Datos de demostración
-          </Text>
+        <View style={styles.etiquetaDemo} pointerEvents="none">
+          <Text style={styles.textoDemo}>Datos de demostración</Text>
         </View>
       )}
     </View>

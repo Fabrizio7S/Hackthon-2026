@@ -16,10 +16,10 @@ datos sincronizados al volver.
 
 ## Alcance
 - Incluye:
-  - `src/features/services/screens/ServicesFlowScreen.tsx`: pestañas accesibles (`Explorar`, `Publicar`, `Mis ofertas`), navegación a `OfferDetailScreen` y `EditOfferScreen` con barra superior «← Volver…», soporte para `BackHandler` en Android y recarga al regresar tras cambios confirmados.
+  - `src/app/flows/ServicesFlowScreen.tsx`: pestañas accesibles (`Explorar`, `Publicar`, `Mis ofertas`), navegación a `OfferDetailScreen` y `EditOfferScreen` con barra superior «← Volver…», soporte para `BackHandler` en Android y recarga al regresar tras cambios confirmados.
   - `src/features/services/index.ts`: exportaciones públicas del módulo para que Persona 5 conecte pantallas y adaptador de mapa desde un único punto.
 - Excluye: modificar `App.tsx` (archivo compartido coordinado por Persona 5).
-- Archivos: `src/features/services/screens/ServicesFlowScreen.tsx` y `src/features/services/index.ts`.
+- Archivos: `src/app/flows/ServicesFlowScreen.tsx` y `src/features/services/index.ts`.
 
 ## Decisiones técnicas
 - Al volver desde `OfferDetailScreen` o `EditOfferScreen`, o al cambiar de pestaña tras publicar/editar, se incrementa `refreshKey` para que `OfferListScreen` y `MyOffersScreen` consulten los datos actualizados.

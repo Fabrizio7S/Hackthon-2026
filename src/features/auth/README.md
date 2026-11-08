@@ -8,7 +8,7 @@ Implementación parcial del issue #1, montada en `App.tsx`. Persistencia y renov
 - `useAuth.ts`: estado interno, lectura inicial, suscripción y reintento. La suscripción se cancela al desmontar; un resultado inicial atrasado no sobrescribe un evento posterior.
 - `observeSession.ts`: observación interna comprobable sin React. Comprueba identidad con `getUser(jwt)` antes de mostrar sesión. Los eventos posteriores prevalecen sobre la lectura inicial y las verificaciones atrasadas; `INITIAL_SESSION` no oculta errores.
 - `authService.ts`: llamadas al cliente inyectado y exclusión de solicitudes simultáneas. El cierre solicita alcance `local`, correspondiente a la sesión actual.
-- `src/shared/identity.ts` y `src/shared/IdentityContext.tsx`: contrato de lectura sin tokens y acciones de la fuente existente. AuthContent los consume; guía de revisión para personas 2–5 en `docs/contratos-identidad.md`.
+- `src/shared/identity/contracts.ts` y `src/shared/identity/IdentityContext.tsx`: contrato de lectura sin tokens y acciones de la fuente existente. AuthContent los consume; guía de revisión para personas 2–5 en `docs/contratos-identidad.md`.
 
 No se recogen datos de perfil ni se asignan roles. El correo se recorta; la contraseña se envía sin transformaciones. La política de contraseña la valida Supabase. Los errores remotos se traducen sin mostrar diagnósticos internos.
 
@@ -29,7 +29,7 @@ Antes de considerar completo el flujo:
 Desde la raíz:
 
 ```powershell
-node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs
+node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs
 npm run typecheck
 npm run export
 ```

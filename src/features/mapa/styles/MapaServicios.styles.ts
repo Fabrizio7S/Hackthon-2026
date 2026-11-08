@@ -1,6 +1,5 @@
-
 import { StyleSheet } from 'react-native';
-import { colors } from '../../../theme/colors';
+import { colors } from './colors';
 
 /**
  * Estilos de la pantalla principal del mapa.

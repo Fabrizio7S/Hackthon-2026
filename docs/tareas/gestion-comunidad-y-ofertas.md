@@ -31,7 +31,7 @@ Tras aplicar la migración en el entorno acordado, usar dos cuentas de prueba de
 
 ## Archivos para revisión en Git
 
-- `src/features/community/CommunityPanel.tsx`, `MembersPanel.tsx`, `communityService.ts`, `membersService.ts`, `membersService.test.cjs` y `useCommunity.ts`.
+- `src/features/community/components/CommunityPanel.tsx`, `MembersPanel.tsx`, `communityService.ts`, `membersService.ts`, `membersService.test.cjs` y `useCommunity.ts`.
 - `src/features/services/screens/OfferDetailScreen.tsx` y `ServicesFlowScreen.tsx`.
 - `supabase/migrations/20261108090000_manage_community.sql` y `supabase/tests/reconcile_existing_identity.test.cjs`.
 - `docs/tareas/gestion-comunidad-y-ofertas.md`.

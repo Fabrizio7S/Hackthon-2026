@@ -2,6 +2,9 @@
 
 ## Estado general
 
+Reorganización estructural solicitada: [T05.2](T05-2-organizacion-proyecto.md), implementada en `refactor/organizacion-proyecto` sobre `f5264b5`. Arquitectura vigente: [arquitectura.md](../arquitectura.md). Esta entrega conserva las funcionalidades; requiere revisión e integración humana.
+
+
 Base técnica inicial verificada.
 La apertura en teléfono fue confirmada por el usuario.
 

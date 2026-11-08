@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../theme';
-import { SkeletonCardList } from '../../../shared/Skeleton';
+import { SkeletonCardList } from '../../../shared/ui/Skeleton';
 import type { ListState } from './listLoader';
 
 type Props<T> = {

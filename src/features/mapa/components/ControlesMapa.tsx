@@ -1,18 +1,11 @@
-
 import React from 'react';
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import type { CategoriaMapa } from '../types';
 import { styles } from '../styles/ControlesMapa.styles';
-import { colors } from '../../../theme/colors';
-import { AppIcon } from '../../../shared/AppIcon';
-import { TourTarget } from '../../../shared/TourTargets';
+import { colors } from '../styles/colors';
+import { AppIcon } from '../../../shared/ui/AppIcon';
+import { TourTarget } from '../../../shared/ui/tour/TourTargets';
 
 export type FiltroMapa = 'todos' | CategoriaMapa;
 
@@ -74,10 +67,7 @@ export default function ControlesMapa({
             <Pressable
               key={opcion.id}
               onPress={() => onCambiarFiltro(opcion.id)}
-              style={[
-                styles.filtro,
-                seleccionado && styles.filtroActivo,
-              ]}
+              style={[styles.filtro, seleccionado && styles.filtroActivo]}
               accessibilityRole="button"
               accessibilityLabel={`Mostrar ${opcion.nombre.toLowerCase()}`}
               aria-pressed={seleccionado}
@@ -87,18 +77,15 @@ export default function ControlesMapa({
                   style={[
                     styles.punto,
                     {
-                      backgroundColor: seleccionado ? colors.background : colors.category[opcion.id],
+                      backgroundColor: seleccionado
+                        ? colors.background
+                        : colors.category[opcion.id],
                       borderRadius: opcion.id === 'producto' ? 2 : 4,
                     },
                   ]}
                 />
               )}
-              <Text
-                style={[
-                  styles.textoFiltro,
-                  seleccionado && styles.textoFiltroActivo,
-                ]}
-              >
+              <Text style={[styles.textoFiltro, seleccionado && styles.textoFiltroActivo]}>
                 {opcion.nombre}
               </Text>
             </Pressable>

@@ -1,6 +1,5 @@
-
 import { StyleSheet } from 'react-native';
-import { colors } from '../../../theme/colors';
+import { colors } from './colors';
 
 export const styles = StyleSheet.create({
   contenedor: {
@@ -62,4 +61,3 @@ export const styles = StyleSheet.create({
     color: colors.text.inverse,
   },
 });
-

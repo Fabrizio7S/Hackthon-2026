@@ -2,7 +2,7 @@
 
 API preparada y utilizada por G01 para revisión de personas 2–5. No se ha comunicado ni obtenido aceptación directa de otros integrantes. Esta entrega no declara migraciones aplicadas ni integración funcional de los otros módulos.
 
-Fuentes únicas: `src/shared/identity.ts` (tipos y proyecciones) y `src/shared/IdentityContext.tsx` (lectura/acciones de los contextos). Los servicios existentes reutilizan los mismos tipos de membresía y rol. No copiar definiciones a cada módulo.
+Fuentes únicas: `src/shared/identity/contracts.ts` (tipos y proyecciones) y `src/shared/identity/IdentityContext.tsx` (lectura/acciones de los contextos). Los servicios existentes reutilizan los mismos tipos de membresía y rol. No copiar definiciones a cada módulo.
 
 ## Usuario y sesión
 
@@ -105,7 +105,7 @@ Revisión/aceptación de consumidores, aplicación de las cuatro migraciones, as
 ## Comprobaciones locales
 
 ```powershell
-node --test src/shared/identity.test.cjs src/shared/IdentityContext.test.cjs
+node --test src/shared/identity/contracts.test.cjs src/shared/identity/IdentityContext.test.cjs
 npm run typecheck
 npm run export
 ```

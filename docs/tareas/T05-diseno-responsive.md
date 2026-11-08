@@ -14,7 +14,7 @@ Skill aplicada: `.agents/skills/ui-ux-pro-max/SKILL.md`. Búsquedas locales: `ne
 
 Verde bosque, fondos crema, acentos salvia y terracota. Ilustración geométrica local de viviendas, decorativa y sin datos ficticios. El rojo se reserva para apoyo urgente. La entrada pública muestra historia y formulario en columnas desde 900 px, y versión compacta en teléfono. El marco autenticado usa barra lateral desde 1000 px y cinco destinos inferiores por debajo. Emergencias permanece en la cabecera. Contenido limitado a 1280 px; portada a 1160 px.
 
-Archivos: `src/shared/NeighborhoodUI.tsx` reúne los componentes visuales, `src/shared/theme.ts` define colores, `src/features/auth/AuthPanel.tsx` conecta los recorridos y `App.tsx` adapta el margen de plataforma.
+Archivos: `src/app/layout/NeighborhoodShell.tsx` reúne los componentes visuales, `src/shared/theme/index.ts` define colores, `src/app/AppRoot.tsx` conecta los recorridos y `App.tsx` adapta el margen de plataforma.
 
 ## Verificación y límites
 
@@ -27,7 +27,7 @@ Archivos: `src/shared/NeighborhoodUI.tsx` reúne los componentes visuales, `src/
 
 ## Revisión humana
 
-Archivos propuestos para staging: App.tsx, src/features/auth/AuthPanel.tsx, src/shared/theme.ts, src/shared/NeighborhoodUI.tsx, docs/tareas/T05-diseno-responsive.md.
+Archivos propuestos para staging: App.tsx, src/app/AppRoot.tsx, src/shared/theme/index.ts, src/app/layout/NeighborhoodShell.tsx, docs/tareas/T05-diseno-responsive.md.
 
 Mensaje sugerido: `feat(ui): añadir portada vecinal y navegación adaptable a móvil y escritorio`.
 
@@ -35,10 +35,10 @@ Pendiente: recorrer registro/acceso, Inicio → módulo → comunidad, cierre de
 
 ## Iteración — Barra inferior e iconos
 
-Solicitud explícita: adaptar la barra a la referencia Inicio / Mapa / + / Solidario / Perfil. Se incorporan iconos lineales escalables en `src/shared/AppIcon.tsx`, realizados con primitivas nativas y sin nuevas dependencias. También se aplican en escritorio, accesos de inicio y emergencias. Servicios sigue disponible desde Inicio y la navegación de escritorio. Perfil abre el espacio existente de perfil y comunidad.
+Solicitud explícita: adaptar la barra a la referencia Inicio / Mapa / + / Solidario / Perfil. Se incorporan iconos lineales escalables en `src/shared/ui/AppIcon.tsx`, realizados con primitivas nativas y sin nuevas dependencias. También se aplican en escritorio, accesos de inicio y emergencias. Servicios sigue disponible desde Inicio y la navegación de escritorio. Perfil abre el espacio existente de perfil y comunidad.
 
 El botón central abre un modal con tres opciones conectadas a formularios existentes: servicio/producto, préstamo/intercambio y reporte de emergencia. Tiene cierre explícito, cierre al tocar el fondo y onRequestClose para el botón atrás. AuthPanel coordina la intención y el remontaje del formulario; FavorsScreen incorpora la propiedad opcional initialCreating. Se mantienen los controles existentes de pertenencia a comunidad.
 
 Comprobaciones: TypeScript y 86 pruebas existentes aprobados. Barra renderizada en una vista estática aislada a 375 × 812 e inspeccionada visualmente; esta vista no usa cuentas ni demuestra procesamiento de publicaciones. Exportación Android/iOS/web ejecutada. Pendiente probar interacción del modal, foco/lector de pantalla y envío real en teléfono.
 
-Añadir a la revisión humana: `src/shared/AppIcon.tsx`, `src/features/favors/FavorsScreen.tsx`. Mensaje sugerido para esta iteración: `feat(ui): añadir iconos y barra inferior con acceso a publicar`.
+Añadir a la revisión humana: `src/shared/ui/AppIcon.tsx`, `src/features/favors/screens/FavorsScreen.tsx`. Mensaje sugerido para esta iteración: `feat(ui): añadir iconos y barra inferior con acceso a publicar`.

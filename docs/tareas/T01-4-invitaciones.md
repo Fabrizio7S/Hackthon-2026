@@ -40,7 +40,7 @@ G01 modifica archivos de invitaciones bajo `src/features/community/`, monta el p
 
 | Comprobación | Comando/pasos | Resultado | Límites |
 | --- | --- | --- | --- |
-| Servicios | `node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs src/features/profile/profileService.test.cjs src/features/community/communityService.test.cjs src/features/community/invitationService.test.cjs` | 38 correctas; nueve nuevas de invitaciones | Clientes simulados. No prueba React ni permisos remotos. |
+| Servicios | `node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs src/features/profile/data/profileService.test.cjs src/features/community/data/communityService.test.cjs src/features/community/data/invitationService.test.cjs` | 38 correctas; nueve nuevas de invitaciones | Clientes simulados. No prueba React ni permisos remotos. |
 | SQL | `node --test supabase/tests/own_profile.test.cjs supabase/tests/community_creation.test.cjs supabase/tests/community_invitations.test.cjs`, con PROFILE_SQL_RUNTIME de PGlite 0.5.15 | 30 casos correctos, once de invitaciones. Node cuenta además tres contenedores: 33 pruebas | PostgreSQL temporal con fixtures de Auth. No equivale a Supabase Auth/PostgREST ni concurrencia real entre conexiones. |
 | TypeScript | `npm run typecheck` | Código 0 | Incluye servicio, estado e interfaz. |
 | Exportación | `npm run export` fuera del sandbox | Android, iOS y web; código 0 | No acredita ejecución en teléfono. |
@@ -60,7 +60,7 @@ Antes de aplicar las tres migraciones: abrir el proyecto correcto, inspeccionar 
 Archivos propuestos para git add humano:
 
 - `README.md`, `docs/tareas/README.md`, `docs/tareas/T01-4-invitaciones.md`.
-- `src/features/community/CommunityPanel.tsx`, `src/features/community/invitationService.ts`, `src/features/community/invitationService.test.cjs`, `src/features/community/useInvitations.ts`, `src/features/community/InvitationPanel.tsx`, `src/features/community/INVITATIONS.md`, `src/features/community/README.md`.
+- `src/features/community/components/CommunityPanel.tsx`, `src/features/community/data/invitationService.ts`, `src/features/community/data/invitationService.test.cjs`, `src/features/community/hooks/useInvitations.ts`, `src/features/community/components/InvitationPanel.tsx`, `src/features/community/INVITATIONS.md`, `src/features/community/README.md`.
 - `supabase/README.md`, `supabase/migrations/20261107232444_community_invitations.sql`, `supabase/tests/community_invitations.test.cjs`.
 
 Mensaje sugerido: `feat(community): incorporar invitaciones por código con aceptación segura`.

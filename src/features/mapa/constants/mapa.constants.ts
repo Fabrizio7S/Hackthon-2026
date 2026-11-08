@@ -1,4 +1,3 @@
-
 /**
  * Región inicial del mapa de VeciRed.
  * Se utiliza cuando todavía no tenemos

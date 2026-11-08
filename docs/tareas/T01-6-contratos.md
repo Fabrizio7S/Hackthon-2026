@@ -10,7 +10,7 @@
 
 Los módulos 2–5 pueden reutilizar tipos y consultar la sesión/identidad y pertenencia desde las fuentes existentes, sin crear clientes ni copias incompatibles de estado. La entrega incluye API de lectura y documentación de integración; no implica aprobación de consumidores ni envío de mensajes a otros integrantes.
 
-G01 modifica `src/shared/identity.ts`, `src/shared/IdentityContext.tsx`, hooks/paneles de auth y comunidad, y los consumidores existentes de esos contratos. No cambia dependencias, navegación, cliente, backend ni migraciones. La incorporación por personas 2–5 y revisión con Persona 5 quedan pendientes; el usuario autorizó continuar con esta tarea tras identificarla como siguiente paso.
+G01 modifica `src/shared/identity/contracts.ts`, `src/shared/identity/IdentityContext.tsx`, hooks/paneles de auth y comunidad, y los consumidores existentes de esos contratos. No cambia dependencias, navegación, cliente, backend ni migraciones. La incorporación por personas 2–5 y revisión con Persona 5 quedan pendientes; el usuario autorizó continuar con esta tarea tras identificarla como siguiente paso.
 
 ## Aceptación
 
@@ -31,8 +31,8 @@ G01 modifica `src/shared/identity.ts`, `src/shared/IdentityContext.tsx`, hooks/p
 
 | Comprobación | Pasos/comando | Resultado | Límite |
 | --- | --- | --- | --- |
-| Contratos y contextos | `node --test src/shared/identity.test.cjs src/shared/IdentityContext.test.cjs` | 12 correctas: nueve de proyecciones, tres de contexto | Contextos probados con React/React DOM Server reales; no ciclo de vida nativo ni navegación completa. |
-| Regresión de servicios y contratos | `node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs src/features/profile/profileService.test.cjs src/features/community/communityService.test.cjs src/features/community/invitationService.test.cjs src/features/community/membersService.test.cjs src/shared/identity.test.cjs src/shared/IdentityContext.test.cjs` | 58 correctas, código 0 | Servicios con clientes simulados; no Supabase remoto. |
+| Contratos y contextos | `node --test src/shared/identity/contracts.test.cjs src/shared/identity/IdentityContext.test.cjs` | 12 correctas: nueve de proyecciones, tres de contexto | Contextos probados con React/React DOM Server reales; no ciclo de vida nativo ni navegación completa. |
+| Regresión de servicios y contratos | `node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs src/features/profile/data/profileService.test.cjs src/features/community/data/communityService.test.cjs src/features/community/data/invitationService.test.cjs src/features/community/data/membersService.test.cjs src/shared/identity/contracts.test.cjs src/shared/identity/IdentityContext.test.cjs` | 58 correctas, código 0 | Servicios con clientes simulados; no Supabase remoto. |
 | TypeScript | `npm run typecheck` | Código 0 | Incluye proveedores, consumidores y aliases de tipos. |
 | Exportación | `npm run export` fuera del sandbox | Android, iOS y web; código 0 | No demuestra funcionamiento en teléfono. |
 | SQL | Sin cambios de esquema en esta tarea | No repetido | Evidencia de 38 casos SQL en T01.5. No se añadieron migraciones. |
@@ -47,9 +47,9 @@ Para continuar con validación real se necesita acceso al proyecto Supabase exac
 
 Archivos propuestos para revisión y git add humano:
 
-- `src/shared/identity.ts`, `src/shared/identity.test.cjs`, `src/shared/IdentityContext.tsx`, `src/shared/IdentityContext.test.cjs`.
-- `src/features/auth/useAuth.ts`, `src/features/auth/AuthPanel.tsx`, `src/features/auth/README.md`.
-- `src/features/community/communityService.ts`, `src/features/community/useCommunity.ts`, `src/features/community/CommunityPanel.tsx`, `src/features/community/MembersPanel.tsx`, `src/features/community/membersService.ts`, `src/features/community/README.md`, `src/features/community/MEMBERS.md`.
+- `src/shared/identity/contracts.ts`, `src/shared/identity/contracts.test.cjs`, `src/shared/identity/IdentityContext.tsx`, `src/shared/identity/IdentityContext.test.cjs`.
+- `src/features/auth/hooks/useAuth.ts`, `src/app/AppRoot.tsx`, `src/features/auth/README.md`.
+- `src/features/community/data/communityService.ts`, `src/features/community/hooks/useCommunity.ts`, `src/features/community/components/CommunityPanel.tsx`, `src/features/community/components/MembersPanel.tsx`, `src/features/community/data/membersService.ts`, `src/features/community/README.md`, `src/features/community/MEMBERS.md`.
 - `README.md`, `docs/tecnologia.md`, `docs/tareas/README.md`, `docs/tareas/T01-6-contratos.md`, `docs/contratos-identidad.md`.
 
 Mensaje sugerido: `feat(identity): compartir contratos y contextos de sesión y comunidad`.

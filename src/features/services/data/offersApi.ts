@@ -15,7 +15,8 @@ import {
   type RatingSummary,
 } from './offerTypes';
 
-export type SaveResult = DataResult<Offer> | { ok: false; error: { kind: 'formulario'; errors: OfferErrors } };
+export type SaveResult =
+  DataResult<Offer> | { ok: false; error: { kind: 'formulario'; errors: OfferErrors } };
 
 /** Identificador único por envío para no duplicar ofertas al reintentar. */
 export function newClientRequestId(): string {
@@ -193,7 +194,10 @@ export function createOffersApi(client: SupabaseClient | null) {
       if (!user.ok) return user;
       const { error } = await client!
         .from('service_offer_ratings')
-        .upsert({ offer_id: offerId, rater_id: user.data, stars }, { onConflict: 'offer_id,rater_id' });
+        .upsert(
+          { offer_id: offerId, rater_id: user.data, stars },
+          { onConflict: 'offer_id,rater_id' },
+        );
       if (error) return { ok: false, error: mapDataError(error) };
       return { ok: true, data: null };
     },
@@ -209,11 +213,13 @@ export function createOffersApi(client: SupabaseClient | null) {
       if (error) return { ok: false, error: mapDataError(error) };
       return {
         ok: true,
-        data: (data as { offer_id: string; average: number | string; rating_count: number }[]).map((r) => ({
-          offerId: r.offer_id,
-          average: Number(r.average),
-          count: r.rating_count,
-        })),
+        data: (data as { offer_id: string; average: number | string; rating_count: number }[]).map(
+          (r) => ({
+            offerId: r.offer_id,
+            average: Number(r.average),
+            count: r.rating_count,
+          }),
+        ),
       };
     },
 

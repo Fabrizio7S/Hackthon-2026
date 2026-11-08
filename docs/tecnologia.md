@@ -21,7 +21,7 @@ cuando afecten al equipo.
 Entrada: index.ts registra App.tsx.
 Configuración de la aplicación: app.json.
 
-App.tsx monta el flujo de acceso de src/features/auth/ con el cliente único
+App.tsx monta src/app/AppRoot.tsx, que coordina sesión y funcionalidades con el cliente único
 de src/lib/supabase.ts. La sesión se persiste en AsyncStorage 2.2.0 en nativo
 y mediante el almacenamiento del SDK en web. AppState coordina renovación
 en primer plano. La identidad se consulta al servidor antes de mostrar la
@@ -32,29 +32,15 @@ El estado vigente de implementación se registra en tareas/README.md.
 
 ## Organización del código
 
-Separar presentación, estado y acceso a datos.
+La estructura vigente está documentada en [arquitectura.md](arquitectura.md).
 
-Estructura objetivo para incorporar progresivamente:
+- `src/app/` compone sesión, navegación, pantallas globales e integración entre funcionalidades.
+- `src/features/` separa presentación, hooks, modelos y acceso a datos por funcionalidad.
+- `src/shared/` contiene interfaz reutilizable, identidad, ubicación, navegación compartida y tema.
+- `src/lib/` conserva el cliente único de Supabase.
+- `scripts/` contiene comprobaciones de pruebas y arquitectura.
 
-src/
-- navigation/: navegación y registro de rutas.
-- components/: componentes compartidos.
-- lib/: clientes y utilidades de infraestructura.
-- shared/: contratos y utilidades usados por varios módulos.
-- features/auth/: acceso y sesión.
-- features/profile/: perfil.
-- features/community/: comunidades e invitaciones.
-- features/services/: servicios, productos y calificaciones.
-- features/favors/: necesidades, ofrecimientos y coordinación.
-- features/emergencies/: reportes, ofrecimientos de ayuda, recursos y grupos de apoyo. Los permisos y las transiciones viven en Supabase (funciones y triggers); la cola local de reportes y el adaptador de mapa están descritos en [G04](tareas/G04-emergencias.md).
-- features/location/: ubicación y mapas.
-- features/offline/: persistencia y sincronización compartida.
-
-Crear carpetas cuando exista una necesidad real.
-No generar archivos vacíos ni capas sin uso.
-
-Esta estructura no obliga a duplicar información ni a mantener un cliente
-de Supabase por módulo.
+Crear carpetas cuando exista una responsabilidad real. No introducir archivos vacíos ni duplicar clientes, estado o reglas de permisos. La reorganización de T05.2 conserva el comportamiento y las dependencias de ejecución.
 
 ## Responsabilidades
 
@@ -66,8 +52,8 @@ de Supabase por módulo.
 
 ## Contratos compartidos
 
-Los contratos de identidad de G01 están en `src/shared/identity.ts` y
-`src/shared/IdentityContext.tsx`, documentados en [contratos-identidad.md](contratos-identidad.md).
+Los contratos de identidad de G01 están en `src/shared/identity/contracts.ts` y
+`src/shared/identity/IdentityContext.tsx`, documentados en [contratos-identidad.md](contratos-identidad.md).
 Ya los consumen los paneles de acceso/comunidad/integrantes. La revisión y
 montaje en los módulos 2–5 sigue pendiente; no crear otra fuente de sesión.
 

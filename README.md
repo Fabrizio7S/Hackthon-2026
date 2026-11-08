@@ -1,80 +1,51 @@
-# Aplicación vecinal
+# Red vecinal
 
-Reto de El Comercio y UTP: conectar vecinos con productos y servicios cercanos, recomendaciones, ayuda sin dinero y coordinación durante emergencias. Nombre definitivo pendiente. La funcionalidad precede al acabado visual.
-
-## Estado
-
-**Para continuar el issue #1 con otro agente:** leer [docs/CONTINUAR-ISSUE-1.md](docs/CONTINUAR-ISSUE-1.md). El Supabase existente tiene un esquema diferente y ya fue inspeccionado mediante dos diagnósticos aportados por el usuario. Falta reconciliarlo con el código local; **no aplicar las cuatro migraciones originales todavía**. La implementación local no equivale a integración terminada.
-- Stack acordado: React Native con Expo, TypeScript y Supabase.
-- Autenticación por correo y contraseña conectada a Supabase, con registro, inicio, persistencia y cierre implementados. Verificación completa con cuenta real y teléfono pendiente; ver [T01.1](docs/tareas/T01-1-autenticacion.md).
-- Entrada: index.ts registra App.tsx. Configuración: app.json. Nombre provisional.
-- Perfil/código, creación autorizada de comunidad, invitaciones e integrantes implementados; migraciones remotas y pruebas reales pendientes: [T01.2](docs/tareas/T01-2-perfil.md), [T01.3](docs/tareas/T01-3-crear-comunidad.md), [T01.4](docs/tareas/T01-4-invitaciones.md), [T01.5](docs/tareas/T01-5-integrantes.md). Q01–Q03 resueltas en D17–D19. [Contratos de identidad](docs/contratos-identidad.md) preparados y usados por G01; recepción/revisión de personas 2–5 pendiente.
+Aplicación de comunidad vecinal desarrollada con React Native, Expo SDK 58, TypeScript y Supabase. Incluye acceso y perfil, comunidades e invitaciones, servicios y productos, favores, mapas, emergencias/SOS y un recorrido de ayuda de 18 pasos.
 
 ## Instalación y ejecución
-Requisitos: Node.js compatible con Expo SDK 58 y npm. Entorno usado: Node 24.17.0 y npm 12.0.1.
+
+Desde la raíz del repositorio, con Node.js compatible con Expo SDK 58 y npm:
 
 ```powershell
 npm ci
-npm start
 ```
 
-Abre el QR en Expo Go compatible con SDK 58, con el teléfono y el equipo en la misma red. El proyecto se actualizó a SDK 58 para coincidir con la versión instalada por el usuario.
-
-Después de actualizar el SDK, detén Metro con Ctrl+C y reinícialo limpiando la caché:
+Configura el archivo local `.env` a partir de `.env.example` con la URL y la clave pública de tu proyecto Supabase. Conserva tus valores locales; no incluyas claves secretas ni `service_role` en variables públicas o en Git.
 
 ```powershell
 npm start -- --clear
 ```
 
-| Comando | Resultado |
+Abre la aplicación con Expo Go compatible, o usa `npm run web` para la versión web. Android requiere un teléfono o emulador; el simulador iOS requiere macOS. La base de datos del proyecto compartido conserva sus migraciones y permisos: reorganizar carpetas no los aplica ni modifica.
+
+## Comprobaciones
+
+| Comando | Qué comprueba |
 | --- | --- |
-| npm start | Inicia Metro para abrir la app en un dispositivo. |
-| npm run android | Inicia y abre en Android; requiere emulador configurado o dispositivo conectado. |
-| npm run ios | Abre el simulador iOS; requiere macOS y Xcode. En Windows se puede usar un iPhone con Expo Go compatible. |
-| npm run web | Abre la versión web de desarrollo. |
-| npm run typecheck | Comprueba TypeScript sin emitir archivos. |
-| npm run export | Genera bundles Android, iOS y web en dist/. No publica ni despliega. |
+| `npm run typecheck` | Tipos e importaciones TypeScript. |
+| `npm test` | Pruebas de aplicación y pruebas aisladas de base de datos. No contacta Supabase remoto. |
+| `npm run test:app` | Pruebas de aplicación sin las suites de base de datos. |
+| `npm run check:architecture` | Imports locales, ciclos y dirección de dependencias entre capas. |
+| `npm run export` | Bundles de Android, iOS y web; no publica ni despliega. |
 
-Los iconos son los de la plantilla oficial. El formulario puede abrirse sin una cuenta; para acceder se necesita una cuenta del proyecto configurado.
+Las suites de base de datos usan PGlite, declarado como dependencia de desarrollo. Las pruebas automáticas y los bundles no sustituyen comprobar recorridos reales en teléfono, con distintas cuentas y roles.
 
-Pruebas unitarias de autenticación, con cliente simulado:
+## Organización
 
-```powershell
-node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs
-```
+- `App.tsx`: entrada de la interfaz y renovación de sesión al volver al primer plano.
+- `src/app/`: composición de la aplicación, sesión, navegación, estructura, pantallas globales e integración entre módulos.
+- `src/features/`: funcionalidades con sus pantallas/componentes, hooks, acceso a datos, modelos y estilos.
+- `src/shared/`: interfaz reutilizable, contratos de identidad/navegación, ubicación y tema.
+- `src/lib/`: cliente único de Supabase.
+- `scripts/`: comprobaciones locales reproducibles.
+- `tests/helpers/`: utilidades de las pruebas.
+- `supabase/`: migraciones, diagnósticos y pruebas del backend.
+- `docs/`: acuerdos, arquitectura, tareas y evidencia.
 
-Para incluir perfil, comunidad, invitaciones e integrantes, añade `src/features/profile/profileService.test.cjs src/features/community/communityService.test.cjs src/features/community/invitationService.test.cjs src/features/community/membersService.test.cjs` al comando. Las pruebas SQL aisladas y las migraciones pendientes se describen en [perfil](src/features/profile/README.md), [comunidad](src/features/community/README.md), [invitaciones](src/features/community/INVITATIONS.md) e [integrantes](src/features/community/MEMBERS.md).
+La estructura completa y sus reglas se describen en [docs/arquitectura.md](docs/arquitectura.md). La evidencia de la reorganización está en [T05.2](docs/tareas/T05-2-organizacion-proyecto.md).
 
-Pruebas de contratos/contextos: `node --test src/shared/identity.test.cjs src/shared/IdentityContext.test.cjs`. No requieren credenciales ni nuevas dependencias.
+## Trabajo en equipo
 
-Ejecuta typecheck y export por separado. En el entorno restringido del agente Hermes falló con código 6; la exportación fuera del sandbox pasó en las tres plataformas.
+Lee [AGENTS.md](AGENTS.md), [decisiones](docs/decisiones.md) y [tareas](docs/tareas/README.md) antes de modificar código. Conserva `package-lock.json`, los cambios ajenos y las reglas de negocio. No mezcles una extracción de código con un rediseño o un cambio de permisos.
 
-## Supabase
-Completa EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY en el archivo local .env usando los valores públicos del proyecto compartido. .env.example contiene la plantilla sin valores; .env está ignorado por Git. Después reinicia Expo.
-
-El cliente único está en src/lib/supabase.ts y devuelve null sin configuración. App.tsx monta el acceso y coordina la renovación al pasar entre primer y segundo plano en nativo. La sesión se guarda mediante AsyncStorage 2.2.0 en Android/iOS y el almacenamiento del SDK en web. AsyncStorage no cifra los datos en reposo; no almacena la contraseña del formulario. No uses claves secretas ni service_role en estas variables.
-
-Antes de mostrar la vista de sesión se comprueba la identidad contra Supabase. Si falla la red o la validación, se permite reintentar o cerrar la sesión guardada. Actualmente no se implementa acceso privado offline.
-
-Consulta la configuración de correo del proyecto compartido antes de probar. El proyecto configurado se consultó el 2026-11-07: registro por correo habilitado y confirmación automática activa. No se modificó ese ajuste. Si el equipo exige confirmación por correo, debe coordinar su destino antes de cambiarlo.
-
-Para verificar en teléfono: reinicia con `npm start -- --clear`, registra una cuenta de prueba propia, cierra por completo y abre la app, comprueba la sesión restaurada y cierra sesión. Repite con otra cuenta; no deben reaparecer datos de la anterior. Registra dispositivo y resultados en T01.1. No compartas contraseñas ni tokens en el chat o la documentación.
-
-## Retomar con cualquier agente
-Entrega este mensaje al iniciar una sesión con cualquier agente:
-
-> Lee AGENTS.md, README.md, docs/decisiones.md y docs/tareas/README.md. Para el issue #1, lee también docs/CONTINUAR-ISSUE-1.md y continúa T01.7 desde sus evidencias guardadas. No repitas los diagnósticos ya aportados ni apliques las migraciones originales tal cual. Identifica la etapa, alcance y bloqueos antes de editar. Respeta las restricciones de Git y trabaja en una sola tarea.
-
-No supongas que todas las herramientas cargan automáticamente los mismos archivos. Esta entrada explícita permite compartir contexto; no se ha configurado ni probado la carga automática en cada herramienta.
-
-## Contexto
-- [Reglas](AGENTS.md)
-- [Producto](docs/producto.md)
-- [Recorridos](docs/recorridos.md)
-- [Diseño](docs/diseno.md)
-- [Decisiones y preguntas](docs/decisiones.md)
-- [Tecnología](docs/tecnologia.md)
-- [Flujo de trabajo](docs/flujo-trabajo.md)
-- [Validación](docs/validacion.md)
-- [Tareas](docs/tareas/README.md)
-
+Los nombres de funciones, contratos de datos, claves de almacenamiento, identificadores del tutorial y comportamiento visible se conservan en esta reorganización. Los registros históricos de tareas pueden describir entregas anteriores; la arquitectura actual se consulta en el documento indicado arriba.

@@ -41,7 +41,7 @@ La versión instalada de auth-js documenta que `processLock` está obsoleto y no
 
 | Comprobación | Pasos o comando | Resultado | Límite |
 | --- | --- | --- | --- |
-| Pruebas unitarias | `node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs` | 14 correctas | Cliente simulado. Incluyen validación, normalización, registro sin sesión, doble envío, reintento, cierre local, error inicial, cancelación, cambio de cuenta, rechazo de identidad y verificación atrasada. No equivalen a backend real. |
+| Pruebas unitarias | `node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs` | 14 correctas | Cliente simulado. Incluyen validación, normalización, registro sin sesión, doble envío, reintento, cierre local, error inicial, cancelación, cambio de cuenta, rechazo de identidad y verificación atrasada. No equivalen a backend real. |
 | TypeScript | `npm run typecheck`, por separado | Correcto | Incluye código integrado. |
 | Exportación | `npm run export` fuera del sandbox | Android, iOS y web empaquetados; código 0 | Dentro del sandbox Hermes falló previamente con código 6. El fallo no se reprodujo fuera del entorno restringido. Exportar no demuestra funcionamiento en teléfono. |
 | Web local | Navegador sobre Expo, formulario vacío y correo válido sin contraseña | Validaciones visibles correctas | Solo web. |
@@ -67,6 +67,6 @@ Evidencia visual del formulario en la carpeta local de visualizaciones de esta s
 
 - Próximo paso: pruebas reales pendientes y revisión de integración con Persona 5 cuando esté disponible. No cerrar el issue #1.
 - Perfil requiere Q03; comunidad e invitaciones requieren Q01 y Q02 antes de implementar reglas y permisos.
-- Archivos propuestos para revisión y eventual git add humano: App.tsx, src/lib/supabase.ts, package.json, package-lock.json, src/features/auth/AuthPanel.tsx, src/features/auth/useAuth.ts, src/features/auth/observeSession.ts, src/features/auth/observeSession.test.cjs, src/features/auth/README.md, README.md, docs/decisiones.md, docs/tecnologia.md, docs/tareas/README.md y esta ficha.
+- Archivos propuestos para revisión y eventual git add humano: App.tsx, src/lib/supabase.ts, package.json, package-lock.json, src/app/AppRoot.tsx, src/features/auth/hooks/useAuth.ts, src/features/auth/model/observeSession.ts, src/features/auth/model/observeSession.test.cjs, src/features/auth/README.md, README.md, docs/decisiones.md, docs/tecnologia.md, docs/tareas/README.md y esta ficha.
 - Mensaje sugerido: `feat(auth): integrar acceso y persistencia de sesión con Supabase`.
 - No se ejecutaron git add, commit, push, migraciones ni despliegues.

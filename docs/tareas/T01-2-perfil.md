@@ -14,7 +14,7 @@ Como vecino autenticado, puedo guardar y editar mi nombre visible, consultar mi 
 
 Incluye pantalla, estado, acceso a datos y migración revisable de perfil. No incluye búsqueda de vecinos, roles, comunidades ni invitaciones. No se incorpora una base offline de perfiles.
 
-G01 modifica `src/features/profile/`, monta la pantalla en el flujo privado de `src/features/auth/AuthPanel.tsx`, añade Expo Clipboard compatible con SDK 58 y mantiene package-lock.json. Documentos de decisiones, índice y README se actualizan con el estado real. Persona 5 debe revisar el punto de integración cuando esté disponible; no se introducen rutas ni contratos de comunidad.
+G01 modifica `src/features/profile/`, monta la pantalla en el flujo privado de `src/app/AppRoot.tsx`, añade Expo Clipboard compatible con SDK 58 y mantiene package-lock.json. Documentos de decisiones, índice y README se actualizan con el estado real. Persona 5 debe revisar el punto de integración cuando esté disponible; no se introducen rutas ni contratos de comunidad.
 
 La migración `supabase/migrations/20261107230506_own_profile.sql` se creó con Supabase CLI 3.0.0. No se aplica al servicio compartido: el conector conectado no tiene acceso al proyecto de .env y debe inspeccionarse su esquema antes de aplicar cambios. Docker está instalado, pero su motor no está disponible en esta sesión.
 
@@ -37,7 +37,7 @@ La migración `supabase/migrations/20261107230506_own_profile.sql` se creó con 
 
 | Comprobación | Comando/pasos | Resultado | Límite |
 | --- | --- | --- | --- |
-| Servicios de auth/perfil | `node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs src/features/profile/profileService.test.cjs` | 22 correctas, ocho nuevas del perfil | Cliente simulado; no equivale a integración remota. |
+| Servicios de auth/perfil | `node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs src/features/profile/data/profileService.test.cjs` | 22 correctas, ocho nuevas del perfil | Cliente simulado; no equivale a integración remota. |
 | Permisos SQL | `node --test supabase/tests/own_profile.test.cjs`, con PROFILE_SQL_RUNTIME apuntando a PGlite 0.5.15 temporal | Nueve casos SQL correctos; Node cuenta diez incluyendo su contenedor | PostgreSQL real embebido con auth.users/auth.uid y roles de prueba; no Supabase Auth/PostgREST real. Instrucciones reproducibles en src/features/profile/README.md. |
 | TypeScript | `npm run typecheck` | Código 0 | Sin pruebas visuales del formulario privado. |
 | Exportación | `npm run export`, fuera del sandbox | Android, iOS y web; código 0 | No demuestra funcionamiento en teléfono ni backend preparado. |
@@ -55,6 +55,6 @@ No cerrar el issue principal con el perfil, comunidades, invitaciones o pruebas 
 
 ## Revisión humana
 
-- Archivos propuestos para git add humano: `README.md`, `docs/decisiones.md`, `docs/recorridos.md`, `docs/tareas/README.md`, `docs/tareas/T01-2-perfil.md`, `package.json`, `package-lock.json`, `src/features/auth/AuthPanel.tsx`, `src/features/profile/ProfilePanel.tsx`, `src/features/profile/useProfile.ts`, `src/features/profile/profileService.ts`, `src/features/profile/profileService.test.cjs`, `src/features/profile/README.md`, `supabase/README.md`, `supabase/migrations/20261107230506_own_profile.sql`, `supabase/tests/own_profile.test.cjs`.
+- Archivos propuestos para git add humano: `README.md`, `docs/decisiones.md`, `docs/recorridos.md`, `docs/tareas/README.md`, `docs/tareas/T01-2-perfil.md`, `package.json`, `package-lock.json`, `src/app/AppRoot.tsx`, `src/features/profile/components/ProfilePanel.tsx`, `src/features/profile/hooks/useProfile.ts`, `src/features/profile/data/profileService.ts`, `src/features/profile/data/profileService.test.cjs`, `src/features/profile/README.md`, `supabase/README.md`, `supabase/migrations/20261107230506_own_profile.sql`, `supabase/tests/own_profile.test.cjs`.
 - Mensaje sugerido: `feat(profile): añadir perfil propio y código personal con RLS`.
 - No se ejecutaron git add, commit, push ni despliegues. El issue #1 permanece abierto.

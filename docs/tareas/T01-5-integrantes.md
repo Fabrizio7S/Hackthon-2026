@@ -34,7 +34,7 @@ G01 añade servicio/pantalla y migración de lectura bajo community, monta la li
 
 | Comprobación | Pasos/comando | Resultado | Límites |
 | --- | --- | --- | --- |
-| Servicios | `node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs src/features/profile/profileService.test.cjs src/features/community/communityService.test.cjs src/features/community/invitationService.test.cjs src/features/community/membersService.test.cjs` | 46 correctas; ocho nuevas de integrantes | Clientes simulados, sin montaje de React. |
+| Servicios | `node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs src/features/profile/data/profileService.test.cjs src/features/community/data/communityService.test.cjs src/features/community/data/invitationService.test.cjs src/features/community/data/membersService.test.cjs` | 46 correctas; ocho nuevas de integrantes | Clientes simulados, sin montaje de React. |
 | SQL | `node --test supabase/tests/own_profile.test.cjs supabase/tests/community_creation.test.cjs supabase/tests/community_invitations.test.cjs supabase/tests/community_members.test.cjs`, con PROFILE_SQL_RUNTIME de PGlite 0.5.15 | 38 casos SQL correctos, ocho de integrantes; Node cuenta además cuatro contenedores: 42 pruebas | PostgreSQL temporal con fixtures de Auth. No prueba Supabase Auth/PostgREST real ni teléfono. |
 | TypeScript | `npm run typecheck` | Código 0 | Incluye interfaz y actualización desde invitaciones. |
 | Exportación | `npm run export` fuera del sandbox | Android, iOS y web; código 0 | No acredita ejecución en teléfono. |
@@ -50,7 +50,7 @@ La migración no se aplica al proyecto compartido; acceso al proyecto correcto, 
 Archivos propuestos para git add humano:
 
 - `README.md`, `docs/recorridos.md`, `docs/tareas/README.md`, `docs/tareas/T01-5-integrantes.md`.
-- `src/features/community/CommunityPanel.tsx`, `src/features/community/InvitationPanel.tsx`, `src/features/community/README.md`, `src/features/community/MEMBERS.md`, `src/features/community/MembersPanel.tsx`, `src/features/community/membersService.ts`, `src/features/community/membersService.test.cjs`.
+- `src/features/community/components/CommunityPanel.tsx`, `src/features/community/components/InvitationPanel.tsx`, `src/features/community/README.md`, `src/features/community/MEMBERS.md`, `src/features/community/components/MembersPanel.tsx`, `src/features/community/data/membersService.ts`, `src/features/community/data/membersService.test.cjs`.
 - `supabase/README.md`, `supabase/migrations/20261107233955_community_members.sql`, `supabase/tests/community_members.test.cjs`.
 
 Mensaje sugerido: `feat(community): mostrar integrantes con acceso limitado a su comunidad`.

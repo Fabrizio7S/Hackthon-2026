@@ -5,12 +5,10 @@ const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
 
-const code = ts.transpileModule(fs.readFileSync(path.join(__dirname, 'types.ts'), 'utf8'), {
-  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-}).outputText;
-const sandbox = { exports: {} };
-vm.runInNewContext(code, sandbox);
-const { crearSesionMapa, NOMBRE_CATEGORIA } = sandbox.exports;
+const { createTypeScriptLoader } = require('../../../tests/helpers/loadTypeScript.cjs');
+const load = createTypeScriptLoader({ baseDir: __dirname });
+const { crearSesionMapa } = load('./model/mapSession.ts');
+const { NOMBRE_CATEGORIA } = load('./constants/categoryLabels.ts');
 
 test('la sesión del mapa empieza sin filtros, sin selección y sin cámara guardada', () => {
   const sesion = crearSesionMapa();

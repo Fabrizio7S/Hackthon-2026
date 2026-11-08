@@ -41,7 +41,7 @@ No se aplica el esquema compartido: sigue pendiente acceso al proyecto correcto,
 
 | Comprobación | Pasos/comando | Resultado | Límites |
 | --- | --- | --- | --- |
-| Servicios | `node --test src/features/auth/authService.test.cjs src/features/auth/observeSession.test.cjs src/features/profile/profileService.test.cjs src/features/community/communityService.test.cjs` | 29 correctas; siete de comunidad | Clientes simulados. No prueban montaje de React ni integración remota. |
+| Servicios | `node --test src/features/auth/data/authService.test.cjs src/features/auth/model/observeSession.test.cjs src/features/profile/data/profileService.test.cjs src/features/community/data/communityService.test.cjs` | 29 correctas; siete de comunidad | Clientes simulados. No prueban montaje de React ni integración remota. |
 | SQL | `node --test supabase/tests/own_profile.test.cjs supabase/tests/community_creation.test.cjs` con PROFILE_SQL_RUNTIME de PGlite 0.5.15 | 19 casos correctos: diez de comunidad y nueve de perfil; Node cuenta además dos contenedores, total 21 | PostgreSQL embebido, identidades/Auth de prueba. No equivale a Supabase Auth/PostgREST ni concurrencia real entre conexiones. |
 | TypeScript | `npm run typecheck` | Código 0 | Incluye la pantalla y conexión al guardado del perfil. |
 | Exportación | `npm run export` fuera del sandbox | Android, iOS y web; código 0 | No sustituye teléfono. |
@@ -59,8 +59,8 @@ La prueba SQL temporal no equivale a Supabase Auth/PostgREST. No cerrar el issue
 Archivos propuestos para revisión y git add humano:
 
 - `README.md`, `docs/tareas/README.md`, `docs/tareas/T01-3-crear-comunidad.md`.
-- `src/features/auth/AuthPanel.tsx`, `src/features/profile/ProfilePanel.tsx`, `src/features/profile/useProfile.ts`.
-- `src/features/community/communityService.ts`, `src/features/community/communityService.test.cjs`, `src/features/community/useCommunity.ts`, `src/features/community/CommunityPanel.tsx`, `src/features/community/README.md`.
+- `src/app/AppRoot.tsx`, `src/features/profile/components/ProfilePanel.tsx`, `src/features/profile/hooks/useProfile.ts`.
+- `src/features/community/data/communityService.ts`, `src/features/community/data/communityService.test.cjs`, `src/features/community/hooks/useCommunity.ts`, `src/features/community/components/CommunityPanel.tsx`, `src/features/community/README.md`.
 - `supabase/README.md`, `supabase/migrations/20261107231438_community_creation.sql`, `supabase/tests/community_creation.test.cjs`.
 
 Mensaje sugerido: `feat(community): crear comunidades con autorización de representante`.
