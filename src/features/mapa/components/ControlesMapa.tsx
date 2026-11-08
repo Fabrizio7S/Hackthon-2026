@@ -11,6 +11,7 @@ import {
 import type { CategoriaMapa } from '../types';
 import { styles } from '../styles/ControlesMapa.styles';
 import { colors } from '../../../theme/colors';
+import { AppIcon } from '../../../shared/AppIcon';
 
 export type FiltroMapa = 'todos' | CategoriaMapa;
 
@@ -39,7 +40,9 @@ export default function ControlesMapa({
   return (
     <View style={styles.contenedor}>
       <View style={styles.buscador}>
-        <Text style={styles.iconoBusqueda}>⌕</Text>
+        <View style={styles.iconoBusqueda}>
+          <AppIcon name="search" size={20} color={colors.text.muted} />
+        </View>
 
         <TextInput
           style={styles.entrada}
@@ -74,6 +77,17 @@ export default function ControlesMapa({
                 selected: seleccionado,
               }}
             >
+              {opcion.id !== 'todos' && (
+                <View
+                  style={[
+                    styles.punto,
+                    {
+                      backgroundColor: seleccionado ? colors.background : colors.category[opcion.id],
+                      borderRadius: opcion.id === 'producto' ? 2 : 4,
+                    },
+                  ]}
+                />
+              )}
               <Text
                 style={[
                   styles.textoFiltro,

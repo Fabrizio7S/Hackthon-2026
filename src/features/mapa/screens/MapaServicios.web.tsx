@@ -28,6 +28,7 @@ import { useFiltrosMapa } from '../hooks/useFiltrosMapa';
 import { useUbicacion } from '../hooks/useUbicacion';
 import { calcularDistanciaKm } from '../utils/calcularDistancia';
 import { styles } from '../styles/MapaServicios.styles';
+import { AppIcon } from '../../../shared/AppIcon';
 
 import type { OfertaMapa } from '../types';
 
@@ -40,24 +41,29 @@ interface MapaServiciosProps {
 // Así evitamos los problemas con sus imágenes predeterminadas.
 function crearIcono(categoria: OfertaMapa['categoria']) {
   const color =
-    categoria === 'servicio' ? '#16A34A' : '#F59E0B';
+    categoria === 'servicio' ? '#216349' : '#9A4524';
+  // Icono lineal propio (misma rejilla de 24 que AppIcon), sin emojis.
+  const trazo =
+    categoria === 'servicio'
+      ? '<path d="M3.5 9h17v10.5h-17zM9 9V6h6v3M3.5 13.5h17"/>'
+      : '<path d="M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0"/>';
 
   return L.divIcon({
     className: '',
     html: `
       <div style="
-        width: 32px;
-        height: 32px;
+        width: 34px;
+        height: 34px;
+        box-sizing: border-box;
         background: ${color};
-        border: 3px solid white;
-        border-radius: 50%;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        border: 3px solid #FFFDF7;
+        border-radius: 17px 17px 17px 4px;
+        box-shadow: 0 3px 8px rgba(18,63,51,0.3);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
       ">
-        ${categoria === 'servicio' ? '🛠️' : '📦'}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFDF7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${trazo}</svg>
       </div>
     `,
     iconSize: [38, 38],
@@ -74,10 +80,10 @@ const iconoUsuario = L.divIcon({
     <div style="
       width: 16px;
       height: 16px;
-      background: #2563EB;
+      background: #2D5B68;
       border: 3px solid white;
       border-radius: 50%;
-      box-shadow: 0 0 0 5px rgba(37,99,235,0.2);
+      box-shadow: 0 0 0 5px rgba(45,91,104,0.22);
     "></div>
   `,
   iconSize: [22, 22],
@@ -258,7 +264,7 @@ export default function MapaServicios({
         accessibilityRole="button"
         accessibilityLabel="Centrar mapa en mi ubicación"
       >
-        <Text style={styles.iconoUbicacion}>⌖</Text>
+        <AppIcon name="locate" size={24} color="#2D5B68" />
       </Pressable>
 
       <ControlesMapa

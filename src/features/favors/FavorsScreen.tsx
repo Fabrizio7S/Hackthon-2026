@@ -7,6 +7,8 @@ import {
 } from 'react-native';
 
 import { useSessionIdentity } from '../../shared/IdentityContext';
+import { AppIcon, type IconName } from '../../shared/AppIcon';
+import { archRadius, colors, fonts } from '../../shared/theme';
 import {
   neighborReviews, neighbors, publications as demoPublications, publicationStatus, requestLabels, updateRequests,
   type FavorRequest, type Neighbor, type Publication, type Review,
@@ -40,13 +42,17 @@ function getRequesterDisplayName(request: FavorRequest): string {
   return request.requesterName || neighbors[request.requester];
 }
 
-function Button({ label, onPress, primary = false, selected, disabled = false }: {
+function Button({ label, onPress, primary = false, selected, disabled = false, icon, iconAfter = false }: {
   label: string;
   onPress: () => void;
   primary?: boolean;
   selected?: boolean;
   disabled?: boolean;
+  icon?: IconName;
+  iconAfter?: boolean;
 }) {
+  const active = primary || selected;
+  const glyph = icon ? <AppIcon name={icon} size={16} color={active ? colors.onPrimary : colors.primary} weight={2.2} /> : null;
   return (
     <Pressable
       accessibilityRole="button"
@@ -55,7 +61,9 @@ function Button({ label, onPress, primary = false, selected, disabled = false }:
       onPress={onPress}
       style={({ pressed }) => [styles.button, (primary || selected) && styles.buttonActive, pressed && styles.pressed, disabled && styles.disabled]}
     >
-      <Text style={[styles.buttonText, (primary || selected) && styles.buttonTextActive]}>{label}</Text>
+      {!iconAfter && glyph}
+      <Text style={[styles.buttonText, active && styles.buttonTextActive]}>{label}</Text>
+      {iconAfter && glyph}
     </Pressable>
   );
 }
@@ -64,9 +72,18 @@ function Badge({ label }: { label: string }) {
   return <Text style={styles.badge}>{label}</Text>;
 }
 
+/** Tono e icono por tipo: préstamo en teja, intercambio en bosque. */
+function kindLook(kind: Publication['kind']) {
+  return kind === 'Intercambio'
+    ? { tint: colors.primarySurface, ink: colors.primary, icon: 'swap' as const }
+    : { tint: colors.claySurface, ink: colors.clay, icon: 'box' as const };
+}
+
 function ResourceArt({ item, compact = false, inset = false }: { item: Publication; compact?: boolean; inset?: boolean }) {
+  const look = kindLook(item.kind);
   return (
-    <View accessible={false} style={[styles.art, { backgroundColor: item.color }, compact && styles.artCompact, inset && styles.deckArt]}>
+    <View accessible={false} style={[styles.art, { backgroundColor: look.tint }, compact && [styles.artCompact, { borderRightColor: look.ink }], inset && styles.deckArt]}>
+      {compact && !item.imageUri && <View style={[styles.tagHole, { borderColor: look.ink }]} />}
       {item.imageUri ? (
         <Image
           accessibilityLabel={`Imagen de ${item.title}`}
@@ -75,7 +92,13 @@ function ResourceArt({ item, compact = false, inset = false }: { item: Publicati
           style={styles.resourceImage}
         />
       ) : (
-        <Text aria-hidden style={[styles.symbol, compact && styles.symbolCompact]}>{item.symbol}</Text>
+        compact ? (
+          <AppIcon name={look.icon} size={30} color={look.ink} weight={1.7} />
+        ) : (
+          <View style={[styles.artArch, { backgroundColor: look.ink }]}>
+            <AppIcon name={look.icon} size={46} color={colors.lime} weight={1.5} />
+          </View>
+        )
       )}
     </View>
   );
@@ -117,7 +140,7 @@ function PublicationForm({ onCancel, onPublish, submitting = false }: {
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Button label="‹ Volver" disabled={submitting} onPress={onCancel} />
+        <Button icon="back" label="Volver" disabled={submitting} onPress={onCancel} />
       </View>
       <Text accessibilityRole="header" style={styles.title}>Crear publicación</Text>
       <View style={[styles.card, styles.form]}>
@@ -131,7 +154,7 @@ function PublicationForm({ onCancel, onPublish, submitting = false }: {
         <TextInput
           accessibilityLabel="Título"
           placeholder="Ej. Caja de herramientas"
-          placeholderTextColor="#52645d"
+          placeholderTextColor={colors.textMuted}
           value={title}
           onChangeText={setTitle}
           maxLength={80}
@@ -141,7 +164,7 @@ function PublicationForm({ onCancel, onPublish, submitting = false }: {
         <TextInput
           accessibilityLabel="Descripción"
           placeholder="Cuenta qué prestas o qué te gustaría intercambiar."
-          placeholderTextColor="#52645d"
+          placeholderTextColor={colors.textMuted}
           value={description}
           onChangeText={setDescription}
           maxLength={600}
@@ -528,7 +551,10 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
         ) : <View style={styles.container}>
           <View style={styles.section}>
             <View style={styles.headerRow}>
-              <Text accessibilityRole="header" style={styles.title}>Cadena de favores</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.kicker}>HOY POR TI, MAÑANA POR MÍ</Text>
+                <Text accessibilityRole="header" style={styles.title}>Cadena de favores</Text>
+              </View>
               {client && userId && (
                 <Button label={loadingRemote ? 'Actualizando…' : 'Actualizar'} disabled={loadingRemote} onPress={() => void loadRemoteData()} />
               )}
@@ -541,15 +567,23 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
             )}
             {loadingRemote && remotePublications === null && (
               <View style={styles.row}>
-                <ActivityIndicator size="small" color="#17613e" />
+                <ActivityIndicator size="small" color={colors.primary} />
                 <Text style={styles.muted}>Sincronizando cadena de favores con Supabase…</Text>
               </View>
             )}
           </View>
           {!detail && (
-            <View style={styles.row}>
+            <View accessibilityRole="tablist" style={styles.segment}>
               {tabs.map((name) => (
-                <Button key={name} label={name} selected={tab === name} onPress={() => chooseTab(name)} />
+                <Pressable
+                  key={name}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: tab === name }}
+                  onPress={() => chooseTab(name)}
+                  style={({ pressed }) => [styles.segmentItem, tab === name && styles.segmentItemActive, pressed && styles.pressed]}
+                >
+                  <Text style={[styles.segmentText, tab === name && styles.segmentTextActive]}>{name}</Text>
+                </Pressable>
               ))}
             </View>
           )}
@@ -557,7 +591,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
           {detail ? (
             <View style={styles.section}>
               <View style={styles.row}>
-                <Button label="‹ Volver" onPress={() => setDetail(null)} />
+                <Button icon="back" label="Volver" onPress={() => setDetail(null)} />
               </View>
               <View style={styles.card}>
                 <View>
@@ -589,7 +623,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
                       <Button primary label={`Solicitar ${detail.kind.toLowerCase()}`} onPress={() => handleRequestFavor(detail)} />
                     )}
                     {detail.owner !== actor && (detailStatus === 'Disponible' || detailRequest?.status === 'accepted') && (
-                      <Button label="Abrir WhatsApp" onPress={() => openWhatsApp(detail)} />
+                      <Button icon="chat" label="Abrir WhatsApp" onPress={() => openWhatsApp(detail)} />
                     )}
                     {detail.owner !== actor && (
                       <Button label={saved.includes(detail.id) ? 'Quitar de guardadas' : 'Guardar publicación'}
@@ -622,7 +656,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
                   <TextInput
                     accessibilityLabel="Comentario de reseña"
                     placeholder="Ej. Coordinamos puntual y todo salió excelente."
-                    placeholderTextColor="#52645d"
+                    placeholderTextColor={colors.textMuted}
                     value={reviewComment}
                     onChangeText={setReviewComment}
                     maxLength={300}
@@ -732,17 +766,20 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
               )}
               {tab === 'Explorar' && (
                 <>
-                  <TextInput
-                    accessibilityLabel="Buscar publicaciones"
-                    placeholder="¿Qué necesitas? Ej. taladro"
-                    placeholderTextColor="#52645d"
-                    value={query}
-                    onChangeText={(value) => {
-                      setQuery(value);
-                      setCardIndex(0);
-                    }}
-                    style={styles.search}
-                  />
+                  <View style={styles.searchBox}>
+                    <AppIcon name="search" size={20} color={colors.textMuted} />
+                    <TextInput
+                      accessibilityLabel="Buscar publicaciones"
+                      placeholder="¿Qué necesitas? Ej. taladro"
+                      placeholderTextColor={colors.textMuted}
+                      value={query}
+                      onChangeText={(value) => {
+                        setQuery(value);
+                        setCardIndex(0);
+                      }}
+                      style={styles.searchInput}
+                    />
+                  </View>
                   <View style={styles.row}>
                     <Button label="Tarjetas" selected={layout === 'Tarjetas'} onPress={() => setLayout('Tarjetas')} />
                     <Button label="Lista" selected={layout === 'Lista'} onPress={() => setLayout('Lista')} />
@@ -782,8 +819,8 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
                     </Animated.View>
                   </View>
                   <View style={[styles.row, styles.deckControls]}>
-                    <Button label="‹ Anterior" disabled={cardIndex === 0} onPress={() => setCardIndex(cardIndex - 1)} />
-                    <Button label="Pasar ›" primary disabled={cardIndex === visible.length - 1} onPress={() => setCardIndex(cardIndex + 1)} />
+                    <Button icon="back" label="Anterior" disabled={cardIndex === 0} onPress={() => setCardIndex(cardIndex - 1)} />
+                    <Button icon="chevron" iconAfter label="Pasar" primary disabled={cardIndex === visible.length - 1} onPress={() => setCardIndex(cardIndex + 1)} />
                     <Pressable
                       accessibilityRole="button"
                       accessibilityLabel={currentCardSaved ? 'Quitar de guardadas' : 'Guardar publicación'}
@@ -796,9 +833,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
                         pressed && styles.pressed,
                       ]}
                     >
-                      <Text aria-hidden style={[styles.buttonText, styles.heartIcon, currentCardSaved && styles.buttonTextActive]}>
-                        {currentCardSaved ? '♥' : '♡'}
-                      </Text>
+                      <AppIcon name="heart" size={22} color={currentCardSaved ? colors.onPrimary : colors.primary} weight={2} />
                     </Pressable>
                   </View>
                 </View>
@@ -839,7 +874,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
           onPress={() => setCreating(true)}
           style={({ pressed }) => [styles.button, styles.buttonActive, styles.createButton, pressed && styles.pressed]}
         >
-          <Text aria-hidden style={[styles.buttonTextActive, styles.createIcon]}>+</Text>
+          <AppIcon name="plus" size={26} color={colors.lime} weight={2.4} />
         </Pressable>
       )}
       </View>
@@ -848,55 +883,61 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f5f7f3' },
+  safeArea: { flex: 1, backgroundColor: colors.surface },
   screen: { flex: 1 },
-  scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 48 },
-  scrollWithCreate: { paddingBottom: 88 },
-  container: { alignSelf: 'center', width: '100%', maxWidth: 680, gap: 16 },
+  scroll: { paddingHorizontal: 16, paddingTop: 18, paddingBottom: 48 },
+  scrollWithCreate: { paddingBottom: 96 },
+  container: { alignSelf: 'center', width: '100%', maxWidth: 760, gap: 16 },
   row: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
   section: { gap: 14 },
-  title: { color: '#112b22', fontSize: 30, fontWeight: '800', letterSpacing: -0.6 },
-  cardTitle: { color: '#112b22', fontSize: 21, fontWeight: '700' },
-  publisher: { backgroundColor: '#eef4f2', borderRadius: 10, padding: 12, gap: 4 },
-  publisherName: { color: '#112b22', fontSize: 15, fontWeight: '700' },
-  stars: { color: '#805700', fontSize: 16, letterSpacing: 1 },
-  review: { borderTopWidth: 1, borderTopColor: '#d9e4dc', paddingTop: 10, gap: 4 },
-  body: { color: '#253e34', fontSize: 16, lineHeight: 23 },
-  muted: { color: '#52645d', fontSize: 14, lineHeight: 20 },
-  eyebrow: { color: '#216142', fontSize: 12, fontWeight: '800', letterSpacing: 0.9 },
-  badge: { alignSelf: 'flex-start', color: '#154a32', backgroundColor: '#e2efe3', fontSize: 12, fontWeight: '700', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 },
-  button: { minHeight: 44, justifyContent: 'center', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: '#cddbd1', backgroundColor: '#fff' },
-  buttonActive: { backgroundColor: '#17613e', borderColor: '#17613e' },
-  buttonText: { color: '#194832', fontSize: 14, fontWeight: '700', textAlign: 'center' },
-  buttonTextActive: { color: '#fff' },
+  kicker: { fontFamily: fonts.mono, color: colors.clay, fontSize: 11, fontWeight: '600', letterSpacing: 1.4 },
+  title: { color: colors.text, fontSize: 30, fontWeight: '800', letterSpacing: -1, marginTop: 4 },
+  cardTitle: { color: colors.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
+  publisher: { backgroundColor: colors.surface, borderRadius: 12, padding: 12, gap: 4 },
+  publisherName: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  stars: { color: colors.starInk, fontSize: 16, letterSpacing: 1 },
+  review: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 10, gap: 4 },
+  body: { color: '#3B5247', fontSize: 15.5, lineHeight: 23 },
+  muted: { color: colors.textMuted, fontSize: 14, lineHeight: 20 },
+  eyebrow: { fontFamily: fonts.mono, color: colors.clay, fontSize: 11, fontWeight: '600', letterSpacing: 0.8 },
+  badge: { alignSelf: 'flex-start', fontFamily: fonts.mono, color: colors.primary, borderWidth: 1.5, borderColor: colors.primary, fontSize: 10.5, fontWeight: '600', letterSpacing: 0.6, borderRadius: 5, paddingHorizontal: 7, paddingVertical: 3, textTransform: 'uppercase', overflow: 'hidden' },
+  segment: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: 14, backgroundColor: '#E9E4D5' },
+  segmentItem: { flex: 1, minHeight: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  segmentItemActive: { backgroundColor: colors.background },
+  segmentText: { color: '#4F5E55', fontSize: 14, fontWeight: '500', textAlign: 'center' },
+  segmentTextActive: { color: colors.text, fontWeight: '700' },
+  button: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: colors.background },
+  buttonActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  buttonText: { color: colors.primary, fontSize: 14, fontWeight: '700', textAlign: 'center' },
+  buttonTextActive: { color: colors.onPrimary },
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.5 },
-  search: { minHeight: 48, color: '#112b22', fontSize: 16, borderWidth: 1, borderColor: '#cddbd1', backgroundColor: '#fff', borderRadius: 14, paddingHorizontal: 14 },
+  search: { minHeight: 48, color: colors.text, fontSize: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background, borderRadius: 14, paddingHorizontal: 14 },
+  searchBox: { minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background, borderRadius: 14, paddingHorizontal: 14 },
+  searchInput: { flex: 1, color: colors.text, fontSize: 16, paddingVertical: 12 },
   form: { padding: 16, gap: 12 },
   descriptionInput: { minHeight: 128, paddingVertical: 12, textAlignVertical: 'top' },
-  imagePreview: { width: '100%', height: 144, backgroundColor: '#eef4f2', borderRadius: 10 },
-  createButton: { position: 'absolute', right: 16, bottom: 16, width: 56, height: 56, padding: 0, alignItems: 'center', borderRadius: 28 },
-  createIcon: { fontSize: 30, lineHeight: 34, fontWeight: '600' },
-  card: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d9e4dc', borderRadius: 18, overflow: 'hidden' },
-  cardBody: { padding: 16, gap: 9 },
+  imagePreview: { width: '100%', height: 144, backgroundColor: colors.surface, borderRadius: 12 },
+  createButton: { position: 'absolute', right: 16, bottom: 16, width: 60, height: 60, padding: 0, alignItems: 'center', borderRadius: 20, borderWidth: 4, borderColor: colors.surface },
+  card: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderRadius: 18, overflow: 'hidden' },
+  cardBody: { padding: 16, gap: 8 },
   cardFooter: { paddingHorizontal: 16, paddingBottom: 14, alignItems: 'flex-start' },
   deckStack: { paddingBottom: 8 },
-  deckLayer: { position: 'absolute', bottom: 0, left: 9, right: 9, height: 26, borderRadius: 16, borderWidth: 1, borderColor: '#cddbd1', backgroundColor: '#e2efe3' },
+  deckLayer: { position: 'absolute', bottom: 0, left: 10, right: 10, height: 26, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.claySurface },
   deckCard: { padding: 16, gap: 10 },
   deckActions: { marginTop: 10 },
   deckMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
-  deckArt: { height: 132, borderRadius: 14 },
+  deckArt: { height: 150, borderRadius: 16 },
   deckControls: { justifyContent: 'center' },
-  heartButton: { width: 44, padding: 0, alignItems: 'center', borderRadius: 22 },
-  heartIcon: { fontSize: 24, lineHeight: 28 },
-  notice: { backgroundColor: '#eef4f2', color: '#334f43', fontSize: 14, lineHeight: 21, padding: 12, borderRadius: 10 },
-  art: { height: 168, alignItems: 'center', justifyContent: 'center' },
+  heartButton: { width: 48, padding: 0, alignItems: 'center', borderRadius: 16 },
+  notice: { backgroundColor: colors.primarySurface, color: '#2F4A3E', fontSize: 14, lineHeight: 21, padding: 12, borderRadius: 12, overflow: 'hidden' },
+  art: { height: 180, alignItems: 'center', justifyContent: 'flex-end', overflow: 'hidden' },
+  artArch: { width: 150, height: 140, borderTopLeftRadius: 80, borderTopRightRadius: 80, alignItems: 'center', justifyContent: 'center' },
   resourceImage: { width: '100%', height: '100%', borderRadius: 14 },
-  detailBadge: { position: 'absolute', top: 12, right: 12 },
-  artCompact: { width: 86, height: 86, borderRadius: 14, margin: 12 },
-  symbol: { fontSize: 66 },
-  symbolCompact: { fontSize: 35 },
-  listItem: { flexDirection: 'row', alignItems: 'center' },
-  listContent: { flex: 1, paddingLeft: 0 },
+  detailBadge: { position: 'absolute', top: 12, right: 12, backgroundColor: colors.background, borderRadius: 6 },
+  artCompact: { width: 84, height: undefined, alignSelf: 'stretch', minHeight: 110, justifyContent: 'center', borderRightWidth: 1.5, borderStyle: 'dashed' },
+  tagHole: { position: 'absolute', top: 12, width: 11, height: 11, borderRadius: 6, borderWidth: 1.5, backgroundColor: colors.surface },
+  listItem: { flexDirection: 'row', alignItems: 'stretch' },
+  listContent: { flex: 1 },
 });

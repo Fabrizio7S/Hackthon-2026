@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '../../shared/theme';
+import { colors, fonts } from '../../shared/theme';
+import { AppIcon } from '../../shared/AppIcon';
 import type { ResourceState } from './hooks';
 import { countByStatus, filterByStatus, formatRelative, sortEmergencies, type StatusFilter } from './logic';
 import {
@@ -13,7 +14,7 @@ import {
   type EmergencyLevel,
   type EmergencyStatus,
 } from './types';
-import { Badge, Banner, Button, Chip, StateView, shared, type Tone } from './ui';
+import { ArchIcon, Badge, Banner, Button, Chip, LevelBars, StateView, shared, type Tone } from './ui';
 
 const LEVEL_TONE: Record<EmergencyLevel, Tone> = { critica: 'danger', alta: 'warning', media: 'neutral' };
 const STATUS_TONE: Record<EmergencyStatus, Tone> = { abierta: 'danger', en_atencion: 'warning', solucionado: 'success' };
@@ -102,30 +103,47 @@ export function AlertCard({ item, onOpen }: { item: Emergency; onOpen: (id: stri
       accessibilityRole="button"
       accessibilityLabel={`${category?.label}, urgencia ${level?.label}, ${STATUS_LABELS[item.status]}. ${summary}`}
       onPress={() => onOpen(item.id)}
-      style={[shared.card, item.status === 'solucionado' && styles.closed]}
+      style={({ pressed }) => [shared.card, styles.alert, item.status === 'solucionado' && styles.closed, pressed && { opacity: 0.8 }]}
     >
-      <View style={shared.row}>
-        <Text style={styles.category}>{category?.symbol} {category?.label}</Text>
-        <Badge text={`Urgencia ${level?.label.toLowerCase()}`} tone={LEVEL_TONE[item.level]} />
-        <Badge text={STATUS_LABELS[item.status]} tone={STATUS_TONE[item.status]} />
-        {item.vulnerable ? <Badge text="Persona vulnerable" tone="warning" /> : null}
-        {item.isDemo ? <Badge text="Datos de demostración" tone="demo" /> : null}
+      <ArchIcon icon={category?.icon} tone={item.status === 'solucionado' ? 'success' : item.level === 'media' ? 'warning' : 'danger'} />
+      <View style={styles.alertBody}>
+        <View style={styles.alertTop}>
+          <View style={styles.level}>
+            <LevelBars level={item.level === 'critica' ? 3 : item.level === 'alta' ? 2 : 1} />
+            <Text style={styles.levelText}>{level?.label.toUpperCase()}</Text>
+          </View>
+          <Badge text={STATUS_LABELS[item.status]} tone={STATUS_TONE[item.status]} />
+        </View>
+        <Text style={styles.category}>{category?.label}</Text>
+        <View style={styles.summaryRow}>
+          {item.restricted ? <AppIcon name="lock" size={15} color={colors.textMuted} /> : null}
+          <Text style={[item.restricted ? styles.restricted : shared.body, { flex: 1 }]} numberOfLines={3}>{summary}</Text>
+        </View>
+        {item.vulnerable || item.isDemo ? (
+          <View style={shared.row}>
+            {item.vulnerable ? <Badge text="Persona vulnerable" tone="warning" /> : null}
+            {item.isDemo ? <Badge text="Datos de demostración" tone="demo" /> : null}
+          </View>
+        ) : null}
+        <Text style={shared.subtitle}>
+          {formatRelative(item.createdAt)}
+          {item.mine ? ' · Tu reporte' : ''}
+          {item.offersCount > 0 ? ` · ${item.offersCount} ofrecimiento${item.offersCount === 1 ? '' : 's'} de ayuda` : ''}
+        </Text>
       </View>
-      <Text style={item.restricted ? styles.restricted : shared.body} numberOfLines={3}>
-        {item.restricted ? '🔒 ' : ''}{summary}
-      </Text>
-      <Text style={shared.subtitle}>
-        {formatRelative(item.createdAt)}
-        {item.mine ? ' · Tu reporte' : ''}
-        {item.offersCount > 0 ? ` · 🤝 ${item.offersCount} ofrecimiento${item.offersCount === 1 ? '' : 's'}` : ''}
-      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   grow: { flex: 1, minWidth: 160 },
-  category: { fontSize: 16, fontWeight: '800', color: colors.text },
+  alert: { flexDirection: 'row', gap: 12 },
+  alertBody: { flex: 1, minWidth: 0, gap: 5 },
+  alertTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' },
+  level: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  levelText: { fontFamily: fonts.mono, fontSize: 11, fontWeight: '600', letterSpacing: 0.6, color: colors.dangerDeep },
+  summaryRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  category: { fontSize: 16, fontWeight: '800', color: '#2E2220' },
   restricted: { fontSize: 14, color: colors.textMuted, fontStyle: 'italic' },
   closed: { opacity: 0.8 },
 });

@@ -2,6 +2,8 @@
 // Los valores reflejan los enums del backend. Las reglas (quién atiende, cierra y ve
 // qué) se validan en Supabase; aquí solo se nombran para la interfaz.
 
+import type { IconName } from '../../shared/AppIcon';
+
 export type EmergencyCategory = 'agua' | 'salud' | 'vivienda' | 'alimentos' | 'luz' | 'otro';
 export type EmergencyLevel = 'critica' | 'alta' | 'media';
 export type EmergencyStatus = 'abierta' | 'en_atencion' | 'solucionado';
@@ -10,13 +12,13 @@ export type OfferStatus = 'ofrecido' | 'aceptado' | 'rechazado' | 'retirado';
 export type ResourceType = 'agua' | 'botiquin' | 'zona_segura' | 'extintor' | 'otro';
 export type GroupType = 'brigada' | 'olla_comun' | 'oficios';
 
-export const CATEGORY_OPTIONS: ReadonlyArray<{ value: EmergencyCategory; label: string; symbol: string }> = [
-  { value: 'agua', label: 'Agua', symbol: '💧' },
-  { value: 'salud', label: 'Salud', symbol: '🩺' },
-  { value: 'vivienda', label: 'Vivienda', symbol: '🏠' },
-  { value: 'alimentos', label: 'Alimentos', symbol: '🍲' },
-  { value: 'luz', label: 'Luz', symbol: '💡' },
-  { value: 'otro', label: 'Otro', symbol: '⚠️' },
+export const CATEGORY_OPTIONS: ReadonlyArray<{ value: EmergencyCategory; label: string; symbol: string; icon: IconName }> = [
+  { value: 'agua', label: 'Agua', symbol: '💧', icon: 'drop' },
+  { value: 'salud', label: 'Salud', symbol: '🩺', icon: 'pulse' },
+  { value: 'vivienda', label: 'Vivienda', symbol: '🏠', icon: 'home' },
+  { value: 'alimentos', label: 'Alimentos', symbol: '🍲', icon: 'bowl' },
+  { value: 'luz', label: 'Luz', symbol: '💡', icon: 'bolt' },
+  { value: 'otro', label: 'Otro', symbol: '⚠️', icon: 'alert' },
 ];
 
 export const LEVEL_OPTIONS: ReadonlyArray<{ value: EmergencyLevel; label: string; hint: string }> = [
@@ -38,18 +40,18 @@ export const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
   retirado: 'Retirado',
 };
 
-export const RESOURCE_OPTIONS: ReadonlyArray<{ value: ResourceType; label: string; symbol: string }> = [
-  { value: 'agua', label: 'Agua', symbol: '🚰' },
-  { value: 'botiquin', label: 'Botiquín', symbol: '🧰' },
-  { value: 'zona_segura', label: 'Zona segura', symbol: '🛟' },
-  { value: 'extintor', label: 'Extintor', symbol: '🧯' },
-  { value: 'otro', label: 'Otro', symbol: '📦' },
+export const RESOURCE_OPTIONS: ReadonlyArray<{ value: ResourceType; label: string; symbol: string; icon: IconName }> = [
+  { value: 'agua', label: 'Agua', symbol: '🚰', icon: 'drop' },
+  { value: 'botiquin', label: 'Botiquín', symbol: '🧰', icon: 'aid' },
+  { value: 'zona_segura', label: 'Zona segura', symbol: '🛟', icon: 'support' },
+  { value: 'extintor', label: 'Extintor', symbol: '🧯', icon: 'extinguisher' },
+  { value: 'otro', label: 'Otro', symbol: '📦', icon: 'box' },
 ];
 
-export const GROUP_OPTIONS: ReadonlyArray<{ value: GroupType; label: string; symbol: string }> = [
-  { value: 'brigada', label: 'Brigada vecinal', symbol: '🦺' },
-  { value: 'olla_comun', label: 'Olla común', symbol: '🍲' },
-  { value: 'oficios', label: 'Directorio de oficios', symbol: '🛠️' },
+export const GROUP_OPTIONS: ReadonlyArray<{ value: GroupType; label: string; symbol: string; icon: IconName }> = [
+  { value: 'brigada', label: 'Brigada vecinal', symbol: '🦺', icon: 'people' },
+  { value: 'olla_comun', label: 'Olla común', symbol: '🍲', icon: 'bowl' },
+  { value: 'oficios', label: 'Directorio de oficios', symbol: '🛠️', icon: 'services' },
 ];
 
 export type MyOffer = { id: string; status: OfferStatus };

@@ -4,7 +4,7 @@ import { colors } from '../../shared/theme';
 import { formatRelative } from './logic';
 import { OUTBOX_STATUS_LABELS, type OutboxEntry, type OutboxStatus } from './outbox';
 import { CATEGORY_OPTIONS } from './types';
-import { Badge, Button, shared, type Tone } from './ui';
+import { ArchIcon, Badge, Button, shared, type Tone } from './ui';
 
 const STATUS_TONE: Record<OutboxStatus, Tone> = {
   guardado_local: 'warning',
@@ -32,7 +32,8 @@ export function PendingList({ entries, busy, onRetry, onDiscard }: {
         return (
           <View key={entry.clientRequestId} style={shared.card}>
             <View style={shared.row}>
-              <Text style={shared.label}>{category?.symbol} {category?.label}</Text>
+              <ArchIcon icon={category?.icon} tone="warning" size={36} />
+              <Text style={shared.label}>{category?.label}</Text>
               <Badge text={OUTBOX_STATUS_LABELS[entry.status]} tone={STATUS_TONE[entry.status]} />
             </View>
             <Text style={shared.body} numberOfLines={3}>{entry.report.description}</Text>
@@ -53,5 +54,5 @@ export function PendingList({ entries, busy, onRetry, onDiscard }: {
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 10, borderLeftWidth: 4, borderLeftColor: colors.warning, paddingLeft: 10 },
+  wrap: { gap: 10, backgroundColor: colors.warningSurface, borderRadius: 18, padding: 12 },
 });

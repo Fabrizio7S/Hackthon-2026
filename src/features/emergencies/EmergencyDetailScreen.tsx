@@ -17,7 +17,8 @@ import {
   type OfferStatus,
   type SupportOffer,
 } from './types';
-import { Badge, Banner, Button, StateView, shared, type Tone } from './ui';
+import { ArchIcon, Badge, Banner, Button, StateView, shared, type Tone } from './ui';
+import { AppIcon } from '../../shared/AppIcon';
 
 const OFFER_TONE: Record<OfferStatus, Tone> = { ofrecido: 'warning', aceptado: 'success', rechazado: 'neutral', retirado: 'neutral' };
 const STATUS_TONE: Record<EmergencyStatus, Tone> = { abierta: 'danger', en_atencion: 'warning', solucionado: 'success' };
@@ -92,7 +93,10 @@ export function EmergencyDetailScreen({ api, emergencyId, onBack, onChanged, onG
 
             {detail.restricted ? (
               <View style={[shared.card, styles.lock]} accessibilityLabel="Detalle reservado">
-                <Text style={shared.title}>🔒 Detalle reservado</Text>
+                <View style={shared.row}>
+                  <AppIcon name="lock" size={20} color={colors.text} />
+                  <Text style={shared.title}>Detalle reservado</Text>
+                </View>
                 <Text style={shared.body}>
                   Este reporte involucra a una persona vulnerable. Por su privacidad, solo lo ven completo quien lo
                   reportó, el representante de la comunidad y quienes ya están ayudando. La ubicación se muestra
@@ -184,7 +188,10 @@ function Header({ detail }: { detail: EmergencyDetail }) {
   const level = LEVEL_OPTIONS.find(l => l.value === detail.level);
   return (
     <View style={shared.card}>
-      <Text style={styles.heading}>{category?.symbol} {category?.label}</Text>
+      <View style={[shared.row, { gap: 12 }]}>
+        <ArchIcon icon={category?.icon} />
+        <Text style={styles.heading}>{category?.label}</Text>
+      </View>
       <View style={shared.row}>
         <Badge text={STATUS_LABELS[detail.status]} tone={STATUS_TONE[detail.status]} />
         <Badge text={`Urgencia ${level?.label.toLowerCase()}`} tone={detail.level === 'critica' ? 'danger' : detail.level === 'alta' ? 'warning' : 'neutral'} />

@@ -25,6 +25,7 @@ import { useFiltrosMapa } from '../hooks/useFiltrosMapa';
 import { useUbicacion } from '../hooks/useUbicacion';
 import { calcularDistanciaKm } from '../utils/calcularDistancia';
 import { styles } from '../styles/MapaServicios.styles';
+import { AppIcon } from '../../../shared/AppIcon';
 
 import type { OfertaMapa } from '../types';
 
@@ -179,7 +180,7 @@ export default function MapaServicios({
         accessibilityRole="button"
         accessibilityLabel="Centrar mapa en mi ubicación"
       >
-        <Text style={styles.iconoUbicacion}>⌖</Text>
+        <AppIcon name="locate" size={24} color="#2D5B68" />
       </Pressable>
 
       {/* Barra de búsqueda y filtros */}

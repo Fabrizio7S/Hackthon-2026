@@ -39,9 +39,9 @@ export function StarRatingInput({ value, onSelect, disabled = false }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 4 },
-  star: { alignItems: 'center', justifyContent: 'center', minHeight: 48, minWidth: 48 },
-  starText: { fontSize: 36 },
-  filled: { color: colors.star },
-  empty: { color: colors.textMuted },
+  row: { flexDirection: 'row', gap: 6, marginTop: 8 },
+  star: { alignItems: 'center', backgroundColor: colors.background, borderColor: colors.border, borderRadius: 12, borderWidth: 1, justifyContent: 'center', minHeight: 48, minWidth: 48 },
+  starText: { fontSize: 26 },
+  filled: { color: colors.starInk },
+  empty: { color: colors.borderStrong },
 });

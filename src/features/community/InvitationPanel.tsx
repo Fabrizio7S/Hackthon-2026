@@ -75,7 +75,7 @@ export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcce
                 disabled={invitations.pending}
                 onPress={() => { void find(); }}
               >
-                <Text style={styles.buttonPrimaryText}>🔍 Buscar vecino</Text>
+                <Text style={styles.buttonPrimaryText}>Buscar vecino</Text>
               </Pressable>
 
               {invitations.neighbor && (
@@ -89,7 +89,7 @@ export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcce
                       if (invitations.neighbor) void invitations.send(invitations.neighbor.personal_code);
                     }}
                   >
-                    <Text style={styles.buttonPrimaryText}>✉ Enviar invitación a la comunidad</Text>
+                    <Text style={styles.buttonPrimaryText}>Enviar invitación a la comunidad</Text>
                   </Pressable>
                 </View>
               )}
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 18,
     padding: 16,
     gap: 14,
   },
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   messageBox: {
     backgroundColor: colors.primarySurface,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 10,
   },
   messageText: {
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 12,
     gap: 8,
   },
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     minHeight: 46,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.primary,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 12,
     gap: 6,
     marginTop: 4,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 12,
     gap: 8,
   },
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   directionBadge: {
-    borderRadius: 6,
+    borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   acceptButton: {
     flex: 1,
     backgroundColor: colors.primary,
-    borderRadius: 8,
+    borderRadius: 14,
     paddingVertical: 10,
     alignItems: 'center',
   },
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderWidth: 1.5,
     borderColor: colors.danger,
-    borderRadius: 8,
+    borderRadius: 14,
     paddingVertical: 10,
     alignItems: 'center',
   },
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   },
   buttonPrimary: {
     backgroundColor: colors.primary,
-    borderRadius: 8,
+    borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: 'center',
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.border,
     backgroundColor: colors.background,
-    borderRadius: 8,
+    borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 16,
     alignItems: 'center',

@@ -114,14 +114,14 @@ function MyOfferCard({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
+  screen: { flex: 1, backgroundColor: colors.surface },
   header: { color: colors.text, fontSize: 24, fontWeight: '700', paddingHorizontal: 20, paddingVertical: 16 },
   list: { gap: 12, paddingBottom: 24, paddingHorizontal: 16 },
-  card: { borderColor: colors.border, borderRadius: 12, borderWidth: 1, padding: 16 },
+  card: { borderColor: colors.border, borderRadius: 18, borderWidth: 1, padding: 16 },
   badges: { flexDirection: 'row', gap: 8, marginBottom: 6 },
   kind: {
     backgroundColor: colors.primarySurface,
-    borderRadius: 6,
+    borderRadius: 10,
     color: colors.text,
     fontSize: 13,
     fontWeight: '600',
@@ -129,13 +129,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
-  status: { borderRadius: 6, fontSize: 13, fontWeight: '600', overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 2 },
+  status: { borderRadius: 10, fontSize: 13, fontWeight: '600', overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 2 },
   statusActive: { backgroundColor: colors.primarySurface, color: colors.text },
   statusRetired: { backgroundColor: colors.dangerSurface, color: colors.danger },
   title: { color: colors.text, fontSize: 18, fontWeight: '700' },
   muted: { color: colors.textMuted, fontSize: 15, marginTop: 4 },
   actions: { flexDirection: 'row', gap: 12, marginTop: 12 },
-  button: { alignItems: 'center', borderRadius: 10, flex: 1, paddingVertical: 12 },
+  button: { alignItems: 'center', borderRadius: 14, flex: 1, paddingVertical: 12 },
   primary: { backgroundColor: colors.primary },
   danger: { backgroundColor: colors.danger },
   disabled: { opacity: 0.6 },
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   secondaryText: { color: colors.text, fontSize: 17, fontWeight: '700' },
   error: {
     backgroundColor: colors.dangerSurface,
-    borderRadius: 8,
+    borderRadius: 14,
     color: colors.danger,
     fontSize: 15,
     marginTop: 12,

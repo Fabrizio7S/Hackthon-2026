@@ -8,6 +8,7 @@ import type { Offer } from '../data/offerTypes';
 import type { Coordinates } from '../distance/distance';
 import { loadMapOffers, type ServiceMapOffer } from '../map/toMapOffers';
 import { colors } from '../theme';
+import { AppIcon } from '../../../shared/AppIcon';
 import { useUbicacion } from '../../mapa/hooks/useUbicacion';
 import MapaServicios from '../../mapa/screens/MapaServicios';
 import { EditOfferScreen } from './EditOfferScreen';
@@ -106,7 +107,8 @@ export function ServicesFlowScreen({
             onPress={() => goBackToTab(route.returnTab)}
             style={styles.backButton}
           >
-            <Text style={styles.backButtonText}>← Volver a ofertas</Text>
+            <AppIcon name="back" size={18} color={colors.primary} weight={2.2} />
+            <Text style={styles.backButtonText}>Volver a ofertas</Text>
           </Pressable>
         </View>
         <OfferDetailScreen
@@ -130,7 +132,8 @@ export function ServicesFlowScreen({
             onPress={() => goBackToTab('mis_ofertas')}
             style={styles.backButton}
           >
-            <Text style={styles.backButtonText}>← Volver a mis ofertas</Text>
+            <AppIcon name="back" size={18} color={colors.primary} weight={2.2} />
+            <Text style={styles.backButtonText}>Volver a mis ofertas</Text>
           </Pressable>
         </View>
         <EditOfferScreen
@@ -224,45 +227,45 @@ export function ServicesFlowScreen({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
+  screen: { flex: 1, backgroundColor: colors.surface },
   tabBar: {
+    backgroundColor: colors.surface,
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
-    gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 10,
   },
   tabButton: {
     alignItems: 'center',
-    borderColor: colors.border,
-    borderRadius: 10,
-    borderWidth: 2,
+    borderBottomColor: 'transparent',
+    borderBottomWidth: 3,
     flex: 1,
-    paddingVertical: 10,
+    justifyContent: 'center',
+    minHeight: 48,
   },
-  tabButtonSelected: {
-    backgroundColor: colors.primarySurface,
-    borderColor: colors.primary,
-  },
-  tabText: { color: colors.text, fontSize: 16 },
-  tabTextSelected: { fontWeight: '700' },
+  tabButtonSelected: { borderBottomColor: colors.primary },
+  tabText: { color: colors.textMuted, fontSize: 15, fontWeight: '500' },
+  tabTextSelected: { color: colors.primary, fontWeight: '700' },
   body: { flex: 1 },
   backBar: {
+    backgroundColor: colors.surface,
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   backButton: {
+    alignItems: 'center',
     alignSelf: 'flex-start',
-    borderRadius: 8,
+    borderRadius: 12,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 44,
     paddingHorizontal: 8,
-    paddingVertical: 8,
   },
   backButtonText: {
     color: colors.primary,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
   },
 });

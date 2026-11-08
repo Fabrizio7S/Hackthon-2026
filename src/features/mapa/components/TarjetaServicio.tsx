@@ -7,6 +7,8 @@ import {
 } from 'react-native';
 
 import type { OfertaMapa } from '../types';
+import { AppIcon } from '../../../shared/AppIcon';
+import { colors } from '../../../shared/theme';
 import { styles } from '../styles/TarjetaServicio.styles';
 
 interface TarjetaServicioProps {
@@ -22,6 +24,7 @@ export default function TarjetaServicio({
   onVerDetalles,
   onCerrar,
 }: TarjetaServicioProps) {
+  const esServicio = oferta.categoria === 'servicio';
   const tieneCalificacion =
     oferta.calificacionPromedio != null;
 
@@ -36,11 +39,22 @@ export default function TarjetaServicio({
 
   return (
     <View style={styles.tarjeta}>
+      <View
+        style={[
+          styles.arco,
+          { backgroundColor: esServicio ? colors.primarySurface : colors.claySurface },
+        ]}
+      >
+        <AppIcon
+          name={esServicio ? 'services' : 'bag'}
+          size={26}
+          color={esServicio ? colors.primary : colors.clay}
+        />
+      </View>
+      <View style={styles.cuerpo}>
       <View style={styles.encabezado}>
-        <Text style={styles.categoria}>
-          {oferta.categoria === 'servicio'
-            ? 'SERVICIO'
-            : 'PRODUCTO'}
+        <Text style={[styles.categoria, !esServicio && { color: colors.clay }]}>
+          {esServicio ? 'SERVICIO' : 'PRODUCTO'} · {distancia.toUpperCase()}
         </Text>
 
         <Pressable
@@ -49,7 +63,7 @@ export default function TarjetaServicio({
           accessibilityLabel="Cerrar tarjeta"
           style={styles.cerrar}
         >
-          <Text style={styles.cerrarTexto}>✕</Text>
+          <AppIcon name="close" size={16} color={colors.textMuted} weight={2} />
         </Pressable>
       </View>
 
@@ -57,12 +71,8 @@ export default function TarjetaServicio({
         {oferta.nombre}
       </Text>
 
-      <Text style={styles.distancia}>
-        📍 {distancia}
-      </Text>
-
       <Text style={styles.calificacion}>
-        {tieneCalificacion ? '⭐ ' : ''}
+        {tieneCalificacion ? '★ ' : ''}
         {calificacion}
         {tieneCalificacion &&
         oferta.cantidadCalificaciones !== undefined
@@ -97,7 +107,9 @@ export default function TarjetaServicio({
             ? 'Ver detalles'
             : 'Detalles disponibles próximamente'}
         </Text>
+        {onVerDetalles && <AppIcon name="chevron" size={15} color={colors.onPrimary} weight={2.2} />}
       </Pressable>
+      </View>
     </View>
   );
 }

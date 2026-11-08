@@ -10,7 +10,8 @@ import { FavorsScreen } from '../favors/FavorsScreen';
 import { EmergenciesScreen, type EmergenciesTab } from '../emergencies';
 import { createOffersApi, ServicesFlowScreen } from '../services';
 import { SessionIdentityProvider, useSessionActions, useSessionIdentity } from '../../shared/IdentityContext';
-import { colors } from '../../shared/theme';
+import { colors, fonts } from '../../shared/theme';
+import { AppIcon } from '../../shared/AppIcon';
 
 import { NeighborhoodShell, NeighborhoodHome, WelcomeStory, type NeighborhoodSection, type CreateAction } from '../../shared/NeighborhoodUI';
 type MainSection = NeighborhoodSection;
@@ -122,6 +123,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
         ) : section !== 'comunidad' && section !== 'emergencias' && hasCommunity === false ? (
           <View style={styles.centerContainer}>
             <View style={styles.card}>
+              <View style={styles.gateArch}><AppIcon name="people" size={30} color={colors.primary} /></View>
               <Text style={styles.authTitle} accessibilityRole="header">
                 Únete a una comunidad primero
               </Text>
@@ -156,7 +158,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             <View style={styles.sessionCard}>
               <View style={styles.sessionHeaderRow}>
                 <View style={styles.sessionInfo}>
-                  <Text style={styles.sessionLabel}>
+                  <Text style={styles.sessionLabel} numberOfLines={1}>
                     {communityName ? `Comunidad: ${communityName}` : 'Cuenta activa'}
                   </Text>
                   <Text style={styles.sessionEmail}>{identity.user.email}</Text>
@@ -170,6 +172,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
                     void sessionActions.signOut();
                   }}
                 >
+                  <AppIcon name="logout" size={16} color={colors.danger} weight={2} />
                   <Text style={styles.logoutButtonText}>{auth.pending ? 'Saliendo…' : 'Cerrar sesión'}</Text>
                 </Pressable>
               </View>
@@ -177,7 +180,10 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             </View>
 
             <View style={styles.emergencyCard}>
-              <Text accessibilityRole="header" style={styles.emergencyTitle}>🚨 Emergencias y apoyo</Text>
+              <View style={styles.emergencyHead}>
+                <View style={styles.emergencyIcon}><AppIcon name="siren" size={22} color={colors.onDanger} /></View>
+                <Text accessibilityRole="header" style={styles.emergencyTitle}>Emergencias y apoyo</Text>
+              </View>
               <Text style={styles.emergencyText}>
                 Reporta un problema en tu zona, mira las alertas de tu comunidad y encuentra recursos y grupos de apoyo.
               </Text>
@@ -317,15 +323,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: colors.surface,
   },
-  scrollContent: {
-    padding: 16,
-    gap: 16,
-    backgroundColor: colors.surface,
-    paddingBottom: 40,
-    width: '100%',
-    maxWidth: 1000,
-    alignSelf: 'center',
-  },
+  scrollContent: { padding: 16, gap: 16, backgroundColor: colors.surface, paddingBottom: 40, width: '100%', maxWidth: 820, alignSelf: 'center' },
   navBar: {
     flexDirection: 'row',
     gap: 8,
@@ -373,63 +371,30 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.danger,
   },
-  emergencyCard: {
-    backgroundColor: colors.dangerSurface,
-    borderWidth: 1,
-    borderColor: colors.danger,
-    borderRadius: 12,
-    padding: 14,
-    gap: 10,
-  },
-  emergencyTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.danger,
-  },
-  emergencyText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.text,
-  },
+  emergencyCard: { backgroundColor: colors.dangerSurface, borderRadius: 20, padding: 16, gap: 10 },
+  emergencyTitle: { fontSize: 18, fontWeight: '800', color: colors.dangerInk, letterSpacing: -0.3 },
+  emergencyText: { fontSize: 14, lineHeight: 20, color: colors.dangerInk },
+  emergencyHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  emergencyIcon: { width: 40, height: 44, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomLeftRadius: 7, borderBottomRightRadius: 7, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center' },
+  gateArch: { width: 64, height: 72, borderTopLeftRadius: 32, borderTopRightRadius: 32, borderBottomLeftRadius: 10, borderBottomRightRadius: 10, backgroundColor: colors.primarySurface, alignItems: 'center', justifyContent: 'center' },
   emergencyActions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  emergencyPrimary: {
-    minHeight: 48,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: colors.danger,
-  },
+  emergencyPrimary: { minHeight: 46, justifyContent: 'center', paddingHorizontal: 16, borderRadius: 14, backgroundColor: colors.danger },
   emergencyPrimaryText: {
     color: colors.onPrimary,
     fontWeight: '700',
     fontSize: 15,
   },
-  emergencySecondary: {
-    minHeight: 48,
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: colors.danger,
-    backgroundColor: colors.background,
-  },
+  emergencySecondary: { minHeight: 46, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 14, borderWidth: 1.5, borderColor: colors.danger, backgroundColor: '#FFFDFB' },
   emergencySecondaryText: {
     color: colors.danger,
     fontWeight: '700',
     fontSize: 14,
   },
-  sessionCard: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 14,
-    gap: 8,
-  },
+  sessionCard: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderRadius: 20, padding: 14, gap: 8 },
   sessionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -439,113 +404,27 @@ const styles = StyleSheet.create({
   sessionInfo: {
     flex: 1,
   },
-  sessionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-  },
-  sessionEmail: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  logoutButton: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
+  sessionLabel: { fontFamily: fonts.mono, fontSize: 11, fontWeight: '600', letterSpacing: 1, color: colors.primary, textTransform: 'uppercase' },
+  sessionEmail: { fontSize: 15, fontWeight: '600', color: colors.text, marginTop: 2 },
+  logoutButton: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1.5, borderColor: colors.dangerBorder, backgroundColor: colors.background, borderRadius: 12, minHeight: 44, paddingHorizontal: 12 },
   logoutButtonText: {
     fontSize: 13,
     fontWeight: '600',
     color: colors.danger,
   },
-  card: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 20,
-    gap: 14,
-  },
-  authCard: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    padding: 24,
-    gap: 16,
-    maxWidth: 480,
-    width: '100%',
-    alignSelf: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  authTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
-    textAlign: 'center',
-  },
-  authSubtitle: {
-    fontSize: 14,
-    color: colors.textMuted,
-    textAlign: 'center',
-    marginTop: -8,
-    marginBottom: 4,
-  },
+  card: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderRadius: 22, padding: 22, gap: 14, width: '100%', maxWidth: 520, alignSelf: 'center' },
+  authCard: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderRadius: 24, padding: 24, gap: 16, maxWidth: 480, width: '100%', alignSelf: 'center' },
+  authTitle: { fontSize: 26, fontWeight: '800', letterSpacing: -0.7, color: colors.text },
+  authSubtitle: { fontSize: 14, color: colors.textMuted, marginTop: -8, marginBottom: 4 },
   fieldGroup: {
     gap: 6,
   },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textMuted,
-  },
-  input: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.background,
-  },
-  buttonPrimary: {
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonPrimaryText: {
-    color: colors.onPrimary,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  buttonOutline: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    paddingVertical: 11,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonOutlineText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  label: { fontSize: 14, fontWeight: '600', color: colors.text },
+  input: { minHeight: 50, borderWidth: 1.5, borderColor: colors.borderStrong, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: colors.text, backgroundColor: colors.background },
+  buttonPrimary: { backgroundColor: colors.primary, borderRadius: 16, minHeight: 54, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
+  buttonPrimaryText: { color: colors.onPrimary, fontSize: 16, fontWeight: '700' },
+  buttonOutline: { borderWidth: 1.5, borderColor: colors.primary, backgroundColor: colors.background, borderRadius: 16, minHeight: 50, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
+  buttonOutlineText: { color: colors.primary, fontSize: 15, fontWeight: '700' },
   buttonSwitch: {
     paddingVertical: 8,
     alignItems: 'center',
@@ -563,21 +442,13 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 8,
   },
-  errorBox: {
-    backgroundColor: colors.dangerSurface,
-    borderRadius: 8,
-    padding: 10,
-  },
+  errorBox: { backgroundColor: colors.dangerSurface, borderRadius: 12, padding: 12 },
   errorText: {
     fontSize: 13,
     color: colors.danger,
     lineHeight: 18,
   },
-  messageBox: {
-    backgroundColor: colors.primarySurface,
-    borderRadius: 8,
-    padding: 10,
-  },
+  messageBox: { backgroundColor: colors.primarySurface, borderRadius: 12, padding: 12 },
   messageText: {
     fontSize: 13,
     color: colors.primary,

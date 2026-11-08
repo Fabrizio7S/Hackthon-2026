@@ -1,6 +1,6 @@
-
 import { StyleSheet } from 'react-native';
 import { colors } from '../../../theme/colors';
+import { fonts } from '../../../shared/theme';
 
 export const styles = StyleSheet.create({
   tarjeta: {
@@ -8,14 +8,31 @@ export const styles = StyleSheet.create({
     bottom: 20,
     left: 14,
     right: 14,
+    flexDirection: 'row',
+    gap: 12,
     backgroundColor: colors.background,
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 20,
+    padding: 14,
     elevation: 8,
     shadowColor: colors.shadow,
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.14,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
+  },
+  arco: {
+    width: 60,
+    alignSelf: 'stretch',
+    minHeight: 76,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cuerpo: {
+    flex: 1,
+    minWidth: 0,
   },
   encabezado: {
     flexDirection: 'row',
@@ -23,58 +40,61 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   categoria: {
+    fontFamily: fonts.mono,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
+    letterSpacing: 0.8,
     color: colors.primary,
+    flex: 1,
   },
   cerrar: {
-    padding: 5,
-  },
-  cerrarTexto: {
-    fontSize: 18,
-    color: colors.text.muted,
+    width: 36,
+    height: 36,
+    marginTop: -8,
+    marginRight: -8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   nombre: {
-    fontSize: 19,
+    fontSize: 17,
     fontWeight: '700',
     color: colors.text.primary,
-    marginTop: 4,
-  },
-  distancia: {
-    fontSize: 12,
-    color: colors.text.muted,
-    marginTop: 5,
+    marginTop: 2,
   },
   calificacion: {
     fontSize: 13,
-    color: colors.text.secondary,
-    marginTop: 7,
+    color: colors.text.muted,
+    marginTop: 4,
   },
   descripcion: {
     fontSize: 13,
     color: colors.text.description,
-    marginTop: 8,
+    marginTop: 6,
     lineHeight: 19,
   },
   precio: {
     fontSize: 15,
     fontWeight: '700',
     color: colors.primary,
-    marginTop: 8,
+    marginTop: 6,
   },
   boton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 14,
+    gap: 6,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    minHeight: 44,
+    paddingHorizontal: 16,
+    marginTop: 10,
   },
   botonDeshabilitado: {
     backgroundColor: colors.disabled,
   },
   botonTexto: {
     color: colors.text.inverse,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
   },
 });

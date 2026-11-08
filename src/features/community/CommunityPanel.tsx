@@ -7,7 +7,7 @@ import { useCommunity } from './useCommunity';
 import { InvitationPanel } from './InvitationPanel';
 import { MembersPanel } from './MembersPanel';
 import { CommunityIdentityProvider } from '../../shared/IdentityContext';
-import { colors } from '../../shared/theme';
+import { colors, fonts } from '../../shared/theme';
 
 export function CommunityPanel({ client, userId, refreshVersion, onMembershipResolved }: {
   client: SupabaseClient;
@@ -48,7 +48,7 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
           {identity.status === 'member' && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>
-                {identity.membership.role === 'representative' ? 'Representante' : 'Integrante'}
+                {identity.membership.role === 'representative' ? 'REPRESENTANTE' : 'INTEGRANTE'}
               </Text>
             </View>
           )}
@@ -69,12 +69,17 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
 
             {identity.status === 'member' ? (
               <View style={styles.memberBox}>
-                <Text style={styles.communityName}>{identity.community.name}</Text>
-                <Text style={styles.roleDescription}>
-                  {identity.membership.role === 'representative'
-                    ? 'Eres el representante vecinal de este sector. Puedes invitar a otros vecinos por su código personal.'
-                    : 'Eres integrante activo de esta comunidad.'}
-                </Text>
+                <View style={styles.plaque}>
+                  <View style={styles.plaqueInner}>
+                    <Text style={styles.plaqueEyebrow}>COMUNIDAD VECINAL</Text>
+                    <Text style={styles.communityName}>{identity.community.name}</Text>
+                    <Text style={styles.roleDescription}>
+                      {identity.membership.role === 'representative'
+                        ? 'Eres el representante vecinal de este sector. Puedes invitar a otros vecinos por su código personal.'
+                        : 'Eres integrante activo de esta comunidad.'}
+                    </Text>
+                  </View>
+                </View>
                 <MembersPanel key={`${userId}:${identity.community.id}`} client={client} refreshVersion={membersVersion} />
               </View>
             ) : identity.status === 'withoutCommunity' && (
@@ -144,36 +149,16 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 16,
-    gap: 14,
-  },
+  card: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderRadius: 22, padding: 18, gap: 14 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  badge: {
-    backgroundColor: colors.primarySurface,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.primary,
-  },
+  title: { fontSize: 21, fontWeight: '800', letterSpacing: -0.4, color: colors.text },
+  badge: { backgroundColor: colors.lime, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
+  badgeText: { fontFamily: fonts.mono, fontSize: 10.5, fontWeight: '600', letterSpacing: 0.6, color: colors.primaryDeep },
   loadingBox: {
     paddingVertical: 16,
     alignItems: 'center',
@@ -182,16 +167,8 @@ const styles = StyleSheet.create({
   memberBox: {
     gap: 10,
   },
-  communityName: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  roleDescription: {
-    fontSize: 14,
-    color: colors.textMuted,
-    lineHeight: 20,
-  },
+  communityName: { fontSize: 26, lineHeight: 29, fontWeight: '800', letterSpacing: -0.8, color: colors.onDeep },
+  roleDescription: { fontSize: 14, color: colors.onDeepMuted, lineHeight: 20 },
   withoutBox: {
     gap: 10,
   },
@@ -204,42 +181,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
   },
-  infoBanner: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 12,
-  },
+  infoBanner: { backgroundColor: colors.primarySurface, borderRadius: 14, padding: 12 },
   infoText: {
     fontSize: 13,
     color: colors.text,
     lineHeight: 18,
   },
-  createBox: {
-    gap: 8,
-    backgroundColor: colors.surface,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textMuted,
-  },
-  input: {
-    minHeight: 46,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.background,
-  },
+  createBox: { gap: 10, backgroundColor: colors.surface, padding: 14, borderRadius: 16 },
+  label: { fontSize: 14, fontWeight: '600', color: colors.text },
+  input: { minHeight: 48, borderWidth: 1.5, borderColor: colors.borderStrong, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, fontSize: 15, color: colors.text, backgroundColor: colors.background },
   errorText: {
     fontSize: 13,
     color: colors.danger,
@@ -248,34 +198,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
   },
-  buttonPrimary: {
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  buttonPrimary: { backgroundColor: colors.primary, borderRadius: 14, minHeight: 48, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
   buttonPrimaryText: {
     color: colors.onPrimary,
     fontSize: 15,
     fontWeight: '700',
   },
-  buttonOutline: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonOutlineText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  buttonOutline: { borderWidth: 1.5, borderColor: colors.primary, backgroundColor: colors.background, borderRadius: 14, minHeight: 46, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
+  buttonOutlineText: { color: colors.primary, fontSize: 14, fontWeight: '700' },
+  plaque: { backgroundColor: colors.primaryDeep, borderRadius: 20, padding: 5 },
+  plaqueInner: { borderWidth: 1.5, borderColor: 'rgba(244,241,232,0.42)', borderRadius: 16, padding: 16, gap: 6 },
+  plaqueEyebrow: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 1.4, color: '#C9DCA8' },
   buttonDisabled: {
     opacity: 0.6,
   },

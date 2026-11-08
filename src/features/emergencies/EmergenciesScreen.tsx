@@ -157,10 +157,10 @@ export function EmergenciesScreen({
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.surface },
-  tabs: { flexDirection: 'row', backgroundColor: colors.background, borderBottomWidth: 1, borderBottomColor: colors.border },
-  tab: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
-  tabSelected: { borderBottomColor: colors.danger },
-  tabText: { fontSize: 15, color: colors.textMuted, fontWeight: '600' },
-  tabTextSelected: { color: colors.danger, fontWeight: '800' },
+  root: { flex: 1, backgroundColor: colors.dangerPaper },
+  tabs: { flexDirection: 'row', backgroundColor: colors.danger, paddingHorizontal: 12, borderBottomLeftRadius: 22, borderBottomRightRadius: 22 },
+  tab: { flex: 1, minHeight: 50, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
+  tabSelected: { borderBottomColor: colors.onDanger },
+  tabText: { fontSize: 15, color: '#FBDCD3', fontWeight: '500' },
+  tabTextSelected: { color: colors.onDanger, fontWeight: '700' },
 });

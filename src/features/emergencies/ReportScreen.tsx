@@ -113,7 +113,8 @@ export function ReportScreen({ outbox, zone, userLocation, onViewAlerts }: Props
           {CATEGORY_OPTIONS.map(option => (
             <Chip
               key={option.value}
-              label={`${option.symbol} ${option.label}`}
+              label={option.label}
+              icon={option.icon}
               accessibilityLabel={`Tipo: ${option.label}`}
               selected={form.category === option.value}
               onPress={() => update({ category: option.value })}

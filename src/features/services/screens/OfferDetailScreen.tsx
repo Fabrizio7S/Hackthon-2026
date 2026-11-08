@@ -17,6 +17,8 @@ import { RatingSummary } from '../rating/RatingSummary';
 import { StarRatingInput } from '../rating/StarRatingInput';
 import { useSubmitOnce } from '../submit/useSubmitOnce';
 import { colors } from '../theme';
+import { AppIcon, type IconName } from '../../../shared/AppIcon';
+import { fonts } from '../../../shared/theme';
 
 type Props = {
   offerId: string;
@@ -118,17 +120,26 @@ function DetailContent({
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Text style={styles.kind}>{KIND_LABEL[offer.kind]}</Text>
-      <Text accessibilityRole="header" style={styles.title}>
-        {offer.title}
-      </Text>
-
-      <View style={styles.meta}>
-        {rating !== undefined && (
-          <RatingSummary average={rating?.average} count={rating?.count} maxStars={5} />
-        )}
-        {distance && <Text style={styles.muted}>{distance}</Text>}
+      <View style={[styles.hero, { backgroundColor: offer.kind === 'producto' ? colors.claySurface : colors.primarySurface }]}>
+        <View style={[styles.heroArch, { backgroundColor: offer.kind === 'producto' ? colors.clay : colors.primary }]}>
+          <AppIcon name={offer.kind === 'producto' ? 'bag' : 'services'} size={48} color={colors.lime} weight={1.4} />
+        </View>
+        <Text style={[styles.kind, { color: offer.kind === 'producto' ? colors.clay : colors.primary }]}>
+          {KIND_LABEL[offer.kind].toUpperCase()}
+        </Text>
       </View>
+      <View style={styles.titleRow}>
+        <Text accessibilityRole="header" style={styles.title}>
+          {offer.title}
+        </Text>
+        {distance && <Text style={styles.distance}>{distance}</Text>}
+      </View>
+
+      {rating !== undefined && (
+        <View style={styles.meta}>
+          <RatingSummary average={rating?.average} count={rating?.count} maxStars={5} />
+        </View>
+      )}
 
       {offer.description && <Text style={styles.description}>{offer.description}</Text>}
 
@@ -143,8 +154,8 @@ function DetailContent({
             {offer.contactPhone}
           </Text>
           <View style={styles.actions}>
-            <ContactButton label="Llamar" onPress={() => void handleContact('llamada')} />
-            <ContactButton label="WhatsApp" onPress={() => void handleContact('whatsapp')} />
+            <ContactButton icon="phone" label="Llamar" onPress={() => void handleContact('llamada')} />
+            <ContactButton icon="chat" label="WhatsApp" outline onPress={() => void handleContact('whatsapp')} />
           </View>
           {contactMessage && (
             <Text accessibilityRole="alert" style={styles.contactError}>
@@ -174,57 +185,94 @@ function DetailContent({
   );
 }
 
-function ContactButton({ label, onPress }: { label: string; onPress: () => void }) {
+function ContactButton({ label, icon, outline = false, onPress }: { label: string; icon: IconName; outline?: boolean; onPress: () => void }) {
   return (
-    <Pressable accessibilityLabel={label} accessibilityRole="button" onPress={onPress} style={styles.button}>
-      <Text style={styles.buttonText}>{label}</Text>
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.button, outline && styles.buttonOutline, pressed && { opacity: 0.75 }]}
+    >
+      <AppIcon name={icon} size={20} color={outline ? colors.primary : colors.onPrimary} weight={2} />
+      <Text style={[styles.buttonText, outline && { color: colors.primary }]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, paddingBottom: 40 },
+  screen: { flex: 1, backgroundColor: colors.surface },
+  content: { padding: 20, paddingBottom: 40, width: '100%', maxWidth: 760, alignSelf: 'center' },
+  hero: { alignItems: 'center', borderRadius: 22, height: 190, justifyContent: 'flex-end', overflow: 'hidden' },
+  heroArch: {
+    alignItems: 'center',
+    borderTopLeftRadius: 90,
+    borderTopRightRadius: 90,
+    height: 150,
+    justifyContent: 'center',
+    width: 160,
+  },
   kind: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primarySurface,
+    backgroundColor: colors.background,
     borderRadius: 6,
-    color: colors.text,
-    fontSize: 14,
+    fontFamily: fonts.mono,
+    fontSize: 11,
     fontWeight: '600',
+    left: 12,
+    letterSpacing: 1,
     overflow: 'hidden',
     paddingHorizontal: 8,
+    paddingVertical: 4,
+    position: 'absolute',
+    top: 12,
+  },
+  titleRow: { alignItems: 'flex-start', flexDirection: 'row', gap: 12, marginTop: 18 },
+  title: { color: colors.text, flex: 1, fontSize: 27, fontWeight: '800', letterSpacing: -0.8, lineHeight: 30 },
+  distance: {
+    borderColor: colors.text,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    color: colors.text,
+    fontFamily: fonts.mono,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+    paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  title: { color: colors.text, fontSize: 24, fontWeight: '700', marginTop: 8 },
-  meta: { alignItems: 'center', flexDirection: 'row', gap: 12, marginTop: 8 },
-  muted: { color: colors.textMuted, fontSize: 16 },
-  description: { color: colors.text, fontSize: 17, lineHeight: 24, marginTop: 16 },
-  label: { color: colors.text, fontSize: 16, fontWeight: '600', marginTop: 24 },
-  phone: { color: colors.text, fontSize: 20, marginTop: 4 },
-  actions: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  meta: { alignItems: 'center', flexDirection: 'row', gap: 12, marginTop: 10 },
+  muted: { color: colors.textMuted, fontSize: 15, lineHeight: 21 },
+  description: { color: '#3B5247', fontSize: 16, lineHeight: 24, marginTop: 14 },
+  label: { color: colors.text, fontSize: 16, fontWeight: '700', marginTop: 24 },
+  phone: { color: colors.text, fontFamily: fonts.mono, fontSize: 19, letterSpacing: 1, marginTop: 4 },
+  actions: { flexDirection: 'row', gap: 10, marginTop: 14 },
   button: {
     alignItems: 'center',
     backgroundColor: colors.primary,
-    borderRadius: 10,
+    borderColor: colors.primary,
+    borderRadius: 14,
+    borderWidth: 1.5,
     flex: 1,
-    paddingVertical: 16,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    minHeight: 52,
   },
-  buttonText: { color: colors.onPrimary, fontSize: 18, fontWeight: '700' },
+  buttonOutline: { backgroundColor: colors.background },
+  buttonText: { color: colors.onPrimary, fontSize: 16, fontWeight: '700' },
   contactError: {
     backgroundColor: colors.dangerSurface,
-    borderRadius: 8,
+    borderRadius: 12,
     color: colors.danger,
-    fontSize: 16,
+    fontSize: 15,
     marginTop: 16,
     padding: 12,
   },
-  rateOk: { color: colors.text, fontSize: 16, marginTop: 8 },
+  rateOk: { color: colors.primary, fontSize: 15, fontWeight: '600', marginTop: 8 },
   retired: {
     backgroundColor: colors.dangerSurface,
-    borderRadius: 8,
+    borderRadius: 12,
     color: colors.danger,
-    fontSize: 16,
+    fontSize: 15,
     marginTop: 24,
     padding: 12,
   },

@@ -1,29 +1,30 @@
+// Paleta del módulo de mapa, alineada con src/shared/theme.ts («papel, bosque y teja»).
 export const colors = {
-  // Identidad principal de VeciRed
-  primary: '#18734F',
+  // Identidad principal de la red vecinal
+  primary: '#216349',
 
   // Fondos
-  background: '#FFFFFF',
+  background: '#FFFDF7',
 
   // Textos
   text: {
-    primary: '#172B23',
-    secondary: '#374151',
-    muted: '#6B7280',
-    description: '#4B5563',
-    dark: '#333333',
+    primary: '#203D32',
+    secondary: '#3B5247',
+    muted: '#5F6E65',
+    description: '#4B5E53',
+    dark: '#203D32',
     inverse: '#FFFFFF',
   },
 
   // Estados y categorías
   category: {
-    servicio: '#16A34A',
-    producto: '#F59E0B',
+    servicio: '#216349',
+    producto: '#9A4524',
   },
 
   // Elementos deshabilitados
-  disabled: '#9CA3AF',
+  disabled: '#8A968D',
 
   // Sombras
-  shadow: '#000000',
+  shadow: '#123F33',
 } as const;

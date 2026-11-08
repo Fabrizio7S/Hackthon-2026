@@ -36,7 +36,7 @@ export function RatingSummary({ average, count, maxStars }: Props) {
 
 const styles = StyleSheet.create({
   row: { alignItems: 'center', flexDirection: 'row', gap: 4 },
-  star: { color: colors.star, fontSize: 16 },
-  average: { color: colors.text, fontSize: 16, fontWeight: '600' },
-  muted: { color: colors.textMuted, fontSize: 16 },
+  star: { color: colors.starInk, fontSize: 15 },
+  average: { color: colors.text, fontSize: 14, fontWeight: '700' },
+  muted: { color: colors.textMuted, fontSize: 14 },
 });

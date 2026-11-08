@@ -16,6 +16,8 @@ import { loadOfferListItems, type OfferListItem } from '../list/offerListItems';
 import { useListLoader } from '../list/useListLoader';
 import { RatingSummary } from '../rating/RatingSummary';
 import { colors } from '../theme';
+import { AppIcon } from '../../../shared/AppIcon';
+import { archRadius, fonts } from '../../../shared/theme';
 
 type Props = {
   /** Ubicación del vecino; sin ella no se muestran distancias. */
@@ -41,9 +43,12 @@ export function OfferListScreen({ userLocation = null, onOpenOffer, api = defaul
 
   return (
     <View style={styles.screen}>
-      <Text accessibilityRole="header" style={styles.header}>
-        Servicios y productos
-      </Text>
+      <View style={styles.headerBlock}>
+        <Text style={styles.eyebrow}>TALENTO A LA VUELTA</Text>
+        <Text accessibilityRole="header" style={styles.header}>
+          Servicios y productos
+        </Text>
+      </View>
       <ListStateView
         emptyMessage="Aún no hay ofertas en tu comunidad. ¡Sé el primero en publicar!"
         onRetry={() => void reload()}
@@ -54,14 +59,17 @@ export function OfferListScreen({ userLocation = null, onOpenOffer, api = defaul
           return (
             <View style={styles.content}>
               <View style={styles.controls}>
-                <TextInput
-                  accessibilityLabel="Buscar ofertas"
-                  onChangeText={(query) => setFilter((prev) => ({ ...prev, query }))}
-                  placeholder="Buscar por título o descripción"
-                  placeholderTextColor={colors.textMuted}
-                  style={styles.searchInput}
-                  value={filter.query}
-                />
+                <View style={styles.searchBox}>
+                  <AppIcon name="search" size={20} color={colors.textMuted} />
+                  <TextInput
+                    accessibilityLabel="Buscar ofertas"
+                    onChangeText={(query) => setFilter((prev) => ({ ...prev, query }))}
+                    placeholder="Buscar por título o descripción"
+                    placeholderTextColor={colors.textMuted}
+                    style={styles.searchInput}
+                    value={filter.query}
+                  />
+                </View>
                 <View
                   accessibilityLabel="Filtrar por tipo de oferta"
                   accessibilityRole="radiogroup"
@@ -78,6 +86,9 @@ export function OfferListScreen({ userLocation = null, onOpenOffer, api = defaul
                         onPress={() => setFilter((prev) => ({ ...prev, kind: option.value }))}
                         style={[styles.filterChip, selected && styles.filterChipSelected]}
                       >
+                        {option.value !== 'todos' && (
+                          <View style={[styles.filterDot, option.value === 'producto' && styles.filterDotProduct]} />
+                        )}
                         <Text style={[styles.filterChipText, selected && styles.filterChipTextSelected]}>
                           {option.label}
                         </Text>
@@ -132,6 +143,10 @@ function OfferCard({
   const { offer, rating } = item;
   const distance = formatDistance(userLocation, offer.location);
 
+  const product = offer.kind === 'producto';
+  const tint = product ? colors.claySurface : colors.primarySurface;
+  const ink = product ? colors.clay : colors.primary;
+
   return (
     <Pressable
       accessibilityHint={onPress ? 'Abre el detalle de la oferta' : undefined}
@@ -140,84 +155,105 @@ function OfferCard({
       onPress={() => onPress?.(offer)}
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
     >
-      <Text style={styles.kind}>{KIND_LABEL[offer.kind]}</Text>
-      <Text numberOfLines={2} style={styles.title}>
-        {offer.title}
-      </Text>
-      <View style={styles.meta}>
-        {rating !== undefined && (
-          <RatingSummary average={rating?.average} count={rating?.count} maxStars={5} />
-        )}
-        {distance && <Text style={styles.distance}>{distance}</Text>}
+      <View style={[styles.thumb, { backgroundColor: tint }]}>
+        <AppIcon name={product ? 'bag' : 'services'} size={26} color={ink} weight={1.7} />
       </View>
-      {offer.description && (
-        <Text numberOfLines={2} style={styles.description}>
-          {offer.description}
+      <View style={styles.cardBody}>
+        <View style={styles.cardTop}>
+          <Text style={[styles.kind, { color: ink }]}>{KIND_LABEL[offer.kind].toUpperCase()}</Text>
+          {distance && <Text style={styles.distance}>{distance}</Text>}
+        </View>
+        <Text numberOfLines={2} style={styles.title}>
+          {offer.title}
         </Text>
-      )}
+        {rating !== undefined && (
+          <View style={styles.meta}>
+            <RatingSummary average={rating?.average} count={rating?.count} maxStars={5} />
+          </View>
+        )}
+        {offer.description && (
+          <Text numberOfLines={2} style={styles.description}>
+            {offer.description}
+          </Text>
+        )}
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  header: { color: colors.text, fontSize: 24, fontWeight: '700', paddingHorizontal: 20, paddingVertical: 16 },
+  screen: { flex: 1, backgroundColor: colors.surface },
+  headerBlock: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 14 },
+  eyebrow: { color: colors.primary, fontFamily: fonts.mono, fontSize: 11, fontWeight: '600', letterSpacing: 1.4 },
+  header: { color: colors.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.9, marginTop: 4 },
   content: { flex: 1 },
-  controls: { gap: 10, paddingBottom: 12, paddingHorizontal: 16 },
-  searchInput: {
+  controls: { gap: 10, paddingBottom: 14, paddingHorizontal: 16 },
+  searchBox: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
-    color: colors.text,
-    fontSize: 17,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    flexDirection: 'row',
+    gap: 10,
+    minHeight: 50,
+    paddingHorizontal: 14,
   },
-  filterRow: { flexDirection: 'row', gap: 8 },
+  searchInput: { color: colors.text, flex: 1, fontSize: 16, paddingVertical: 12 },
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filterChip: {
     alignItems: 'center',
-    borderColor: colors.border,
+    backgroundColor: colors.background,
+    borderColor: colors.borderStrong,
     borderRadius: 10,
-    borderWidth: 2,
-    flex: 1,
-    paddingVertical: 10,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: 7,
+    minHeight: 44,
+    paddingHorizontal: 14,
   },
-  filterChipSelected: { backgroundColor: colors.primarySurface, borderColor: colors.primary },
-  filterChipText: { color: colors.text, fontSize: 16 },
-  filterChipTextSelected: { fontWeight: '700' },
+  filterChipSelected: { backgroundColor: colors.text, borderColor: colors.text },
+  filterChipText: { color: colors.text, fontSize: 15, fontWeight: '600' },
+  filterChipTextSelected: { color: colors.background },
+  filterDot: { backgroundColor: colors.primary, borderRadius: 4, height: 8, width: 8 },
+  filterDotProduct: { backgroundColor: '#B5562F', borderRadius: 2 },
   noMatches: { alignItems: 'center', justifyContent: 'center', padding: 24 },
   noMatchesText: { color: colors.text, fontSize: 18, textAlign: 'center' },
   clearButton: {
     backgroundColor: colors.primary,
-    borderRadius: 8,
+    borderRadius: 14,
     marginTop: 16,
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
-  clearButtonText: { color: colors.onPrimary, fontSize: 17, fontWeight: '600' },
-  list: { gap: 12, paddingBottom: 24, paddingHorizontal: 16 },
+  clearButtonText: { color: colors.onPrimary, fontSize: 17, fontWeight: '700' },
+  list: { gap: 12, paddingBottom: 28, paddingHorizontal: 16, width: '100%', maxWidth: 900, alignSelf: 'center' },
   card: {
     backgroundColor: colors.background,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 18,
     borderWidth: 1,
-    padding: 16,
+    flexDirection: 'row',
+    gap: 13,
+    padding: 12,
   },
   cardPressed: { backgroundColor: colors.primarySurface },
-  kind: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primarySurface,
+  thumb: { alignItems: 'center', justifyContent: 'center', minHeight: 76, width: 62, ...archRadius(62) },
+  cardBody: { flex: 1, gap: 3, justifyContent: 'center', minWidth: 0 },
+  cardTop: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
+  kind: { fontFamily: fonts.mono, fontSize: 11, fontWeight: '600', letterSpacing: 0.8 },
+  title: { color: colors.text, fontSize: 17, fontWeight: '700', lineHeight: 22 },
+  meta: { alignItems: 'center', flexDirection: 'row', gap: 12, marginTop: 2 },
+  distance: {
+    borderColor: colors.text,
     borderRadius: 6,
+    borderWidth: 1.5,
     color: colors.text,
-    fontSize: 13,
+    fontFamily: fonts.mono,
+    fontSize: 12,
     fontWeight: '600',
-    marginBottom: 6,
-    overflow: 'hidden',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
   },
-  title: { color: colors.text, fontSize: 18, fontWeight: '700' },
-  meta: { alignItems: 'center', flexDirection: 'row', gap: 12, marginTop: 6 },
-  distance: { color: colors.textMuted, fontSize: 15 },
-  description: { color: colors.textMuted, fontSize: 15, marginTop: 6 },
+  description: { color: colors.textMuted, fontSize: 14, lineHeight: 20, marginTop: 2 },
 });

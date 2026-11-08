@@ -15,7 +15,7 @@ import {
   type SupportDirectory,
   type SupportGroup,
 } from './types';
-import { Badge, Banner, Button, Chip, StateView, shared } from './ui';
+import { ArchIcon, Badge, Banner, Button, Chip, StateView, shared } from './ui';
 
 type Props = {
   api: EmergenciesApi;
@@ -118,7 +118,8 @@ function ResourcesSection({ resources, canManage, busyId, onToggle }: {
         return (
           <View key={resource.id} style={shared.card}>
             <View style={shared.row}>
-              <Text style={styles.name}>{option?.symbol} {resource.name}</Text>
+              <ArchIcon icon={option?.icon} tone={resource.available ? 'success' : 'neutral'} size={40} />
+              <Text style={styles.name}>{resource.name}</Text>
               {resource.isDemo ? (
                 <Badge text="Datos de demostración" tone="demo" />
               ) : (
@@ -165,7 +166,8 @@ function GroupsSection({ groups, canManage, busyId, onJoin, onToggleActive }: {
         return (
           <View key={group.id} style={shared.card}>
             <View style={shared.row}>
-              <Text style={styles.name}>{option?.symbol} {group.name}</Text>
+              <ArchIcon icon={option?.icon} tone="danger" size={40} />
+              <Text style={styles.name}>{group.name}</Text>
               <Badge text={group.active ? 'Activo' : 'Pausado'} tone={group.active ? 'success' : 'neutral'} />
               {group.isDemo ? <Badge text="Datos de demostración" tone="demo" /> : null}
             </View>
@@ -219,7 +221,7 @@ function ResourceForm({ busy, onSubmit }: { busy: boolean; onSubmit: (input: { t
       <Text style={shared.label}>Registrar un recurso (representante)</Text>
       <View style={shared.row}>
         {RESOURCE_OPTIONS.map(o => (
-          <Chip key={o.value} label={`${o.symbol} ${o.label}`} selected={type === o.value} onPress={() => setType(o.value)} />
+          <Chip key={o.value} label={o.label} icon={o.icon} selected={type === o.value} onPress={() => setType(o.value)} />
         ))}
       </View>
       <TextInput style={shared.input} value={name} onChangeText={setName} placeholder="Nombre" placeholderTextColor={colors.textMuted} accessibilityLabel="Nombre del recurso" maxLength={80} />
@@ -249,7 +251,7 @@ function GroupForm({ busy, onSubmit }: { busy: boolean; onSubmit: (input: { type
       <Text style={shared.label}>Registrar un grupo (representante)</Text>
       <View style={shared.row}>
         {GROUP_OPTIONS.map(o => (
-          <Chip key={o.value} label={`${o.symbol} ${o.label}`} selected={type === o.value} onPress={() => setType(o.value)} />
+          <Chip key={o.value} label={o.label} icon={o.icon} selected={type === o.value} onPress={() => setType(o.value)} />
         ))}
       </View>
       <TextInput style={shared.input} value={name} onChangeText={setName} placeholder="Nombre del grupo" placeholderTextColor={colors.textMuted} accessibilityLabel="Nombre del grupo" maxLength={80} />
