@@ -24,7 +24,7 @@ export type ServicesTab = 'explorar' | 'mapa' | 'publicar' | 'mis_ofertas';
 export type ServicesRoute =
   | { screen: 'tab'; tab: ServicesTab }
   | { screen: 'detalle'; offerId: string; returnTab: ServicesTab }
-  | { screen: 'editar'; offerId: string };
+  | { screen: 'editar'; offerId: string; fromDetail?: ServicesTab };
 
 type Props = {
   /** Pestaña inicial al abrir el módulo de servicios y productos. */
@@ -131,7 +131,8 @@ export function ServicesFlowScreen({
         return true;
       }
       if (route.screen === 'editar') {
-        goBackToTab('mis_ofertas');
+        if (route.fromDetail) setRoute({ screen: 'detalle', offerId: route.offerId, returnTab: route.fromDetail });
+        else goBackToTab('mis_ofertas');
         return true;
       }
       return false;
@@ -159,6 +160,11 @@ export function ServicesFlowScreen({
           key={`detail-${route.offerId}`}
           offerId={route.offerId}
           userLocation={effectiveLocation}
+          onEdit={() => setRoute({ screen: 'editar', offerId: route.offerId, fromDetail: route.returnTab })}
+          onRetired={() => {
+            setMapOffers(current => current?.filter(offer => offer.id !== route.offerId));
+            goBackToTab(route.returnTab);
+          }}
         />
       </View>
     );
@@ -169,13 +175,16 @@ export function ServicesFlowScreen({
       <View style={styles.screen}>
         <View style={styles.backBar}>
           <Pressable
-            accessibilityLabel="Volver a mis ofertas"
+            accessibilityLabel={route.fromDetail ? 'Volver al detalle' : 'Volver a mis ofertas'}
             accessibilityRole="button"
-            onPress={() => goBackToTab('mis_ofertas')}
+            onPress={() => {
+              if (route.fromDetail) setRoute({ screen: 'detalle', offerId: route.offerId, returnTab: route.fromDetail });
+              else goBackToTab('mis_ofertas');
+            }}
             style={styles.backButton}
           >
             <AppIcon name="back" size={18} color={colors.primary} weight={2.2} />
-            <Text style={styles.backButtonText}>Volver a mis ofertas</Text>
+            <Text style={styles.backButtonText}>{route.fromDetail ? 'Volver al detalle' : 'Volver a mis ofertas'}</Text>
           </Pressable>
         </View>
         <EditOfferScreen

@@ -20,6 +20,8 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
   const community = useCommunity(client, userId, refreshVersion);
   const identity = community.identity;
   const [name, setName] = useState('');
+  const [newName, setNewName] = useState<string | null>(null);
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const [communityCode, setCommunityCode] = useState('');
   const [copiedInvite, setCopiedInvite] = useState(false);
   const [validation, setValidation] = useState<string | null>(null);
@@ -39,6 +41,17 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
       const normalized = normalizeCommunityName(name);
       setValidation(null);
       await community.create(normalized);
+    } catch (failure) {
+      setValidation(failure instanceof Error ? failure.message : 'Revisa el nombre de la comunidad.');
+    }
+  }
+
+  async function saveName() {
+    if (newName === null) return;
+    try {
+      const normalized = normalizeCommunityName(newName);
+      setValidation(null);
+      if (await community.rename(normalized)) setNewName(null);
     } catch (failure) {
       setValidation(failure instanceof Error ? failure.message : 'Revisa el nombre de la comunidad.');
     }
@@ -82,6 +95,30 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
                   </View>
                 </View>
 
+                {identity.canInviteNeighbors && (newName === null ? (
+                  <Pressable accessibilityRole="button" style={styles.buttonSecondary} onPress={() => {
+                    setValidation(null);
+                    setNewName(identity.community.name);
+                  }}>
+                    <Text style={styles.buttonSecondaryText}>Editar nombre</Text>
+                  </Pressable>
+                ) : (
+                  <View style={styles.joinBox}>
+                    <Text style={styles.label}>Nombre de la comunidad</Text>
+                    <TextInput accessibilityLabel="Nombre de la comunidad" style={styles.input}
+                      value={newName} editable={!community.creating} onChangeText={setNewName} />
+                    {validation && <Text accessibilityRole="alert" style={styles.errorText}>{validation}</Text>}
+                    <Pressable accessibilityRole="button" style={styles.buttonPrimary}
+                      disabled={community.creating} onPress={() => void saveName()}>
+                      <Text style={styles.buttonPrimaryText}>Guardar nombre</Text>
+                    </Pressable>
+                    <Pressable accessibilityRole="button" style={styles.buttonSecondary}
+                      disabled={community.creating} onPress={() => { setNewName(null); setValidation(null); }}>
+                      <Text style={styles.buttonSecondaryText}>Cancelar</Text>
+                    </Pressable>
+                  </View>
+                ))}
+
                 {identity.membership.role === 'representative' && identity.membership.invite_code && (
                   <View style={styles.inviteCodeBox}>
                     <View style={styles.inviteCodeHeader}>
@@ -109,6 +146,24 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
                 )}
 
                 <MembersPanel key={`${userId}:${identity.community.id}`} client={client} refreshVersion={membersVersion} />
+                {identity.membership.role === 'member' && (
+                  <View style={styles.joinBox}>
+                    {confirmLeave && <Text style={styles.helpText}>¿Quieres abandonar {identity.community.name}?</Text>}
+                    <Pressable accessibilityRole="button" style={styles.buttonSecondary} disabled={community.creating}
+                      onPress={async () => {
+                        if (!confirmLeave) setConfirmLeave(true);
+                        else if (await community.leave()) setConfirmLeave(false);
+                      }}>
+                      <Text style={styles.buttonSecondaryText}>{confirmLeave ? 'Confirmar salida' : 'Abandonar comunidad'}</Text>
+                    </Pressable>
+                    {confirmLeave && (
+                      <Pressable accessibilityRole="button" style={styles.buttonSecondary}
+                        disabled={community.creating} onPress={() => setConfirmLeave(false)}>
+                        <Text style={styles.buttonSecondaryText}>Cancelar</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
               </View>
             ) : identity.status === 'withoutCommunity' && (
               <View style={styles.withoutBox}>

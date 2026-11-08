@@ -26,7 +26,9 @@ type Props = {
   userLocation?: Coordinates | null;
   /** Para pruebas; por defecto usa el Supabase compartido. */
   api?: Pick<OffersApi, 'getById' | 'ratingSummaries' | 'rate'> &
-    Partial<Pick<OffersApi, 'viewerRating' | 'getAuthorName'>>;
+    Partial<Pick<OffersApi, 'viewerRating' | 'getAuthorName' | 'setStatus'>>;
+  onEdit?: () => void;
+  onRetired?: () => void;
   /** Para pruebas; por defecto abre el marcador o WhatsApp. */
   contact?: typeof openContact;
 };
@@ -65,6 +67,8 @@ export function OfferDetailScreen({
   userLocation = null,
   api = defaultApi,
   contact = openContact,
+  onEdit,
+  onRetired,
 }: Props) {
   const { state, reload } = useListLoader(() => loadDetail(api, offerId));
 
@@ -72,7 +76,8 @@ export function OfferDetailScreen({
     <View style={styles.screen}>
       <ListStateView emptyMessage="Esta oferta ya no está disponible." onRetry={() => void reload()} state={state}>
         {([detail]) => (
-          <DetailContent api={api} contact={contact} detail={detail} userLocation={userLocation} />
+          <DetailContent api={api} contact={contact} detail={detail} userLocation={userLocation}
+            onEdit={onEdit} onRetired={onRetired} />
         )}
       </ListStateView>
     </View>
@@ -84,18 +89,37 @@ function DetailContent({
   userLocation,
   contact,
   api,
+  onEdit,
+  onRetired,
 }: {
   detail: Detail;
   userLocation: Coordinates | null;
   contact: typeof openContact;
   api: NonNullable<Props['api']>;
+  onEdit?: () => void;
+  onRetired?: () => void;
 }) {
   const { offer } = detail;
   const [rating, setRating] = useState(detail.rating);
   const [myStars, setMyStars] = useState(detail.myStars);
   const [rateMessage, setRateMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [contactMessage, setContactMessage] = useState<string | null>(null);
+  const [confirmRetire, setConfirmRetire] = useState(false);
+  const [retireError, setRetireError] = useState<string | null>(null);
+  const [retiredHere, setRetiredHere] = useState(false);
   const isOwnOffer = Boolean(detail.viewerUserId && detail.viewerUserId === offer.authorId);
+  const { submit: retire, submitting: retiring } = useSubmitOnce(async () => {
+    if (!isOwnOffer || !api.setStatus) return;
+    setRetireError(null);
+    const result = await api.setStatus(offer.id, 'retirada');
+    if (!result.ok) {
+      setRetireError(result.error.message);
+      return;
+    }
+    setRetiredHere(true);
+    setConfirmRetire(false);
+    onRetired?.();
+  });
 
   // Califica y, solo si el servidor lo confirma, vuelve a pedir el resumen (issue, bloque 4).
   const { submit: rate, submitting: sendingRating } = useSubmitOnce(async (stars: number) => {
@@ -114,7 +138,7 @@ function DetailContent({
     });
   });
   const distance = formatDistance(userLocation, offer.location);
-  const retired = offer.status === 'retirada';
+  const retired = retiredHere || offer.status === 'retirada';
 
   async function handleContact(channel: ContactChannel) {
     setContactMessage(null);
@@ -154,6 +178,29 @@ function DetailContent({
       )}
 
       {offer.description && <Text style={styles.description}>{offer.description}</Text>}
+
+      {isOwnOffer && (
+        <>
+          <View style={styles.actions}>
+            {onEdit && <ContactButton icon="edit" label="Editar" outline onPress={onEdit} disabled={retiring} />}
+            {!retired && api.setStatus && !confirmRetire && (
+              <ContactButton icon="close" label="Retirar oferta" outline onPress={() => setConfirmRetire(true)} />
+            )}
+          </View>
+          {confirmRetire && (
+            <>
+              <Text style={styles.muted}>¿Quieres retirar esta oferta del explorador y del mapa?</Text>
+              {retireError && <Text accessibilityRole="alert" style={styles.contactError}>{retireError}</Text>}
+              <View style={styles.actions}>
+                <ContactButton icon="close" label={retiring ? 'Retirando…' : 'Confirmar retiro'}
+                  disabled={retiring} onPress={() => void retire()} />
+                <ContactButton icon="back" label="Cancelar" outline disabled={retiring}
+                  onPress={() => { setConfirmRetire(false); setRetireError(null); }} />
+              </View>
+            </>
+          )}
+        </>
+      )}
 
       {retired ? (
         <Text accessibilityRole="alert" style={styles.retired}>
@@ -197,13 +244,16 @@ function DetailContent({
   );
 }
 
-function ContactButton({ label, icon, outline = false, onPress }: { label: string; icon: IconName; outline?: boolean; onPress: () => void }) {
+function ContactButton({ label, icon, outline = false, onPress, disabled = false }: {
+  label: string; icon: IconName; outline?: boolean; onPress: () => void; disabled?: boolean;
+}) {
   return (
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, outline && styles.buttonOutline, pressed && { opacity: 0.75 }]}
+      style={({ pressed }) => [styles.button, outline && styles.buttonOutline, (pressed || disabled) && { opacity: 0.75 }]}
     >
       <AppIcon name={icon} size={20} color={outline ? colors.primary : colors.onPrimary} weight={2} />
       <Text style={[styles.buttonText, outline && { color: colors.primary }]}>{label}</Text>
@@ -269,9 +319,10 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: 'center',
     minHeight: 52,
+    paddingHorizontal: 8,
   },
   buttonOutline: { backgroundColor: colors.background },
-  buttonText: { color: colors.onPrimary, fontSize: 16, fontWeight: '700' },
+  buttonText: { color: colors.onPrimary, fontSize: 16, fontWeight: '700', flexShrink: 1, textAlign: 'center' },
   contactError: {
     backgroundColor: colors.dangerSurface,
     borderRadius: 12,

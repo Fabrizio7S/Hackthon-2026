@@ -79,5 +79,16 @@ export function createCommunityService(client: SupabaseClient, userId: string) {
         return membershipFrom(data, userId);
       } finally { creating = false; }
     },
+    async leave(): Promise<void> {
+      const { error } = await client.rpc('leave_community');
+      if (error) throw error;
+    },
+    async rename(value: string): Promise<string> {
+      const name = normalizeCommunityName(value);
+      const { data, error } = await client.rpc('update_community_name', { p_name: name });
+      if (error) throw error;
+      if (data !== name) throw new Error('Invalid community name response');
+      return data;
+    },
   };
 }

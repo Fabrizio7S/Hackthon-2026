@@ -37,17 +37,19 @@ export function useCommunity(client: SupabaseClient, userId: string, refreshVers
     return () => { version.current++; };
   }, [service, attempt, refreshVersion]);
 
-  async function create(name: string) {
-    if (busy.current || loading || !data?.can_create || !data.has_profile || data.membership) return;
+  async function mutate(operation: () => Promise<CommunityStatus>) {
+    if (busy.current || loading) return false;
     const current = version.current;
     busy.current = true;
     setCreating(true);
     setError(null);
     try {
-      const membership = await service.create(name);
-      if (current === version.current) setData({ ...data, membership });
+      const next = await operation();
+      if (current === version.current) setData(next);
+      return true;
     } catch (failure) {
       if (current === version.current) setError(communityErrorMessage(failure));
+      return false;
     } finally {
       busy.current = false;
       if (mounted.current) {
@@ -58,29 +60,33 @@ export function useCommunity(client: SupabaseClient, userId: string, refreshVers
     }
   }
 
+  async function create(name: string) {
+    if (!data?.can_create || !data.has_profile || data.membership) return;
+    await mutate(async () => ({ ...data, membership: await service.create(name) }));
+  }
+
   async function joinByCode(code: string) {
-    if (busy.current || loading || !data?.has_profile || data.membership) return;
-    const current = version.current;
-    busy.current = true;
-    setCreating(true);
-    setError(null);
-    try {
-      const membership = await service.joinByCode(code);
-      if (current === version.current) setData({ ...data, membership });
-    } catch (failure) {
-      if (current === version.current) setError(communityErrorMessage(failure));
-    } finally {
-      busy.current = false;
-      if (mounted.current) {
-        setCreating(false);
-        if (current !== version.current) setAttempt(value => value + 1);
-      }
-    }
+    if (!data?.has_profile || data.membership) return;
+    await mutate(async () => ({ ...data, membership: await service.joinByCode(code) }));
+  }
+
+  async function leave() {
+    if (!data?.membership || data.membership.role !== 'member') return false;
+    return mutate(async () => {
+      await service.leave();
+      return { ...data, membership: null };
+    });
+  }
+
+  async function rename(name: string) {
+    const membership = data?.membership;
+    if (!data?.can_create || membership?.role !== 'representative') return false;
+    return mutate(async () => ({ ...data, membership: { ...membership, community_name: await service.rename(name) } }));
   }
 
   const identity = useMemo(() => toCommunityIdentity(userId, { loading, error, data }), [userId, loading, error, data]);
 
-  return { data, loading, creating, error, create, joinByCode, identity,
+  return { data, loading, creating, error, create, joinByCode, leave, rename, identity,
     refresh: () => { if (!busy.current) setAttempt(value => value + 1); },
   };
 }

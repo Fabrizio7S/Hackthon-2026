@@ -31,6 +31,22 @@ test('el servicio solo entrega nombre, rol y marca propia', async () => {
   assert.equal(Object.keys(member).sort().join(','), 'display_name,is_current_user,role');
 });
 
+test('el representante recibe solo el identificador de vecinos que puede dar de baja', async () => {
+  const service = createMembersService({ rpc: async (name, args) => {
+    if (name === 'get_my_community_members') return { error: null, data: { community_id: 'A', members: [
+      { ...own, user_id: 'own-id' },
+      { display_name: 'Luis', role: 'member', is_current_user: false, user_id: 'neighbor-id' },
+    ] } };
+    assert.equal(name, 'remove_community_member');
+    assert.equal(args.p_target_user_id, 'neighbor-id');
+    return { error: null };
+  } }, 'A', true);
+  const [self, neighbor] = await service.load();
+  assert.equal(self.user_id, undefined);
+  assert.equal(neighbor.user_id, 'neighbor-id');
+  await service.remove(neighbor.user_id);
+});
+
 test('no expone una lista de otra comunidad ni respuestas malformadas', async () => {
   for (const data of [
     { community_id: 'B', members: [own] }, { community_id: 'A', members: null },

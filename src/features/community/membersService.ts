@@ -5,6 +5,7 @@ export type CommunityMember = {
   display_name: string;
   role: CommunityRole;
   is_current_user: boolean;
+  user_id?: string;
 };
 
 export type MembersState =
@@ -22,7 +23,7 @@ export function membersErrorMessage(error: unknown): string {
   }
 }
 
-export function createMembersService(client: SupabaseClient, communityId: string) {
+export function createMembersService(client: SupabaseClient, communityId: string, canManage = false) {
   return {
     async load(): Promise<CommunityMember[]> {
       // La comunidad se resuelve en servidor. El id local solo valida la respuesta.
@@ -38,8 +39,15 @@ export function createMembersService(client: SupabaseClient, communityId: string
           || !('is_current_user' in member) || typeof member.is_current_user !== 'boolean') {
           throw new Error('Invalid member response');
         }
-        return { display_name: member.display_name, role: member.role, is_current_user: member.is_current_user };
+        const targetId = canManage && member.role === 'member' && !member.is_current_user
+          && 'user_id' in member && typeof member.user_id === 'string' ? member.user_id : undefined;
+        return { display_name: member.display_name, role: member.role, is_current_user: member.is_current_user,
+          ...(targetId ? { user_id: targetId } : {}) };
       });
+    },
+    async remove(userId: string): Promise<void> {
+      const { error } = await client.rpc('remove_community_member', { p_target_user_id: userId });
+      if (error) throw error;
     },
   };
 }

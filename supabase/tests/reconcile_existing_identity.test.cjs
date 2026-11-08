@@ -188,4 +188,73 @@ test('migración de compatibilidad: reconciliación con esquema español en Post
     const updated = (await db.query('select * from public.profiles where id = $1', [neighborId])).rows[0];
     assert.equal(updated.display_name, 'Carmen Rosa');
   });
+
+  await t.test('la gestión de comunidad conserva los permisos y la consistencia del perfil', async () => {
+    await db.exec('reset role');
+    for (const name of ['20261108080000_join_community_by_code.sql', '20261108090000_manage_community.sql']) {
+      await db.exec(fs.readFileSync(path.join(__dirname, '../migrations', name), 'utf8'));
+    }
+
+    const communityStatus = async () => (await db.query('select public.get_my_community() as status')).rows[0].status;
+    const members = async () => (await db.query('select public.get_my_community_members() as list')).rows[0].list.members;
+    const activeCommunity = async id => (await db.query('select comunidad_activa from public.perfiles where id = $1', [id])).rows[0].comunidad_activa;
+    const denied = { code: '42501' };
+
+    await asUser(neighborId);
+    assert.ok((await members()).every(member => !('user_id' in member)));
+    await assert.rejects(db.query('select public.remove_community_member($1)', [repId]), denied);
+    await assert.rejects(db.query("select public.update_community_name('Cambio ajeno')"), denied);
+    await db.query('select public.leave_community()');
+    await db.query('select public.leave_community()');
+    assert.equal((await communityStatus()).membership, null);
+    assert.equal(await activeCommunity(neighborId), null);
+
+    await asUser(repId);
+    const { community_id, invite_code } = (await communityStatus()).membership;
+    assert.equal((await members()).length, 1);
+    await assert.rejects(db.query('select public.leave_community()'), denied);
+    await assert.rejects(db.query('delete from public.miembros where usuario_id = $1', [repId]), denied);
+    await assert.rejects(db.query('select public.remove_community_member($1)', [repId]), denied);
+    await assert.rejects(db.query('select public.remove_community_member($1)', [neighborId]), denied);
+
+    for (const name of [' ', 'x'.repeat(101)]) {
+      await assert.rejects(db.query('select public.update_community_name($1)', [name]), { code: '22023' });
+    }
+    for (const name of [' A ', 'x'.repeat(100)]) {
+      const result = await db.query('select public.update_community_name($1) as name', [name]);
+      assert.equal(result.rows[0].name, name.trim());
+      assert.equal((await communityStatus()).membership.community_name, name.trim());
+    }
+
+    await asUser(neighborId);
+    await db.query('select public.join_community_by_code($1)', [invite_code]);
+    assert.equal(await activeCommunity(neighborId), community_id);
+    await asUser(repId);
+    const roster = await members();
+    assert.equal(roster.find(member => member.role === 'member').user_id, neighborId);
+    assert.ok(!('user_id' in roster.find(member => member.is_current_user)));
+    await db.query('select public.remove_community_member($1)', [neighborId]);
+    assert.equal((await members()).length, 1);
+    await asUser(neighborId);
+    assert.equal((await communityStatus()).membership, null);
+    assert.equal(await activeCommunity(neighborId), null);
+
+    // Con dos representantes, solo uno puede salir dejando al otro a cargo.
+    await db.exec('reset role');
+    await db.query('insert into public.miembros (comunidad_id, usuario_id, rol) values ($1, $2, $3)',
+      [community_id, neighborId, 'admin']);
+    await db.query('insert into public.representantes_autorizados (usuario_id) values ($1)', [neighborId]);
+    await asUser(repId);
+    await assert.rejects(db.query('select public.remove_community_member($1)', [neighborId]), denied);
+    await db.query('select public.leave_community()');
+    assert.equal((await communityStatus()).membership, null);
+    await asUser(neighborId);
+    await assert.rejects(db.query('select public.leave_community()'), denied);
+
+    await db.exec('reset role');
+    await db.exec('set role anon');
+    await assert.rejects(db.query('select public.leave_community()'), denied);
+    await db.exec('reset role');
+  });
+  await db.close();
 });
