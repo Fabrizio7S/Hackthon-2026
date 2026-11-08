@@ -46,7 +46,7 @@ src/
 - features/community/: comunidades e invitaciones.
 - features/services/: servicios, productos y calificaciones.
 - features/favors/: necesidades, ofrecimientos y coordinación.
-- features/emergencies/: reportes y recursos de apoyo.
+- features/emergencies/: reportes, ofrecimientos de ayuda, recursos y grupos de apoyo. Los permisos y las transiciones viven en Supabase (funciones y triggers); la cola local de reportes y el adaptador de mapa están descritos en [G04](tareas/G04-emergencias.md).
 - features/location/: ubicación y mapas.
 - features/offline/: persistencia y sincronización compartida.
 

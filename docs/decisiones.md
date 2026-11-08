@@ -32,6 +32,10 @@ Las propuestas y preguntas pendientes no son requisitos confirmados.
 | D23 | G02, edición y retiro: solo el autor edita (todos los campos salvo el tipo), retira y reactiva su oferta. Decidido por Persona 2 el 2026-11-07. |
 | D24 | G02, búsqueda y filtros mínimos para la primera entrega: búsqueda por texto en título y descripción (sin distinguir mayúsculas ni tildes) y filtro por tipo (Todos, Servicios, Productos) conforme a los campos de D20. Decidido por Persona 2 el 2026-11-07. Detalle en [T02.14](tareas/T02-14-busqueda-filtros.md). |
 | D25 | Q05 resuelta para la primera entrega de G03: el solicitante finaliza. Antes de aceptar, solo el solicitante puede cancelar. Durante la coordinación, puede cancelar el solicitante o el vecino cuyo ofrecimiento se aceptó. Al aceptar uno, se cierran los demás ofrecimientos. La ayuda se ofrece sobre una necesidad publicada. La devolución de objetos queda fuera de esta entrega. Detalle en [G03](tareas/G03-cadena-favores.md). |
+| D26 | Q06 resuelta para la primera entrega de G04: atiende y cierra el autor del reporte o el representante de la comunidad. Estados: abierta, en atención y solucionada; solucionada es final. Niveles: crítica, alta y media. Decidido por Persona 4 el 2026-11-07; pendiente de confirmación del equipo. Detalle en [G04](tareas/G04-emergencias.md). |
+| D27 | G04, la ayuda se ofrece sobre un reporte con una nota de hasta 200 caracteres; el autor o el representante la acepta o la rechaza. Aceptar mueve un reporte abierto a «en atención». No se comparte teléfono. Decidido por Persona 4 el 2026-11-07. |
+| D28 | G04, recursos (agua, botiquín, zona segura, extintor, otro) y grupos (brigada, olla común, oficios) los registra solo el representante. Se muestra quién los registró y si están disponibles o activos. Los datos de demostración se rotulan y nunca se presentan como disponibles. Decidido por Persona 4 el 2026-11-07. |
+| D29 | G04, un reporte sobre una persona vulnerable es restringido: quien no es autor, representante ni ayudante aceptado no ve descripción ni autor, y la ubicación se redondea a 0,01° (≈1 km). Decidido por Persona 4 el 2026-11-07. |
 
 ## Organización prevista
 
@@ -65,7 +69,7 @@ Falta confirmar reglas de atención, coordinación y cierre.
 | Q03 | Resuelta para esta entrega en D17. | Perfil y privacidad. |
 | Q04 | Resuelta para esta entrega en D22. | Servicios y productos. |
 | Q05 | Resuelta para esta entrega en D25. | Favores y coordinación. |
-| Q06 | ¿Quién atiende y cierra emergencias? ¿Qué niveles, recursos y grupos se muestran? | Emergencias. |
+| Q06 | Resuelta para esta entrega en D26–D29. | Emergencias. |
 | Q07 | ¿Qué funciona offline? ¿Cómo se gestionan reintentos, duplicados y conflictos? | Modelos, persistencia y sincronización. |
 | Q08 | ¿Desde dónde se cuentan tres clics? ¿Cómo se verifica tutorial y accesibilidad? | Publicación y validación transversal. |
 | Q09 | ¿Cuál es el alcance inicial de productos, muro, adjuntos, reacciones, favoritos e historial? | Cobertura y reparto de subtareas. |

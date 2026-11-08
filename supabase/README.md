@@ -4,6 +4,8 @@
 
 - `migrations/20261108020000_reconcile_existing_identity.sql`: **Migración de compatibilidad y reconciliación**. Diseñada para convivir con el esquema existente en español (`perfiles`, `comunidades`, `miembros`, `invitaciones`) sin destruir datos ni alterar vistas o claves foráneas ajenas (`emergencias`, `publicaciones`, etc.). Incorpora `codigo_personal` en `perfiles`, tabla `representantes_autorizados` (D19) y el puente de funciones RPC seguras compatibles con la app de G01.
 
+- `migrations/20261108050000_g04_emergencias.sql`: **G04 Emergencias y recursos de apoyo**. Añade columnas a `emergencias`, `recursos` y `grupos_apoyo`, la tabla `emergencia_apoyos`, triggers de actores y transiciones, políticas RLS y funciones RPC (`crear_emergencia`, `cambiar_estado_emergencia`, `ofrecer_ayuda_emergencia`, `listar_apoyo_comunidad`, entre otras). Aplicada en el proyecto compartido. Prueba SQL: `tests/emergencias.test.sql` (se ejecuta en una sola transacción y termina con una excepción intencional que informa el resultado).
+
 ## Orden histórico de migraciones del modelo local independiente (conservadas como referencia)
 
 1. `migrations/20261107230506_own_profile.sql`: T01.2, perfil propio y código personal.
