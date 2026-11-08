@@ -29,6 +29,7 @@ export type Publication = {
   terms: string;
   symbol: string;
   color: string;
+  imageUri?: string;
 };
 
 export const publications: Publication[] = [

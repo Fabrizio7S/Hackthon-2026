@@ -14,6 +14,7 @@ El usuario pidió una demo de préstamos e intercambios publicados por vecinos. 
 | Aceptar solicitud | Dueño de la publicación | La publicación pasa a coordinación y se cierran las solicitudes competidoras. |
 | Marcar como terminada | Vecino que solicitó el recurso | La solicitud y la publicación pasan a terminadas. |
 | Guardar o quitar de guardadas | Vecino que explora | Su lista personal cambia durante la sesión. |
+| Crear publicación | Perfil de la demo | El botón «+» de Explorar abre un formulario de préstamo o intercambio. La publicación queda en «Mi actividad» durante la sesión. |
 | Abrir WhatsApp | Vecino interesado | Se abre un mensaje preparado. La persona elige el contacto porque la demo usa perfiles ficticios. |
 
 El estado vive en memoria y se reinicia al recargar. La interfaz usa un perfil fijo. Las solicitudes nuevas quedan pendientes en la demo actual. Se usan ubicaciones de ejemplo. La demo no acredita permisos de backend, envío entre dispositivos ni persistencia.
@@ -29,6 +30,10 @@ El estado vive en memoria y se reinicia al recargar. La interfaz usa un perfil f
 - En Explorar, Tarjetas muestra una publicación a la vez con contador y botones «Anterior» y «Pasar». Lista incluye la descripción. Pasaron `npm run typecheck` y la exportación de Android, iOS y web. En navegador se comprobaron el avance y el retroceso, los límites, la búsqueda sin resultados, abrir y volver del detalle y guardar desde una tarjeta.
 - Las tarjetas admiten arrastre horizontal y tienen más espacio entre la descripción y los botones. Explorar muestra seis publicaciones de ejemplo. Pasaron `npm run typecheck` y la exportación de Android, iOS y web. En el navegador se comprobó el arrastre con puntero en ambas direcciones, el límite de la primera tarjeta y la búsqueda de un ejemplo nuevo. El gesto táctil queda pendiente de comprobar en Expo Go.
 - El detalle destaca quién publicó el recurso y muestra su promedio sobre cinco, calculado a partir de las reseñas de ejemplo del vecino. Cada reseña incluye autor, estrellas y comentario. Pasaron `npm run typecheck` y la exportación para Android, iOS y web. También se comprobaron los promedios de Carlos y Luz con los datos de ejemplo.
+- En Tarjetas, el corazón junto a «Pasar» guarda o quita la publicación actual y aparece relleno cuando está guardada. `npm run typecheck` pasó con este ajuste.
+- El botón «+» se fijó en la esquina inferior derecha de Explorar. En navegador se verificaron su posición, la validación de título y descripción, la creación y consulta de ambos tipos y la salida del formulario sin publicar. Pasaron `npm run typecheck` y la exportación de Android, iOS y web.
+- Crear publicación admite una imagen opcional con vista previa y acciones para cambiarla o quitarla. La imagen se muestra en «Mis publicaciones» y en el detalle durante la sesión. En navegador se verificaron la selección, la vista previa, la eliminación antes de publicar y la imagen en la publicación y su detalle. Pasaron `npm run typecheck` y la exportación de Android, iOS y web. La selección desde la galería queda pendiente de comprobar en Expo Go.
+- El texto del botón «Publicar» queda centrado en el formulario. `npm run typecheck` pasó con este ajuste.
 - Verificación en Expo Go y apertura de WhatsApp en teléfono pendientes.
 
 ## Resultado observable

@@ -1,6 +1,7 @@
+import { launchImageLibraryAsync } from 'expo-image-picker';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 import {
-  Animated, BackHandler, Linking, PanResponder, Platform, Pressable, SafeAreaView, ScrollView,
+  Animated, BackHandler, Image, Linking, PanResponder, Platform, Pressable, SafeAreaView, ScrollView,
   StatusBar, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 
@@ -14,6 +15,8 @@ type Tab = (typeof tabs)[number];
 const actor: Neighbor = 'ana';
 const webSwipeStyle = { position: 'relative', touchAction: 'pan-y' } as const;
 const ratingFormat = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const publicationKinds = ['Préstamo', 'Intercambio'] as const;
+type PublicationDraft = Pick<Publication, 'kind' | 'title' | 'description' | 'imageUri'>;
 
 function Button({ label, onPress, primary = false, selected, disabled = false }: {
   label: string;
@@ -42,7 +45,106 @@ function Badge({ label }: { label: string }) {
 function ResourceArt({ item, compact = false, inset = false }: { item: Publication; compact?: boolean; inset?: boolean }) {
   return (
     <View accessible={false} style={[styles.art, { backgroundColor: item.color }, compact && styles.artCompact, inset && styles.deckArt]}>
-      <Text aria-hidden style={[styles.symbol, compact && styles.symbolCompact]}>{item.symbol}</Text>
+      {item.imageUri ? (
+        <Image
+          accessibilityLabel={`Imagen de ${item.title}`}
+          source={{ uri: item.imageUri }}
+          resizeMode="contain"
+          style={styles.resourceImage}
+        />
+      ) : (
+        <Text aria-hidden style={[styles.symbol, compact && styles.symbolCompact]}>{item.symbol}</Text>
+      )}
+    </View>
+  );
+}
+
+function PublicationForm({ onCancel, onPublish }: {
+  onCancel: () => void;
+  onPublish: (draft: PublicationDraft) => void;
+}) {
+  const [kind, setKind] = useState<Publication['kind']>('Préstamo');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [imageUri, setImageUri] = useState<string>();
+  const [imageError, setImageError] = useState(false);
+  const [attempted, setAttempted] = useState(false);
+  const missingFields = !title.trim() || !description.trim();
+
+  async function chooseImage() {
+    setImageError(false);
+    try {
+      const result = await launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
+      if (!result.canceled) setImageUri(result.assets[0]?.uri);
+    } catch {
+      setImageError(true);
+    }
+  }
+
+  function publish() {
+    setAttempted(true);
+    if (missingFields) return;
+    onPublish({ kind, title: title.trim(), description: description.trim(), imageUri });
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.row}>
+        <Button label="‹ Volver" onPress={onCancel} />
+      </View>
+      <Text accessibilityRole="header" style={styles.title}>Crear publicación</Text>
+      <View style={[styles.card, styles.form]}>
+        <Text style={styles.publisherName}>Tipo de publicación</Text>
+        <View style={styles.row}>
+          {publicationKinds.map((option) => (
+            <Button key={option} label={option} selected={kind === option} onPress={() => setKind(option)} />
+          ))}
+        </View>
+        <Text style={styles.publisherName}>Título</Text>
+        <TextInput
+          accessibilityLabel="Título"
+          placeholder="Ej. Caja de herramientas"
+          placeholderTextColor="#52645d"
+          value={title}
+          onChangeText={setTitle}
+          maxLength={80}
+          style={styles.search}
+        />
+        <Text style={styles.publisherName}>Descripción</Text>
+        <TextInput
+          accessibilityLabel="Descripción"
+          placeholder="Cuenta qué prestas o qué te gustaría intercambiar."
+          placeholderTextColor="#52645d"
+          value={description}
+          onChangeText={setDescription}
+          maxLength={600}
+          multiline
+          style={[styles.search, styles.descriptionInput]}
+        />
+        <Text style={styles.publisherName}>Imagen (opcional)</Text>
+        {imageUri && (
+          <Image
+            accessibilityLabel="Vista previa de la imagen"
+            source={{ uri: imageUri }}
+            resizeMode="contain"
+            style={styles.imagePreview}
+          />
+        )}
+        <View style={styles.row}>
+          <Button label={imageUri ? 'Cambiar imagen' : 'Añadir imagen'} onPress={chooseImage} />
+          {imageUri && <Button label="Quitar imagen" onPress={() => {
+            setImageUri(undefined);
+            setImageError(false);
+          }} />}
+        </View>
+        {imageError && (
+          <Text accessibilityRole="alert" style={styles.notice}>No se pudo seleccionar la imagen. Inténtalo de nuevo.</Text>
+        )}
+        {attempted && missingFields && (
+          <Text accessibilityRole="alert" style={styles.notice}>Completa el título y la descripción para publicar.</Text>
+        )}
+        <Button primary label="Publicar" onPress={publish} />
+      </View>
     </View>
   );
 }
@@ -57,15 +159,18 @@ export function FavorsScreen() {
   const [saved, setSaved] = useState<string[]>([]);
   const [requests, dispatch] = useReducer(updateRequests, []);
   const [contactError, setContactError] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [myPublications, setMyPublications] = useState<Publication[]>([]);
 
   useEffect(() => {
-    if (!detail) return;
+    if (!detail && !creating) return;
     const listener = BackHandler.addEventListener('hardwareBackPress', () => {
+      setCreating(false);
       setDetail(null);
       return true;
     });
     return () => listener.remove();
-  }, [detail]);
+  }, [detail, creating]);
 
   function chooseTab(next: Tab) {
     setTab(next);
@@ -75,6 +180,20 @@ export function FavorsScreen() {
   function openDetail(item: Publication) {
     setContactError(false);
     setDetail(item);
+  }
+
+  function publish(draft: PublicationDraft) {
+    setMyPublications((previous) => [{
+      ...draft,
+      id: `local-${previous.length + 1}`,
+      owner: actor,
+      location: 'Tu comunidad',
+      terms: 'Coordinar disponibilidad con quien publicó.',
+      symbol: draft.kind === 'Préstamo' ? '📦' : '🔄',
+      color: draft.kind === 'Préstamo' ? '#e5eddf' : '#f2e9db',
+    }, ...previous]);
+    setCreating(false);
+    chooseTab('Mi actividad');
   }
 
   function toggleSaved(id: string) {
@@ -95,7 +214,9 @@ export function FavorsScreen() {
     return item.owner !== actor && `${item.title} ${item.kind} ${item.description}`.toLocaleLowerCase('es').includes(search);
   });
   const isDeck = tab === 'Explorar' && layout === 'Tarjetas';
+  const canCreate = tab === 'Explorar' && !detail && !creating;
   const currentCard = visible[cardIndex];
+  const currentCardSaved = Boolean(currentCard && saved.includes(currentCard.id));
   const lastCardIndex = visible.length - 1;
   const cardSwipe = useMemo(() => {
     function resetOffset() {
@@ -139,12 +260,16 @@ export function FavorsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <View style={styles.screen}>
       <ScrollView
-        key={detail?.id ?? tab}
-        contentContainerStyle={styles.scroll}
+        key={creating ? 'crear' : detail?.id ?? tab}
+        contentContainerStyle={[styles.scroll, canCreate && styles.scrollWithCreate]}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={creating}
       >
-        <View style={styles.container}>
+        {creating ? (
+          <PublicationForm onCancel={() => setCreating(false)} onPublish={publish} />
+        ) : <View style={styles.container}>
           <View style={styles.section}>
             <Text accessibilityRole="header" style={styles.title}>Cadena de favores</Text>
             {!detail && tab === 'Explorar' && (
@@ -233,7 +358,24 @@ export function FavorsScreen() {
           ) : tab === 'Mi actividad' ? (
             <View style={styles.section}>
               <Text accessibilityRole="header" style={styles.cardTitle}>Mi actividad</Text>
-              <Text style={styles.body}>Revisa tus solicitudes enviadas y recibidas.</Text>
+              <Text style={styles.body}>Revisa tus publicaciones y solicitudes.</Text>
+              {myPublications.length > 0 && (
+                <View style={styles.section}>
+                  <Text accessibilityRole="header" style={styles.publisherName}>Mis publicaciones</Text>
+                  <Text style={styles.muted}>Publicaciones creadas en esta sesión de la demo.</Text>
+                  {myPublications.map((item) => (
+                    <View key={item.id} style={[styles.card, styles.cardBody]}>
+                      <Text style={styles.eyebrow}>{item.kind.toUpperCase()}</Text>
+                      <Text style={styles.cardTitle}>{item.title}</Text>
+                      <Text style={styles.body}>{item.description}</Text>
+                      {item.imageUri && <ResourceArt item={item} inset />}
+                      <View style={styles.row}>
+                        <Button label="Ver publicación" onPress={() => openDetail(item)} />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
               {activity.length === 0 && <Text style={styles.notice}>Aún no tienes solicitudes.</Text>}
               {activity.map(({ request, item, received }) => (
                 <View key={`${item.id}-${request.requester}`} style={[styles.card, styles.cardBody]}>
@@ -318,16 +460,28 @@ export function FavorsScreen() {
                       <Text style={styles.body}>{currentCard.description}</Text>
                       <View style={[styles.row, styles.deckActions]}>
                         <Button label="Ver detalle" onPress={() => openDetail(currentCard)} />
-                        <Button
-                          label={saved.includes(currentCard.id) ? 'Quitar de guardadas' : 'Guardar publicación'}
-                          onPress={() => toggleSaved(currentCard.id)}
-                        />
                       </View>
                     </Animated.View>
                   </View>
                   <View style={[styles.row, styles.deckControls]}>
                     <Button label="‹ Anterior" disabled={cardIndex === 0} onPress={() => setCardIndex(cardIndex - 1)} />
                     <Button label="Pasar ›" primary disabled={cardIndex === visible.length - 1} onPress={() => setCardIndex(cardIndex + 1)} />
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={currentCardSaved ? 'Quitar de guardadas' : 'Guardar publicación'}
+                      accessibilityState={{ selected: currentCardSaved }}
+                      onPress={() => toggleSaved(currentCard.id)}
+                      style={({ pressed }) => [
+                        styles.button,
+                        styles.heartButton,
+                        currentCardSaved && styles.buttonActive,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text aria-hidden style={[styles.buttonText, styles.heartIcon, currentCardSaved && styles.buttonTextActive]}>
+                        {currentCardSaved ? '♥' : '♡'}
+                      </Text>
+                    </Pressable>
                   </View>
                 </View>
               )}
@@ -358,15 +512,28 @@ export function FavorsScreen() {
               ))}
             </View>
           )}
-        </View>
+        </View>}
       </ScrollView>
+      {canCreate && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Crear publicación"
+          onPress={() => setCreating(true)}
+          style={({ pressed }) => [styles.button, styles.buttonActive, styles.createButton, pressed && styles.pressed]}
+        >
+          <Text aria-hidden style={[styles.buttonTextActive, styles.createIcon]}>+</Text>
+        </Pressable>
+      )}
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f5f7f3', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
+  screen: { flex: 1 },
   scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 48 },
+  scrollWithCreate: { paddingBottom: 88 },
   container: { alignSelf: 'center', width: '100%', maxWidth: 680, gap: 16 },
   row: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
   section: { gap: 14 },
@@ -382,11 +549,16 @@ const styles = StyleSheet.create({
   badge: { alignSelf: 'flex-start', color: '#154a32', backgroundColor: '#e2efe3', fontSize: 12, fontWeight: '700', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 },
   button: { minHeight: 44, justifyContent: 'center', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: '#cddbd1', backgroundColor: '#fff' },
   buttonActive: { backgroundColor: '#17613e', borderColor: '#17613e' },
-  buttonText: { color: '#194832', fontSize: 14, fontWeight: '700' },
+  buttonText: { color: '#194832', fontSize: 14, fontWeight: '700', textAlign: 'center' },
   buttonTextActive: { color: '#fff' },
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.5 },
   search: { minHeight: 48, color: '#112b22', fontSize: 16, borderWidth: 1, borderColor: '#cddbd1', backgroundColor: '#fff', borderRadius: 14, paddingHorizontal: 14 },
+  form: { padding: 16, gap: 12 },
+  descriptionInput: { minHeight: 128, paddingVertical: 12, textAlignVertical: 'top' },
+  imagePreview: { width: '100%', height: 144, backgroundColor: '#eef4f2', borderRadius: 10 },
+  createButton: { position: 'absolute', right: 16, bottom: 16, width: 56, height: 56, padding: 0, alignItems: 'center', borderRadius: 28 },
+  createIcon: { fontSize: 30, lineHeight: 34, fontWeight: '600' },
   card: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d9e4dc', borderRadius: 18, overflow: 'hidden' },
   cardBody: { padding: 16, gap: 9 },
   cardFooter: { paddingHorizontal: 16, paddingBottom: 14, alignItems: 'flex-start' },
@@ -397,8 +569,11 @@ const styles = StyleSheet.create({
   deckMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
   deckArt: { height: 132, borderRadius: 14 },
   deckControls: { justifyContent: 'center' },
+  heartButton: { width: 44, padding: 0, alignItems: 'center', borderRadius: 22 },
+  heartIcon: { fontSize: 24, lineHeight: 28 },
   notice: { backgroundColor: '#eef4f2', color: '#334f43', fontSize: 14, lineHeight: 21, padding: 12, borderRadius: 10 },
   art: { height: 168, alignItems: 'center', justifyContent: 'center' },
+  resourceImage: { width: '100%', height: '100%', borderRadius: 14 },
   detailBadge: { position: 'absolute', top: 12, right: 12 },
   artCompact: { width: 86, height: 86, borderRadius: 14, margin: 12 },
   symbol: { fontSize: 66 },
