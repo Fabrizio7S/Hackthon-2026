@@ -9,15 +9,19 @@ import {
 import { useSessionIdentity } from '../../shared/IdentityContext';
 import {
   neighborReviews, neighbors, publications as demoPublications, publicationStatus, requestLabels, updateRequests,
-  type FavorRequest, type Neighbor, type Publication,
+  type FavorRequest, type Neighbor, type Publication, type Review,
 } from './demo';
 import {
   acceptFavorRequestRemote,
+  cancelFavorRequestRemote,
   createFavorPublicationRemote,
   createFavorRequestRemote,
+  createFavorReviewRemote,
+  deleteFavorPublicationRemote,
   fetchFavorsData,
   finishFavorRequestRemote,
   toggleFavorSavedRemote,
+  type FavorPublicationDraft,
 } from './favorsService';
 
 const tabs = ['Explorar', 'Guardadas', 'Mi actividad'] as const;
@@ -26,7 +30,7 @@ const actor: Neighbor = 'ana';
 const webSwipeStyle = { position: 'relative', touchAction: 'pan-y' } as const;
 const ratingFormat = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const publicationKinds = ['Préstamo', 'Intercambio'] as const;
-type PublicationDraft = Pick<Publication, 'kind' | 'title' | 'description' | 'imageUri'>;
+const starValues = [1, 2, 3, 4, 5] as const;
 
 function getOwnerDisplayName(item: Publication): string {
   return item.ownerName || neighbors[item.owner];
@@ -79,13 +83,14 @@ function ResourceArt({ item, compact = false, inset = false }: { item: Publicati
 
 function PublicationForm({ onCancel, onPublish, submitting = false }: {
   onCancel: () => void;
-  onPublish: (draft: PublicationDraft) => void;
+  onPublish: (draft: FavorPublicationDraft) => void;
   submitting?: boolean;
 }) {
   const [kind, setKind] = useState<Publication['kind']>('Préstamo');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUri, setImageUri] = useState<string>();
+  const [imageBase64, setImageBase64] = useState<string>();
   const [imageError, setImageError] = useState(false);
   const [attempted, setAttempted] = useState(false);
   const missingFields = !title.trim() || !description.trim();
@@ -93,8 +98,11 @@ function PublicationForm({ onCancel, onPublish, submitting = false }: {
   async function chooseImage() {
     setImageError(false);
     try {
-      const result = await launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
-      if (!result.canceled) setImageUri(result.assets[0]?.uri);
+      const result = await launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.6, base64: true });
+      if (!result.canceled && result.assets[0]) {
+        setImageUri(result.assets[0].uri);
+        setImageBase64(result.assets[0].base64 ?? undefined);
+      }
     } catch {
       setImageError(true);
     }
@@ -103,7 +111,7 @@ function PublicationForm({ onCancel, onPublish, submitting = false }: {
   function publish() {
     setAttempted(true);
     if (missingFields || submitting) return;
-    onPublish({ kind, title: title.trim(), description: description.trim(), imageUri });
+    onPublish({ kind, title: title.trim(), description: description.trim(), imageUri, imageBase64 });
   }
 
   return (
@@ -151,7 +159,15 @@ function PublicationForm({ onCancel, onPublish, submitting = false }: {
         )}
         <View style={styles.row}>
           <Button label={imageUri ? 'Cambiar imagen' : 'Seleccionar imagen'} onPress={() => void chooseImage()} />
-          {imageUri && <Button label="Quitar imagen" onPress={() => setImageUri(undefined)} />}
+          {imageUri && (
+            <Button
+              label="Quitar imagen"
+              onPress={() => {
+                setImageUri(undefined);
+                setImageBase64(undefined);
+              }}
+            />
+          )}
         </View>
         {imageError && (
           <Text accessibilityRole="alert" style={styles.notice}>No se pudo seleccionar la imagen. Inténtalo de nuevo.</Text>
@@ -184,9 +200,16 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
   const [submitting, setSubmitting] = useState(false);
   const [localPublications, setLocalPublications] = useState<Publication[]>([]);
   const [remotePublications, setRemotePublications] = useState<Publication[] | null>(null);
+  const [remoteReviews, setRemoteReviews] = useState<Review[] | null>(null);
   const [userName, setUserName] = useState<string>('Ana');
   const [loadingRemote, setLoadingRemote] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+
+  // Estado del formulario de reseña en detalle
+  const [reviewStars, setReviewStars] = useState<1 | 2 | 3 | 4 | 5>(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [savingReview, setSavingReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
 
   const loadRemoteData = useCallback(async () => {
     if (!client || !userId) return;
@@ -197,6 +220,7 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
       setUserName(data.userName);
       setRemotePublications(data.publications);
       setSaved(data.savedIds);
+      setRemoteReviews(data.reviews);
       dispatch({ type: 'hydrate', requests: data.requests });
     } catch (err) {
       setSyncError(err instanceof Error ? err.message : 'No se pudo sincronizar con Supabase.');
@@ -238,10 +262,13 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
 
   function openDetail(item: Publication) {
     setContactError(false);
+    setReviewComment('');
+    setReviewStars(5);
+    setReviewSuccess(false);
     setDetail(item);
   }
 
-  async function publish(draft: PublicationDraft) {
+  async function publish(draft: FavorPublicationDraft) {
     setSyncError(null);
     if (client && userId) {
       setSubmitting(true);
@@ -270,6 +297,19 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
     }, ...previous]);
     setCreating(false);
     chooseTab('Mi actividad');
+  }
+
+  function handleDeletePublication(item: Publication) {
+    setLocalPublications((previous) => previous.filter((pub) => pub.id !== item.id));
+    setRemotePublications((previous) => (previous ? previous.filter((pub) => pub.id !== item.id) : previous));
+    if (detail?.id === item.id) setDetail(null);
+
+    if (client && userId && !item.id.startsWith('local-')) {
+      void deleteFavorPublicationRemote(client, item.id).catch((err) => {
+        setSyncError(err instanceof Error ? err.message : 'No se pudo retirar la publicación.');
+        void loadRemoteData();
+      });
+    }
   }
 
   function toggleSaved(id: string) {
@@ -329,6 +369,25 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
     }
   }
 
+  function handleCancelRequest(item: Publication, request: FavorRequest) {
+    dispatch({
+      type: 'cancel',
+      publicationId: item.id,
+      actor,
+      requester: request.requester,
+      requesterId: request.requesterId,
+      publicationOwner: item.owner,
+    });
+
+    if (client && userId) {
+      void cancelFavorRequestRemote(client, item.id, request.requesterId ?? userId)
+        .then(() => loadRemoteData())
+        .catch((err) => {
+          setSyncError(err instanceof Error ? err.message : 'No se pudo cancelar la solicitud.');
+        });
+    }
+  }
+
   function handleFinishRequest(item: Publication, request: FavorRequest) {
     dispatch({
       type: 'finish',
@@ -345,6 +404,38 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
         .catch((err) => {
           setSyncError(err instanceof Error ? err.message : 'No se pudo finalizar la solicitud.');
         });
+    }
+  }
+
+  async function handleSubmitReview(item: Publication) {
+    if (!reviewComment.trim() || savingReview) return;
+    setSyncError(null);
+    setReviewSuccess(false);
+
+    if (client && userId) {
+      setSavingReview(true);
+      try {
+        const savedReview = await createFavorReviewRemote(
+          client,
+          item,
+          userId,
+          userName,
+          reviewStars,
+          reviewComment,
+        );
+        setRemoteReviews((previous) => {
+          const filtered = (previous ?? []).filter(
+            (r) => !(r.publicationId === item.id && r.authorId === userId),
+          );
+          return [savedReview, ...filtered];
+        });
+        setReviewComment('');
+        setReviewSuccess(true);
+      } catch (err) {
+        setSyncError(err instanceof Error ? err.message : 'No se pudo guardar la reseña.');
+      } finally {
+        setSavingReview(false);
+      }
     }
   }
 
@@ -398,7 +489,18 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
     (userId && request.requesterId ? request.requesterId === userId : request.requester === actor)
   );
   const detailStatus = detail && publicationStatus(requests, detail.id);
-  const reviews = detail ? neighborReviews[detail.owner] : [];
+  const reviews = useMemo(() => {
+    if (!detail) return [];
+    if (remoteReviews !== null) {
+      return remoteReviews.filter((r) =>
+        (detail.ownerId && r.targetOwnerId ? r.targetOwnerId === detail.ownerId : false) ||
+        r.targetOwnerKey === detail.owner ||
+        r.publicationId === detail.id
+      );
+    }
+    return neighborReviews[detail.owner] ?? [];
+  }, [detail, remoteReviews]);
+
   const averageRating = reviews.length > 0
     ? ratingFormat.format(reviews.reduce((sum, review) => sum + review.stars, 0) / reviews.length)
     : null;
@@ -483,7 +585,7 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
                   <Text style={styles.notice}>{detail.terms}</Text>
                   {detailRequest && <Badge label={requestLabels[detailRequest.status]} />}
                   <View style={styles.row}>
-                    {detail.owner !== actor && detailStatus === 'Disponible' && !detailRequest && (
+                    {detail.owner !== actor && detailStatus === 'Disponible' && (!detailRequest || detailRequest.status === 'closed') && (
                       <Button primary label={`Solicitar ${detail.kind.toLowerCase()}`} onPress={() => handleRequestFavor(detail)} />
                     )}
                     {detail.owner !== actor && (detailStatus === 'Disponible' || detailRequest?.status === 'accepted') && (
@@ -493,6 +595,9 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
                       <Button label={saved.includes(detail.id) ? 'Quitar de guardadas' : 'Guardar publicación'}
                         onPress={() => toggleSaved(detail.id)} />
                     )}
+                    {detail.owner === actor && detailStatus === 'Disponible' && (
+                      <Button label="Retirar publicación" onPress={() => handleDeletePublication(detail)} />
+                    )}
                   </View>
                   {detail.owner !== actor && (detailStatus === 'Disponible' || detailRequest?.status === 'accepted') && (
                     <Text style={styles.muted}>Elige el contacto en WhatsApp. El mensaje queda listo para enviar.</Text>
@@ -500,13 +605,49 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
                   {contactError && <Text accessibilityRole="alert" style={styles.notice}>No se pudo abrir WhatsApp. Vuelve a intentarlo.</Text>}
                 </View>
               </View>
+              {detail.owner !== actor && client && userId && (
+                <View style={[styles.card, styles.cardBody]}>
+                  <Text accessibilityRole="header" style={styles.cardTitle}>Dejar visto bueno y reseña</Text>
+                  <Text style={styles.muted}>Comparte cómo fue tu coordinación con {getOwnerDisplayName(detail)}.</Text>
+                  <View style={styles.row}>
+                    {starValues.map((star) => (
+                      <Button
+                        key={star}
+                        label={`${star} ★`}
+                        selected={reviewStars === star}
+                        onPress={() => setReviewStars(star)}
+                      />
+                    ))}
+                  </View>
+                  <TextInput
+                    accessibilityLabel="Comentario de reseña"
+                    placeholder="Ej. Coordinamos puntual y todo salió excelente."
+                    placeholderTextColor="#52645d"
+                    value={reviewComment}
+                    onChangeText={setReviewComment}
+                    maxLength={300}
+                    style={styles.search}
+                  />
+                  {reviewSuccess && (
+                    <Text style={styles.notice}>¡Gracias! Tu visto bueno se guardó en la comunidad.</Text>
+                  )}
+                  <View style={styles.row}>
+                    <Button
+                      primary
+                      disabled={savingReview || !reviewComment.trim()}
+                      label={savingReview ? 'Guardando…' : 'Guardar reseña'}
+                      onPress={() => void handleSubmitReview(detail)}
+                    />
+                  </View>
+                </View>
+              )}
               <View style={[styles.card, styles.cardBody]}>
                 <Text accessibilityRole="header" style={styles.cardTitle}>Reseñas sobre {getOwnerDisplayName(detail)}</Text>
                 {reviews.length > 0 ? (
                   <>
                     <Text style={styles.muted}>Calificaciones y reseñas vecinales</Text>
-                    {reviews.map((review) => (
-                      <View key={review.author} style={styles.review}>
+                    {reviews.map((review, index) => (
+                      <View key={review.id ?? `${review.author}-${index}`} style={styles.review}>
                         <View style={styles.row}>
                           <Text style={styles.publisherName}>{review.author}</Text>
                           <Text accessibilityLabel={`${review.stars} de 5 estrellas`} style={styles.stars}>
@@ -532,12 +673,18 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
                   </Text>
                   {myPublications.map((item) => (
                     <View key={item.id} style={[styles.card, styles.cardBody]}>
-                      <Text style={styles.eyebrow}>{item.kind.toUpperCase()}</Text>
+                      <View style={styles.deckMeta}>
+                        <Text style={styles.eyebrow}>{item.kind.toUpperCase()}</Text>
+                        <Badge label={publicationStatus(requests, item.id)} />
+                      </View>
                       <Text style={styles.cardTitle}>{item.title}</Text>
                       <Text style={styles.body}>{item.description}</Text>
                       {item.imageUri && <ResourceArt item={item} inset />}
                       <View style={styles.row}>
                         <Button label="Ver publicación" onPress={() => openDetail(item)} />
+                        {publicationStatus(requests, item.id) === 'Disponible' && (
+                          <Button label="Retirar publicación" onPress={() => handleDeletePublication(item)} />
+                        )}
                       </View>
                     </View>
                   ))}
@@ -561,6 +708,12 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
                     <Button label="Ver publicación" onPress={() => openDetail(item)} />
                     {received && request.status === 'pending' && (
                       <Button primary label="Aceptar solicitud" onPress={() => handleAcceptRequest(item, request)} />
+                    )}
+                    {!received && request.status === 'pending' && (
+                      <Button label="Cancelar solicitud" onPress={() => handleCancelRequest(item, request)} />
+                    )}
+                    {request.status === 'accepted' && (
+                      <Button label="Cancelar coordinación" onPress={() => handleCancelRequest(item, request)} />
                     )}
                     {!received && request.status === 'accepted' && (
                       <Button primary label="Marcar como terminada" onPress={() => handleFinishRequest(item, request)} />

@@ -98,7 +98,32 @@ test('updateRequests solo permite finalizar al solicitante aceptado y soporta hi
   assert.equal(hydrated[0].requesterName, 'Kirito');
 });
 
-test('mapRowToPublication y mapRowToRequest asignan identidad del usuario autenticado', () => {
+test('updateRequests cumple reglas de cancelación D25 antes y durante la coordinación', () => {
+  let state = [];
+  state = demo.updateRequests(state, { type: 'request', actor: 'ana', publicationId: 'taladro', requester: 'ana' });
+
+  // Antes de aceptar, un tercero no puede cancelar la solicitud de Ana
+  const wrongCancel = demo.updateRequests(state, { type: 'cancel', actor: 'luz', publicationId: 'taladro', requester: 'ana' });
+  assert.equal(wrongCancel[0].status, 'pending');
+
+  // El solicitante sí puede cancelar su solicitud pendiente
+  const requesterCancel = demo.updateRequests(state, { type: 'cancel', actor: 'ana', publicationId: 'taladro', requester: 'ana' });
+  assert.equal(requesterCancel[0].status, 'closed');
+
+  // Tras cancelar, el solicitante puede volver a solicitar si sigue disponible
+  const reRequest = demo.updateRequests(requesterCancel, { type: 'request', actor: 'ana', publicationId: 'taladro', requester: 'ana' });
+  assert.equal(reRequest[0].status, 'pending');
+
+  // Durante la coordinación ('accepted'), tanto el dueño como el solicitante pueden cancelar
+  const accepted = demo.updateRequests(reRequest, { type: 'accept', actor: 'carlos', publicationId: 'taladro', requester: 'ana' });
+  assert.equal(accepted[0].status, 'accepted');
+
+  const ownerCancel = demo.updateRequests(accepted, { type: 'cancel', actor: 'carlos', publicationId: 'taladro', requester: 'ana' });
+  assert.equal(ownerCancel[0].status, 'closed');
+  assert.equal(demo.publicationStatus(ownerCancel, 'taladro'), 'Disponible');
+});
+
+test('mapRowToPublication, mapRowToRequest y mapRowToReview asignan identidad del usuario autenticado', () => {
   const ownPub = service.mapRowToPublication({
     id: 'pub-1',
     community_id: 'com-1',
@@ -149,4 +174,19 @@ test('mapRowToPublication y mapRowToRequest asignan identidad del usuario autent
   assert.equal(mappedReq.requester, 'ana');
   assert.equal(mappedReq.requesterId, 'user-123');
   assert.equal(mappedReq.requesterName, 'Kirito');
+
+  const mappedRev = service.mapRowToReview({
+    id: 'rev-1',
+    publication_id: 'pub-2',
+    target_owner_id: 'user-999',
+    target_owner_key: 'carlos',
+    author_id: 'user-123',
+    author_name: 'Kirito',
+    stars: 5,
+    comment: 'Excelente vecino y préstamo puntual.',
+  });
+
+  assert.equal(mappedRev.author, 'Kirito');
+  assert.equal(mappedRev.stars, 5);
+  assert.equal(mappedRev.targetOwnerKey, 'carlos');
 });

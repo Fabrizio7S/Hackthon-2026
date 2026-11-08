@@ -1,8 +1,8 @@
 # G03 — Cadena de favores
 
 - Responsable: Persona 3. Nombre y usuario de GitHub pendientes.
-- Estado: demo de frontend implementada. Q05 resuelta en [D14](../decisiones.md#confirmadas). Acuerdos de integración por confirmar.
-- Dependencias: Persona 1 para identidad, comunidad y permisos. Persona 5 para navegación, ubicación y sincronización.
+- Estado: implementado y conectado al 100% con Supabase (`favor_publications`, `favor_requests`, `favor_saved`, `favor_reviews`, Storage `favor-images` y RPCs `accept_favor_request` / `cancel_favor_request`). Q05 resuelta en [D25](../decisiones.md#confirmadas).
+- Dependencias: integrado con identidad de sesión de G01 (`useSessionIdentity`).
 
 ## Entrega de frontend de Persona 3
 

@@ -1,7 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { FavorRequest, Neighbor, Publication, RequestStatus } from './demo';
+import type { FavorRequest, Neighbor, Publication, RequestStatus, Review } from './demo';
 
-export type FavorPublicationDraft = Pick<Publication, 'kind' | 'title' | 'description' | 'imageUri'>;
+export type FavorPublicationDraft = Pick<Publication, 'kind' | 'title' | 'description' | 'imageUri'> & {
+  imageBase64?: string;
+};
 
 type FavorPublicationRow = {
   id: string;
@@ -29,6 +31,17 @@ type FavorRequestRow = {
 
 type FavorSavedRow = {
   publication_id: string;
+};
+
+type FavorReviewRow = {
+  id: string;
+  publication_id: string | null;
+  target_owner_id: string | null;
+  target_owner_key: string;
+  author_id: string | null;
+  author_name: string;
+  stars: number;
+  comment: string;
 };
 
 function toNeighborKey(ownerId: string | null, ownerKey: string, currentUserId: string): Neighbor {
@@ -64,6 +77,70 @@ export function mapRowToRequest(row: FavorRequestRow, currentUserId: string): Fa
   };
 }
 
+export function mapRowToReview(row: FavorReviewRow): Review {
+  const validStars = Math.max(1, Math.min(5, Math.round(row.stars))) as 1 | 2 | 3 | 4 | 5;
+  return {
+    id: row.id,
+    publicationId: row.publication_id ?? undefined,
+    targetOwnerId: row.target_owner_id ?? undefined,
+    targetOwnerKey: row.target_owner_key === 'carlos' ? 'carlos' : row.target_owner_key === 'ana' ? 'ana' : 'luz',
+    authorId: row.author_id ?? undefined,
+    author: row.author_name,
+    stars: validStars,
+    comment: row.comment,
+  };
+}
+
+function decodeBase64ToBytes(base64: string): Uint8Array {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const clean = base64.replace(/[^A-Za-z0-9+/=]/g, '');
+  const len = clean.length;
+  let pad = 0;
+  if (clean.endsWith('==')) pad = 2;
+  else if (clean.endsWith('=')) pad = 1;
+  const byteLength = (len * 3) / 4 - pad;
+  const bytes = new Uint8Array(byteLength);
+  let p = 0;
+  for (let i = 0; i < len; i += 4) {
+    const encoded1 = chars.indexOf(clean[i]);
+    const encoded2 = chars.indexOf(clean[i + 1]);
+    const encoded3 = chars.indexOf(clean[i + 2]);
+    const encoded4 = chars.indexOf(clean[i + 3]);
+    const triplet = (encoded1 << 18) | (encoded2 << 12) | ((encoded3 & 63) << 6) | (encoded4 & 63);
+    if (p < byteLength) bytes[p++] = (triplet >> 16) & 255;
+    if (p < byteLength) bytes[p++] = (triplet >> 8) & 255;
+    if (p < byteLength) bytes[p++] = triplet & 255;
+  }
+  return bytes;
+}
+
+export async function uploadFavorImage(
+  client: SupabaseClient,
+  userId: string,
+  imageUri?: string,
+  imageBase64?: string,
+): Promise<string | null> {
+  if (!imageUri && !imageBase64) return null;
+  if (imageBase64) {
+    const filePath = `${userId}/${Date.now()}.jpg`;
+    try {
+      const bytes = decodeBase64ToBytes(imageBase64);
+      const { error } = await client.storage.from('favor-images').upload(filePath, bytes, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+      if (!error) {
+        const { data } = client.storage.from('favor-images').getPublicUrl(filePath);
+        if (data?.publicUrl) return data.publicUrl;
+      }
+    } catch {
+      // Fallback a data URI si el almacenamiento falla
+    }
+    return `data:image/jpeg;base64,${imageBase64}`;
+  }
+  return imageUri ?? null;
+}
+
 async function ensureProfileName(client: SupabaseClient, userId: string, fallbackEmail?: string): Promise<string> {
   const { data } = await client
     .from('profiles')
@@ -89,8 +166,9 @@ export async function fetchFavorsData(
   publications: Publication[];
   requests: FavorRequest[];
   savedIds: string[];
+  reviews: Review[];
 }> {
-  const [userName, pubRes, reqRes, savedRes] = await Promise.all([
+  const [userName, pubRes, reqRes, savedRes, revRes] = await Promise.all([
     ensureProfileName(client, userId, fallbackEmail),
     client
       .from('favor_publications')
@@ -104,6 +182,10 @@ export async function fetchFavorsData(
       .from('favor_saved')
       .select('publication_id')
       .eq('user_id', userId),
+    client
+      .from('favor_reviews')
+      .select('id, publication_id, target_owner_id, target_owner_key, author_id, author_name, stars, comment')
+      .order('created_at', { ascending: false }),
   ]);
 
   if (pubRes.error) throw new Error('No se pudieron cargar las publicaciones de favores.');
@@ -113,12 +195,14 @@ export async function fetchFavorsData(
   const pubs = ((pubRes.data ?? []) as FavorPublicationRow[]).map((row) => mapRowToPublication(row, userId));
   const reqs = ((reqRes.data ?? []) as FavorRequestRow[]).map((row) => mapRowToRequest(row, userId));
   const savedIds = ((savedRes.data ?? []) as FavorSavedRow[]).map((row) => row.publication_id);
+  const reviews = ((revRes.data ?? []) as FavorReviewRow[]).map((row) => mapRowToReview(row));
 
   return {
     userName,
     publications: pubs,
     requests: reqs,
     savedIds,
+    reviews,
   };
 }
 
@@ -130,6 +214,7 @@ export async function createFavorPublicationRemote(
   draft: FavorPublicationDraft,
 ): Promise<Publication> {
   await ensureProfileName(client, userId, userName);
+  const uploadedImageUrl = await uploadFavorImage(client, userId, draft.imageUri, draft.imageBase64);
 
   const payload = {
     community_id: communityId,
@@ -143,7 +228,7 @@ export async function createFavorPublicationRemote(
     terms: 'Coordinar disponibilidad con quien publicó.',
     symbol: draft.kind === 'Préstamo' ? '📦' : '🔄',
     color: draft.kind === 'Préstamo' ? '#e5eddf' : '#f2e9db',
-    image_uri: draft.imageUri ?? null,
+    image_uri: uploadedImageUrl,
   };
 
   const { data, error } = await client
@@ -157,6 +242,20 @@ export async function createFavorPublicationRemote(
   }
 
   return mapRowToPublication(data as FavorPublicationRow, userId);
+}
+
+export async function deleteFavorPublicationRemote(
+  client: SupabaseClient,
+  publicationId: string,
+): Promise<void> {
+  const { error } = await client
+    .from('favor_publications')
+    .delete()
+    .eq('id', publicationId);
+
+  if (error) {
+    throw new Error('No se pudo retirar la publicación.');
+  }
 }
 
 export async function toggleFavorSavedRemote(
@@ -196,6 +295,7 @@ export async function createFavorRequestRemote(
         requester_id: requesterId,
         requester_name: requesterName,
         status: 'pending',
+        updated_at: new Date().toISOString(),
       },
       { onConflict: 'publication_id,requester_id' },
     );
@@ -220,6 +320,21 @@ export async function acceptFavorRequestRemote(
   }
 }
 
+export async function cancelFavorRequestRemote(
+  client: SupabaseClient,
+  publicationId: string,
+  requesterId: string,
+): Promise<void> {
+  const { error } = await client.rpc('cancel_favor_request', {
+    p_publication_id: publicationId,
+    p_requester_id: requesterId,
+  });
+
+  if (error) {
+    throw new Error('No se pudo cancelar la solicitud.');
+  }
+}
+
 export async function finishFavorRequestRemote(
   client: SupabaseClient,
   publicationId: string,
@@ -234,4 +349,37 @@ export async function finishFavorRequestRemote(
   if (error) {
     throw new Error('No se pudo marcar la solicitud como terminada.');
   }
+}
+
+export async function createFavorReviewRemote(
+  client: SupabaseClient,
+  publication: Publication,
+  authorId: string,
+  authorName: string,
+  stars: 1 | 2 | 3 | 4 | 5,
+  comment: string,
+): Promise<Review> {
+  await ensureProfileName(client, authorId, authorName);
+
+  const payload = {
+    publication_id: publication.id,
+    target_owner_id: publication.ownerId ?? null,
+    target_owner_key: publication.owner,
+    author_id: authorId,
+    author_name: authorName,
+    stars,
+    comment: comment.trim(),
+  };
+
+  const { data, error } = await client
+    .from('favor_reviews')
+    .upsert(payload, { onConflict: 'publication_id,author_id' })
+    .select('id, publication_id, target_owner_id, target_owner_key, author_id, author_name, stars, comment')
+    .single();
+
+  if (error || !data) {
+    throw new Error('No se pudo guardar la reseña en Supabase.');
+  }
+
+  return mapRowToReview(data as FavorReviewRow);
 }

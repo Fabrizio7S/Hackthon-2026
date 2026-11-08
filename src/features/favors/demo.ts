@@ -1,7 +1,12 @@
 export const neighbors = { ana: 'Ana', carlos: 'Carlos', luz: 'Luz' };
 export type Neighbor = keyof typeof neighbors;
 
-type Review = {
+export type Review = {
+  id?: string;
+  publicationId?: string;
+  targetOwnerId?: string;
+  targetOwnerKey?: Neighbor;
+  authorId?: string;
   author: string;
   stars: 1 | 2 | 3 | 4 | 5;
   comment: string;
@@ -10,12 +15,12 @@ type Review = {
 export const neighborReviews: Record<Neighbor, Review[]> = {
   ana: [],
   carlos: [
-    { author: 'María', stars: 5, comment: 'Coordinamos rápido y el taladro estaba en buen estado.' },
-    { author: 'Jorge', stars: 4, comment: 'El préstamo salió bien. Tuvimos que cambiar la hora de entrega.' },
+    { author: 'María Quispe', targetOwnerKey: 'carlos', stars: 5, comment: 'Coordinamos rápido y el taladro estaba en buen estado.' },
+    { author: 'Jorge Castillo', targetOwnerKey: 'carlos', stars: 4, comment: 'El préstamo salió bien. Tuvimos que cambiar la hora de entrega.' },
   ],
   luz: [
-    { author: 'Elena', stars: 5, comment: 'Los esquejes estaban bien cuidados y Luz me explicó cómo trasplantarlos.' },
-    { author: 'Diego', stars: 5, comment: 'El intercambio fue fácil de coordinar y cumplió lo acordado.' },
+    { author: 'Elena Huamán', targetOwnerKey: 'luz', stars: 5, comment: 'Los esquejes estaban bien cuidados y Lucía me explicó cómo trasplantarlos.' },
+    { author: 'Julio Paredes', targetOwnerKey: 'luz', stars: 5, comment: 'El intercambio fue fácil de coordinar y cumplió lo acordado.' },
   ],
 };
 
@@ -82,7 +87,7 @@ export type FavorRequest = {
 };
 export type RequestAction =
   | {
-      type: 'request' | 'accept' | 'finish';
+      type: 'request' | 'accept' | 'finish' | 'cancel';
       actor: Neighbor;
       publicationId: string;
       requester: Neighbor;
@@ -126,7 +131,13 @@ export function updateRequests(requests: FavorRequest[], action: RequestAction):
   const available = publicationStatus(requests, publicationId) === 'Disponible';
 
   if (type === 'request') {
-    if (!available || current || actor !== requester || actor === owner) return requests;
+    if (!available || actor !== requester || actor === owner) return requests;
+    if (current) {
+      if (current.status === 'closed') {
+        return requests.map((item) => (item === current ? { ...item, status: 'pending' } : item));
+      }
+      return requests;
+    }
     return [...requests, { publicationId, requester, requesterId, requesterName, status: 'pending' }];
   }
 
@@ -138,7 +149,19 @@ export function updateRequests(requests: FavorRequest[], action: RequestAction):
   }
 
   if (type === 'finish' && actor === requester && current?.status === 'accepted') {
-    return requests.map((item) => item === current ? { ...item, status: 'finished' } : item);
+    return requests.map((item) => (item === current ? { ...item, status: 'finished' } : item));
+  }
+
+  // Cancelación conforme a D25:
+  // - Antes de aceptar ('pending'): solo el solicitante puede cancelar.
+  // - Durante la coordinación ('accepted'): puede cancelar el solicitante o el dueño.
+  if (type === 'cancel' && current) {
+    if (current.status === 'pending' && actor === requester) {
+      return requests.map((item) => (item === current ? { ...item, status: 'closed' } : item));
+    }
+    if (current.status === 'accepted' && (actor === requester || actor === owner)) {
+      return requests.map((item) => (item === current ? { ...item, status: 'closed' } : item));
+    }
   }
 
   return requests;
