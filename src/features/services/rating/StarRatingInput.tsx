@@ -22,7 +22,8 @@ export function StarRatingInput({ value, onSelect, disabled = false }: Props) {
           <Pressable
             accessibilityLabel={`${stars} ${stars === 1 ? 'estrella' : 'estrellas'}`}
             accessibilityRole="radio"
-            accessibilityState={{ checked: stars === value, disabled }}
+            aria-checked={stars === value}
+            aria-disabled={disabled}
             disabled={disabled}
             hitSlop={6}
             key={stars}
