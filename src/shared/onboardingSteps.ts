@@ -1,0 +1,70 @@
+import type { IconName } from './AppIcon';
+import type { NeighborhoodSection } from './NeighborhoodUI';
+
+export type TourStep = {
+  section: NeighborhoodSection;
+  emergencyTab?: 'alertas' | 'reportar' | 'apoyo';
+  title: string;
+  location: string;
+  copy: string;
+  tip: string;
+  icon: IconName;
+  targets: readonly string[];
+};
+
+export const TOUR_STEPS: readonly TourStep[] = [
+  { section: 'comunidad', title: 'Este es tu perfil', location: 'Perfil · Tu nombre', icon: 'person',
+    copy: 'El recuadro rojo señala dónde estás. Aquí escribe el nombre con el que quieres que te conozcan tus vecinos y pulsa «Guardar perfil».',
+    tip: 'Tocar significa pulsar una vez con el dedo. En computadora, haz clic con el mouse.', targets: ['nav:comunidad', 'profile-name'] },
+  { section: 'comunidad', title: 'Este es tu código personal', location: 'Perfil · Código vecinal', icon: 'key',
+    copy: 'Después de guardar tu nombre aparece un código que empieza con VEC-. Pulsa «Copiar código personal» y compártelo con el representante de tu cuadra para que te invite.',
+    tip: 'Tu código personal te identifica a ti. Es diferente del código de la comunidad y no es tu contraseña.', targets: ['nav:comunidad', 'profile-code'] },
+  { section: 'comunidad', title: 'Únete con el código de tu comunidad', location: 'Mi comunidad · Unirme', icon: 'people',
+    copy: 'Necesitas haber guardado tu perfil y no pertenecer a otra comunidad. Pide a tu representante el código de la comunidad, escríbelo en el campo señalado y pulsa «Unirme a la comunidad».',
+    tip: 'Usa el código del sector donde vives. Aquí no escribas tu código personal VEC-. Solo puedes pertenecer a una comunidad.', targets: ['nav:comunidad', 'community-join'] },
+  { section: 'comunidad', title: 'También puedes aceptar una invitación', location: 'Mi comunidad · Invitaciones', icon: 'mail',
+    copy: 'Otra forma de unirte es entregar tu código personal al representante. Él te enviará una invitación. Revisa aquí el nombre de la comunidad y toca «Aceptar» si corresponde a tu sector.',
+    tip: 'Si todavía no aparece, toca «Actualizar invitaciones». No necesitas usar las dos formas de ingreso: con una basta.', targets: ['nav:comunidad', 'community-invitations'] },
+  { section: 'comunidad', title: '¿Quién puede crear una comunidad?', location: 'Mi comunidad · Crear', icon: 'home',
+    copy: 'Solo un representante autorizado por el equipo de la aplicación puede crearla. Necesita guardar su perfil, no pertenecer a otra comunidad y escribir un nombre para el sector; luego pulsa «Crear comunidad vecinal».',
+    tip: 'No puedes darte ese permiso tú mismo. Si eres representante y la opción no aparece, pide al equipo de la aplicación que revise tu autorización.', targets: ['nav:comunidad', 'community-create'] },
+  { section: 'servicios', title: 'Busca servicios y productos', location: 'Servicios · Explorar', icon: 'services',
+    copy: 'Aquí encontrarás lo que ofrecen tus vecinos. Escribe lo que buscas y elige «Todos», «Servicios» o «Productos». Toca una oferta para ver quién la publicó y sus detalles.',
+    tip: 'Desde el detalle puedes llamar, escribir por WhatsApp y calificar. Si aún no tienes comunidad, primero debes unirte.', targets: ['nav:servicios', 'services-explorer', 'community-required'] },
+  { section: 'mapa', title: 'Mira qué hay cerca de ti', location: 'Mapa · Búsqueda y filtros', icon: 'map',
+    copy: 'El mapa muestra las ofertas con ubicación. Busca o usa los filtros señalados. Toca un marcador para ver qué hay en ese lugar y abrir sus detalles.',
+    tip: 'El botón de ubicación centra el mapa cerca de ti si diste permiso. También puedes mover el mapa con el dedo.', targets: ['nav:mapa', 'map-controls', 'community-required'] },
+  { section: 'favores', title: 'Comparte sin dinero de por medio', location: 'Solidario · Cadena de favores', icon: 'chain',
+    copy: 'En «Explorar» busca préstamos o intercambios. «Guardadas» reúne lo que guardaste para después. «Mi actividad» muestra tus publicaciones y solicitudes para seguir la coordinación.',
+    tip: 'Toca una publicación para conocer sus condiciones y solicitarla. Acuerda los detalles con tu vecino.', targets: ['nav:favores', 'favors-tabs', 'community-required'] },
+  { section: 'inicio', title: 'Usa el botón + para publicar', location: 'Crear publicación', icon: 'plus',
+    copy: 'El botón marcado con rojo abre las opciones para compartir un servicio o producto, un préstamo o intercambio, o reportar una emergencia.',
+    tip: 'En computadora se llama «Crear publicación». Puedes abrirlo, leer las opciones y cerrarlo sin publicar nada.', targets: ['nav:create'] },
+  { section: 'inicio', title: 'Aquí encuentras Emergencias', location: 'Emergencias · Acceso', icon: 'siren',
+    copy: 'El botón rojo de Emergencias está siempre a mano. Ahora conoceremos sus tres pestañas: «Alertas», «Reportar» y «Apoyo».',
+    tip: 'Pulsa «Siguiente» para seguir aprendiendo. Si necesitas actuar ahora, toca «Ir a Emergencias» para salir de la explicación.', targets: ['nav:emergencias'] },
+  { section: 'emergencias', emergencyTab: 'alertas', title: 'Alertas: entérate de lo que pasa', location: 'Emergencias · Alertas', icon: 'bell',
+    copy: 'Aquí ves los reportes de tu comunidad. Los filtros separan las alertas abiertas, en atención y solucionadas. Toca una alerta para leer más y ofrecer ayuda cuando corresponda.',
+    tip: '«Actualizar» vuelve a consultar las alertas. Si dice «demostración», es un ejemplo.', targets: ['nav:emergencias', 'emergency-tab:alertas', 'emergency-alerts'] },
+  { section: 'emergencias', emergencyTab: 'reportar', title: 'Reportar: cuenta qué ocurre', location: 'Emergencias · Reportar · Tipo', icon: 'alert',
+    copy: 'Elige el tipo de problema en la zona marcada: por ejemplo, salud o incendio. Esta pestaña sirve para avisar a tus vecinos de una situación real.',
+    tip: 'Para aprender basta con mirar: no necesitas enviar un reporte. La app no llama a los servicios oficiales de emergencia.', targets: ['nav:emergencias', 'emergency-tab:reportar', 'report-category'] },
+  { section: 'emergencias', emergencyTab: 'reportar', title: 'Indica qué tan urgente es', location: 'Emergencias · Reportar · Urgencia', icon: 'pulse',
+    copy: 'Selecciona «Crítica», «Alta» o «Media» según lo que esté pasando. Al elegir una opción verás una explicación que te ayuda a decidir.',
+    tip: 'Si hay peligro inmediato para la vida, busca primero ayuda de los servicios oficiales de tu país.', targets: ['nav:emergencias', 'emergency-tab:reportar', 'report-level'] },
+  { section: 'emergencias', emergencyTab: 'reportar', title: 'Escribe una descripción sencilla', location: 'Emergencias · Reportar · Descripción', icon: 'edit',
+    copy: 'En el espacio señalado escribe qué pasa y dónde. Usa pocas palabras claras para que tus vecinos entiendan qué ayuda hace falta.',
+    tip: 'No hace falta usar palabras técnicas. Revisa lo escrito antes de enviar.', targets: ['nav:emergencias', 'emergency-tab:reportar', 'report-description'] },
+  { section: 'emergencias', emergencyTab: 'reportar', title: 'Cuida la privacidad de las personas', location: 'Emergencias · Reportar · Privacidad', icon: 'lock',
+    copy: 'Activa esta opción si el reporte involucra a un niño, una persona mayor, con discapacidad o enferma. La descripción y tu nombre se reservan para ti, el representante y los ayudantes aceptados.',
+    tip: 'Los demás vecinos verán el reporte sin ese detalle y con una ubicación aproximada.', targets: ['nav:emergencias', 'emergency-tab:reportar', 'report-privacy'] },
+  { section: 'emergencias', emergencyTab: 'reportar', title: 'Revisa la ubicación antes de enviar', location: 'Emergencias · Reportar · Ubicación y envío', icon: 'pin',
+    copy: 'Aquí se indica si se usará la ubicación del teléfono o el centro aproximado de tu comunidad. Cuando todo esté correcto, «Enviar reporte» lo envía a tus vecinos.',
+    tip: 'Si no hay conexión, un reporte guardado en el teléfono todavía no está enviado. Espera la confirmación de envío.', targets: ['nav:emergencias', 'emergency-tab:reportar', 'report-send'] },
+  { section: 'emergencias', emergencyTab: 'apoyo', title: 'Apoyo: encuentra recursos', location: 'Emergencias · Apoyo · Recursos', icon: 'aid',
+    copy: 'Aquí se muestran recursos como agua, botiquines o zonas seguras registrados por el representante. Revisa su ubicación, sus detalles y si están disponibles.',
+    tip: 'No cuentes con un recurso que diga «demostración» o «No disponible». Solo el representante puede registrar y actualizar recursos.', targets: ['nav:emergencias', 'emergency-tab:apoyo', 'support-resources'] },
+  { section: 'emergencias', emergencyTab: 'apoyo', title: 'Participa en grupos de apoyo', location: 'Emergencias · Apoyo · Grupos', icon: 'support',
+    copy: 'Más abajo encontrarás brigadas, ollas comunes y otros grupos. Lee su descripción y, si el grupo está activo, puedes unirte para colaborar con tu comunidad.',
+    tip: 'Ya conoces lo principal. Puedes volver a este recorrido desde Inicio, en «Ver recorrido de ayuda».', targets: ['nav:emergencias', 'emergency-tab:apoyo', 'support-groups'] },
+];

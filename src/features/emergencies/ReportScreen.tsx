@@ -1,3 +1,4 @@
+import { TourTarget, TourScrollView } from '../../shared/TourTargets';
 import { useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
@@ -81,7 +82,7 @@ export function ReportScreen({ outbox, zone, userLocation, onViewAlerts }: Props
   }
 
   return (
-    <ScrollView style={shared.screen} contentContainerStyle={shared.content} keyboardShouldPersistTaps="handled">
+    <TourScrollView style={shared.screen} contentContainerStyle={shared.content} keyboardShouldPersistTaps="handled">
       <Text style={shared.title}>Reportar una emergencia</Text>
       <Text style={shared.subtitle}>
         Si hay peligro inmediato para la vida, llama primero a los servicios oficiales de tu país. Esta app avisa a tus vecinos; no contacta a los servicios de emergencia.
@@ -107,7 +108,7 @@ export function ReportScreen({ outbox, zone, userLocation, onViewAlerts }: Props
       ) : null}
       {result?.kind === 'error' ? <Banner tone="danger" text={`No se pudo enviar. ${result.message}`} /> : null}
 
-      <View style={shared.card}>
+      <TourTarget id="report-category" style={shared.card}>
         <Text style={shared.label}>¿Qué pasa?</Text>
         <View style={shared.row}>
           {CATEGORY_OPTIONS.map(option => (
@@ -122,9 +123,9 @@ export function ReportScreen({ outbox, zone, userLocation, onViewAlerts }: Props
           ))}
         </View>
         {errors.category ? <Text style={shared.errorText} accessibilityRole="alert">{errors.category}</Text> : null}
-      </View>
+      </TourTarget>
 
-      <View style={shared.card}>
+      <TourTarget id="report-level" style={shared.card}>
         <Text style={shared.label}>¿Qué tan urgente es?</Text>
         <View style={shared.row}>
           {LEVEL_OPTIONS.map(option => (
@@ -139,9 +140,9 @@ export function ReportScreen({ outbox, zone, userLocation, onViewAlerts }: Props
         </View>
         {form.level ? <Text style={shared.subtitle}>{LEVEL_OPTIONS.find(o => o.value === form.level)?.hint}</Text> : null}
         {errors.level ? <Text style={shared.errorText} accessibilityRole="alert">{errors.level}</Text> : null}
-      </View>
+      </TourTarget>
 
-      <View style={shared.card}>
+      <TourTarget id="report-description" style={shared.card}>
         <Text style={shared.label}>Descripción</Text>
         <TextInput
           style={[shared.input, styles.description]}
@@ -156,9 +157,9 @@ export function ReportScreen({ outbox, zone, userLocation, onViewAlerts }: Props
         />
         <Text style={shared.subtitle}>{form.description.trim().length}/{DESCRIPTION_MAX}</Text>
         {errors.description ? <Text style={shared.errorText} accessibilityRole="alert">{errors.description}</Text> : null}
-      </View>
+      </TourTarget>
 
-      <View style={shared.card}>
+      <TourTarget id="report-privacy" style={shared.card}>
         <View style={shared.row}>
           <Switch
             value={form.vulnerable}
@@ -172,8 +173,9 @@ export function ReportScreen({ outbox, zone, userLocation, onViewAlerts }: Props
           Niños, personas mayores, con discapacidad o enfermas. Si lo activas, solo tú, el representante y quienes acepten
           ayudar verán la descripción y tu nombre; los demás verán el reporte sin detalle y con la ubicación aproximada.
         </Text>
-      </View>
+      </TourTarget>
 
+      <TourTarget id="report-send" style={{ gap: 12 }}>
       <View style={shared.card}>
         <Text style={shared.label}>Ubicación</Text>
         <Text style={shared.body}>
@@ -187,6 +189,7 @@ export function ReportScreen({ outbox, zone, userLocation, onViewAlerts }: Props
       </View>
 
       <Button label={busy ? 'Enviando…' : 'Enviar reporte'} kind="danger" onPress={() => void submit()} busy={busy} />
+      </TourTarget>
 
       <PendingList
         entries={outbox.entries}
@@ -194,7 +197,7 @@ export function ReportScreen({ outbox, zone, userLocation, onViewAlerts }: Props
         onRetry={id => void outbox.retry(id)}
         onDiscard={id => void outbox.discard(id)}
       />
-    </ScrollView>
+    </TourScrollView>
   );
 }
 

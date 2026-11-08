@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../shared/theme';
+import { TOUR_RED, useTourTargets } from '../../shared/TourTargets';
 import { AlertsScreen } from './AlertsScreen';
 import { createEmergenciesApi, type EmergenciesApi } from './emergenciesApi';
 import { EmergencyDetailScreen } from './EmergencyDetailScreen';
@@ -19,6 +20,8 @@ type Props = {
   client: SupabaseClient | null;
   userId: string;
   initialTab?: EmergenciesTab;
+  guidedTab?: EmergenciesTab;
+  onTabChange?: () => void;
   /** Ubicación del dispositivo cuando el equipo de mapa/ubicación (Persona 5) la provee. */
   userLocation?: { latitude: number; longitude: number } | null;
   storage?: OutboxStorage;
@@ -51,11 +54,22 @@ function parseZone(raw: string | null): CommunityZone | null {
 export function EmergenciesScreen({
   client, userId, initialTab = 'alertas', userLocation = null, storage = AsyncStorage, api: apiOverride,
   onOpenServices, onGoToCommunity,
+  guidedTab, onTabChange,
 }: Props) {
+  const highlighted = useTourTargets();
   const api = useMemo(() => apiOverride ?? createEmergenciesApi(client), [apiOverride, client]);
   const [tab, setTab] = useState<EmergenciesTab>(initialTab);
   const [openId, setOpenId] = useState<string | null>(null);
   const [cachedZone, setCachedZone] = useState<CommunityZone | null>(null);
+
+  useEffect(() => {
+    if (guidedTab) { setOpenId(null); setTab(guidedTab); }
+  }, [guidedTab]);
+
+  function selectTab(next: EmergenciesTab) {
+    onTabChange?.();
+    setTab(next);
+  }
 
   const feed = useResource(useCallback(() => api.loadFeed(), [api]));
   const support = useResource(useCallback(() => api.loadSupport(), [api]));
@@ -113,11 +127,13 @@ export function EmergenciesScreen({
               key={item.value}
               accessibilityRole="tab"
               accessibilityState={{ selected }}
+              aria-selected={selected}
               accessibilityLabel={item.label}
-              onPress={() => setTab(item.value)}
-              style={[styles.tab, selected && styles.tabSelected]}
+              testID={highlighted(`emergency-tab:${item.value}`) ? `tour-tab:${item.value}` : undefined}
+              onPress={() => selectTab(item.value)}
+              style={[styles.tab, selected && styles.tabSelected, highlighted(`emergency-tab:${item.value}`) && styles.tourTab]}
             >
-              <Text style={[styles.tabText, selected && styles.tabTextSelected]}>
+              <Text style={[styles.tabText, selected && styles.tabTextSelected, highlighted(`emergency-tab:${item.value}`) && { color: colors.dangerDeep }]}>
                 {item.label}{item.value === 'reportar' && outbox.entries.length > 0 ? ` (${outbox.entries.length})` : ''}
               </Text>
             </Pressable>
@@ -131,7 +147,7 @@ export function EmergenciesScreen({
           pendingCount={outbox.entries.length}
           onReload={() => void feed.reload()}
           onOpen={setOpenId}
-          onReport={() => setTab('reportar')}
+          onReport={() => selectTab('reportar')}
           onGoToCommunity={onGoToCommunity}
         />
       ) : null}
@@ -140,7 +156,7 @@ export function EmergenciesScreen({
           outbox={outbox}
           zone={zone}
           userLocation={userLocation}
-          onViewAlerts={() => setTab('alertas')}
+          onViewAlerts={() => selectTab('alertas')}
         />
       ) : null}
       {tab === 'apoyo' ? (
@@ -157,6 +173,7 @@ export function EmergenciesScreen({
 }
 
 const styles = StyleSheet.create({
+  tourTab: { borderWidth: 3, borderColor: TOUR_RED, borderBottomColor: TOUR_RED, borderRadius: 12, backgroundColor: colors.background },
   root: { flex: 1, backgroundColor: colors.dangerPaper },
   tabs: { flexDirection: 'row', backgroundColor: colors.danger, paddingHorizontal: 12, borderBottomLeftRadius: 22, borderBottomRightRadius: 22 },
   tab: { flex: 1, minHeight: 50, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },

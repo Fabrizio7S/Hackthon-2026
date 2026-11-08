@@ -10,6 +10,7 @@ import { MembersPanel } from './MembersPanel';
 import { CommunityIdentityProvider } from '../../shared/IdentityContext';
 import { colors, fonts } from '../../shared/theme';
 import { SkeletonPanel } from '../../shared/Skeleton';
+import { TourTarget, useTourTargets } from '../../shared/TourTargets';
 
 export function CommunityPanel({ client, userId, refreshVersion, onMembershipResolved }: {
   client: SupabaseClient;
@@ -18,6 +19,7 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
   onMembershipResolved?: (isMember: boolean, communityName: string | null) => void;
 }) {
   const community = useCommunity(client, userId, refreshVersion);
+  const highlighted = useTourTargets();
   const identity = community.identity;
   const [name, setName] = useState('');
   const [communityCode, setCommunityCode] = useState('');
@@ -62,6 +64,20 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
           <SkeletonPanel lines={3} accessibilityLabel="Consultando comunidad" />
         ) : (
           <>
+            {highlighted('community-join') && (identity.status !== 'withoutCommunity' || !identity.hasProfile) && (
+              <TourTarget id="community-join" style={styles.infoBanner}>
+                <Text style={styles.infoText}>{identity.status === 'member'
+                  ? 'Ya perteneces a una comunidad. El campo para unirte con código solo aparece cuando todavía no eres integrante de ninguna.'
+                  : 'Primero guarda tu perfil. Después aparecerá aquí el campo para escribir el código de tu comunidad.'}</Text>
+              </TourTarget>
+            )}
+            {highlighted('community-create') && (identity.status !== 'withoutCommunity' || !identity.hasProfile || !identity.canCreateCommunity) && (
+              <TourTarget id="community-create" style={styles.infoBanner}>
+                <Text style={styles.infoText}>{identity.status === 'member'
+                  ? 'Ya perteneces a una comunidad. No puedes crear otra mientras sigas siendo integrante de esta.'
+                  : 'Para ver el formulario de creación debes guardar tu perfil, no pertenecer a ninguna comunidad y tener autorización de representante del equipo de la aplicación.'}</Text>
+              </TourTarget>
+            )}
             {(community.error || identity.error) && (
               <Text style={styles.errorText} accessibilityRole="alert">
                 {community.error ?? identity.error}
@@ -117,7 +133,7 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
                   <Text style={styles.helpText}>Completa y guarda tu perfil para continuar.</Text>
                 ) : (
                   <>
-                    <View style={styles.joinBox}>
+                    <TourTarget id="community-join" style={styles.joinBox}>
                       <Text style={styles.label}>Unirme con código de comunidad</Text>
                       <Text style={styles.helpText}>
                         Si tu representante te compartió el código de invitación de tu sector, ingrésalo aquí:
@@ -151,7 +167,7 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
                           {community.creating ? 'Uniéndome…' : 'Unirme a la comunidad'}
                         </Text>
                       </Pressable>
-                    </View>
+                    </TourTarget>
 
                     {!identity.canCreateCommunity ? (
                       <View style={styles.infoBanner}>
@@ -160,7 +176,7 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
                         </Text>
                       </View>
                     ) : (
-                      <View style={styles.createBox}>
+                      <TourTarget id="community-create" style={styles.createBox}>
                         <Text style={styles.label}>O crear una nueva comunidad vecinal</Text>
                         <TextInput
                           accessibilityLabel="Nombre de la comunidad"
@@ -185,7 +201,7 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
                             {community.creating ? 'Creando…' : 'Crear comunidad vecinal'}
                           </Text>
                         </Pressable>
-                      </View>
+                      </TourTarget>
                     )}
                   </>
                 )}
