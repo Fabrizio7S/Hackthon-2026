@@ -5,11 +5,11 @@ import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../shared/theme';
 import { AlertsScreen } from './AlertsScreen';
-import { createEmergenciesApi, type EmergenciesApi } from './emergenciesApi';
+import { createEmergenciesApi, newClientRequestId, type EmergenciesApi } from './emergenciesApi';
 import { EmergencyDetailScreen } from './EmergencyDetailScreen';
 import { useReportOutbox, useResource } from './hooks';
 import type { OutboxStorage } from './outbox';
-import type { StatusFilter } from './logic';
+import { resolveReportLocation, type StatusFilter } from './logic';
 import { ReportScreen } from './ReportScreen';
 import { SupportScreen } from './SupportScreen';
 import type { CommunityZone } from './types';
@@ -89,6 +89,33 @@ export function EmergenciesScreen({
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => { setOpenId(null); return true; });
     return () => subscription.remove();
   }, [openId]);
+
+
+  const handleTriggerSos = useCallback(async () => {
+    const loc = resolveReportLocation(userLocation, zone);
+    if (!loc) {
+      return { ok: false, message: 'No se pudo determinar tu ubicación para enviar la alerta SOS. Activa la ubicación o conéctate para sincronizar la zona.' };
+    }
+    const clientRequestId = newClientRequestId();
+    const outcome = await outbox.submit({
+      category: 'salud',
+      level: 'critica',
+      description: '¡ALERTA SOS! Solicitud de auxilio urgente en el sector.',
+      vulnerable: false,
+      lat: loc.lat,
+      lng: loc.lng,
+      locationOrigin: loc.origin,
+      clientRequestId,
+    });
+    void reloadFeed({ silent: true });
+    if (outcome.state === 'enviado') {
+      return { ok: true, duplicate: outcome.duplicate, message: '¡Alerta SOS enviada con éxito a tus vecinos!' };
+    } else if (outcome.state === 'pendiente') {
+      return { ok: true, message: 'Alerta guardada en el teléfono. Se enviará en cuanto haya conexión.' };
+    } else {
+      return { ok: false, message: outcome.error.message };
+    }
+  }, [outbox, userLocation, zone, reloadFeed]);
 
   const refreshAll = useCallback(() => {
     void feed.reload({ silent: true });

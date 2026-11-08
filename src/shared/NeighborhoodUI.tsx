@@ -3,6 +3,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { archRadius, colors, fonts } from './theme';
 import { AppIcon, type IconName } from './AppIcon';
+import { useEasyReading } from './EasyReadingContext';
 export type CreateAction = 'service' | 'favor' | 'emergency';
 
 export type NeighborhoodSection = 'inicio' | 'comunidad' | 'servicios' | 'mapa' | 'favores' | 'emergencias';
@@ -63,6 +64,7 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
   // En horizontal en un teléfono (p. ej. 844 × 390) la hoja debe caber y desplazarse.
   const compact = height < 520;
   const [createOpen, setCreateOpen] = useState(false);
+  const { easyReading, toggleEasyReading } = useEasyReading();
   const [isOffline, setIsOffline] = useState(false);
   const emergencyMode = section === 'emergencias';
 
@@ -342,4 +344,26 @@ const s = StyleSheet.create({
   storyEyebrow: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 1.6, color: '#C9DCA8', marginTop: 18 },
   storyTitle: { fontSize: 44, lineHeight: 46, letterSpacing: -1.6, fontWeight: '800', color: colors.onDeep },
   storyCopy: { color: colors.onDeepMuted, fontSize: 16, lineHeight: 25, maxWidth: 420 },
+  easyReadBtn: {
+    height: 38,
+    paddingHorizontal: 10,
+    borderRadius: 19,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  easyReadBtnActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryDeep,
+  },
+  easyReadText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.primaryDeep,
+  },
+  easyReadTextActive: {
+    color: colors.lime,
+  },
 });

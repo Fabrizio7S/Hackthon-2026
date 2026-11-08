@@ -15,6 +15,8 @@ import {
   type EmergencyStatus,
 } from './types';
 import { ArchIcon, Badge, Banner, Button, Chip, LevelBars, StateView, shared, type Tone } from './ui';
+import { SosButton } from './SosButton';
+import { useEasyReading } from '../../shared/EasyReadingContext';
 
 const LEVEL_TONE: Record<EmergencyLevel, Tone> = { critica: 'danger', alta: 'warning', media: 'neutral' };
 const STATUS_TONE: Record<EmergencyStatus, Tone> = { abierta: 'danger', en_atencion: 'warning', solucionado: 'success' };
@@ -29,9 +31,11 @@ type Props = {
   /** El filtro lo conserva EmergenciesScreen para no perderlo al abrir un detalle. */
   filter: StatusFilter;
   onFilterChange: (filter: StatusFilter) => void;
+  onTriggerSos?: () => Promise<{ ok: boolean; duplicate?: boolean; message: string }>;
 };
 
-export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, onGoToCommunity, filter, onFilterChange }: Props) {
+export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, onGoToCommunity, filter, onFilterChange, onTriggerSos }: Props) {
+  const { easyReading } = useEasyReading();
   const data = feed.data;
   const items = useMemo(() => (data ? sortEmergencies(data.items) : []), [data]);
   const counts = useMemo(() => countByStatus(items), [items]);

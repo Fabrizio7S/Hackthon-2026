@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { AppState, Platform, StyleSheet, View } from 'react-native';
 
 import { AuthPanel } from './src/features/auth/AuthPanel';
+import { EasyReadingProvider } from './src/shared/EasyReadingContext';
 import { supabase } from './src/lib/supabase';
 
 export default function App() {
@@ -22,10 +23,12 @@ export default function App() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <AuthPanel client={supabase} />
-      <StatusBar style="dark" />
-    </View>
+    <EasyReadingProvider>
+      <View style={styles.container}>
+        <AuthPanel client={supabase} />
+        <StatusBar style="dark" />
+      </View>
+    </EasyReadingProvider>
   );
 }
 

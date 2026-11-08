@@ -52,7 +52,9 @@ export type IconName =
   | 'mail'
   | 'star'
   | 'camera'
-  | 'filter';
+  | 'filter'
+  | 'eye'
+  | 'accessibility';
 
 function renderVectorIcon(name: IconName, size: number, color: string) {
   switch (name) {
@@ -146,6 +148,10 @@ function renderVectorIcon(name: IconName, size: number, color: string) {
       return <Feather name="camera" size={size} color={color} />;
     case 'filter':
       return <Feather name="filter" size={size} color={color} />;
+    case 'eye':
+      return <Feather name="eye" size={size} color={color} />;
+    case 'accessibility':
+      return <MaterialIcons name="accessibility" size={size} color={color} />;
     default:
       return null;
   }
