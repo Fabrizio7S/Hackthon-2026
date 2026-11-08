@@ -26,6 +26,7 @@ Las propuestas y preguntas pendientes no son requisitos confirmados.
 | D17 | G02, el teléfono de contacto se escribe en cada oferta y se muestra completo a los vecinos que pueden ver la oferta. No depende del perfil. Decidido por Persona 2 el 2026-11-07. |
 | D18 | G02, estrellas de 1 a 5: cualquier vecino que pueda ver la oferta califica una vez por oferta, puede cambiar su nota y no califica su propia oferta. Resuelve Q04. Decidido por Persona 2 el 2026-11-07. |
 | D19 | G02, edición y retiro: solo el autor edita (todos los campos salvo el tipo), retira y reactiva su oferta. Decidido por Persona 2 el 2026-11-07. |
+| D20 | G02, búsqueda y filtros mínimos para la primera entrega: búsqueda por texto en título y descripción (sin distinguir mayúsculas ni tildes) y filtro por tipo (Todos, Servicios, Productos) conforme a los campos de D16. Decidido por Persona 2 el 2026-11-07. Detalle en [T02.14](tareas/T02-14-busqueda-filtros.md). |
 
 ## Organización prevista
 

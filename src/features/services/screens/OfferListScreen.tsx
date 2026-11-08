@@ -1,9 +1,16 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { offersApi as defaultApi } from '../data';
 import type { OffersApi } from '../data/offersApi';
 import type { Offer } from '../data/offerTypes';
 import { formatDistance, type Coordinates } from '../distance/distance';
+import {
+  DEFAULT_OFFER_FILTER,
+  filterOfferListItems,
+  type OfferFilter,
+  type OfferKindFilter,
+} from '../list/filterOffers';
 import { ListStateView } from '../list/ListStateView';
 import { loadOfferListItems, type OfferListItem } from '../list/offerListItems';
 import { useListLoader } from '../list/useListLoader';
@@ -21,9 +28,16 @@ type Props = {
 
 const KIND_LABEL = { servicio: 'Servicio', producto: 'Producto' } as const;
 
-/** Listado de ofertas activas con calificación y distancia (bloque 2 del issue #2). */
+const KIND_FILTERS: { value: OfferKindFilter; label: string }[] = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'servicio', label: 'Servicios' },
+  { value: 'producto', label: 'Productos' },
+];
+
+/** Listado de ofertas activas con búsqueda, filtro por tipo, calificación y distancia (bloque 2 del issue #2). */
 export function OfferListScreen({ userLocation = null, onOpenOffer, api = defaultApi }: Props) {
   const { state, reload } = useListLoader(() => loadOfferListItems(api));
+  const [filter, setFilter] = useState<OfferFilter>(DEFAULT_OFFER_FILTER);
 
   return (
     <View style={styles.screen}>
@@ -35,16 +49,72 @@ export function OfferListScreen({ userLocation = null, onOpenOffer, api = defaul
         onRetry={() => void reload()}
         state={state}
       >
-        {(items) => (
-          <FlatList
-            contentContainerStyle={styles.list}
-            data={items}
-            keyExtractor={(item) => item.offer.id}
-            renderItem={({ item }) => (
-              <OfferCard item={item} onPress={onOpenOffer} userLocation={userLocation} />
-            )}
-          />
-        )}
+        {(items) => {
+          const filtered = filterOfferListItems(items, filter);
+          return (
+            <View style={styles.content}>
+              <View style={styles.controls}>
+                <TextInput
+                  accessibilityLabel="Buscar ofertas"
+                  onChangeText={(query) => setFilter((prev) => ({ ...prev, query }))}
+                  placeholder="Buscar por título o descripción"
+                  placeholderTextColor={colors.textMuted}
+                  style={styles.searchInput}
+                  value={filter.query}
+                />
+                <View
+                  accessibilityLabel="Filtrar por tipo de oferta"
+                  accessibilityRole="radiogroup"
+                  style={styles.filterRow}
+                >
+                  {KIND_FILTERS.map((option) => {
+                    const selected = filter.kind === option.value;
+                    return (
+                      <Pressable
+                        accessibilityLabel={option.label}
+                        accessibilityRole="radio"
+                        aria-checked={selected}
+                        key={option.value}
+                        onPress={() => setFilter((prev) => ({ ...prev, kind: option.value }))}
+                        style={[styles.filterChip, selected && styles.filterChipSelected]}
+                      >
+                        <Text style={[styles.filterChipText, selected && styles.filterChipTextSelected]}>
+                          {option.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {filtered.length === 0 ? (
+                <View style={styles.noMatches}>
+                  <Text style={styles.noMatchesText}>
+                    No encontramos ofertas que coincidan con tu búsqueda.
+                  </Text>
+                  <Pressable
+                    accessibilityLabel="Ver todas las ofertas"
+                    accessibilityRole="button"
+                    onPress={() => setFilter(DEFAULT_OFFER_FILTER)}
+                    style={styles.clearButton}
+                  >
+                    <Text style={styles.clearButtonText}>Ver todas las ofertas</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <FlatList
+                  contentContainerStyle={styles.list}
+                  data={filtered}
+                  keyExtractor={(item) => item.offer.id}
+                  keyboardShouldPersistTaps="handled"
+                  renderItem={({ item }) => (
+                    <OfferCard item={item} onPress={onOpenOffer} userLocation={userLocation} />
+                  )}
+                />
+              )}
+            </View>
+          );
+        }}
       </ListStateView>
     </View>
   );
@@ -92,6 +162,39 @@ function OfferCard({
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   header: { color: colors.text, fontSize: 24, fontWeight: '700', paddingHorizontal: 20, paddingVertical: 16 },
+  content: { flex: 1 },
+  controls: { gap: 10, paddingBottom: 12, paddingHorizontal: 16 },
+  searchInput: {
+    borderColor: colors.border,
+    borderRadius: 10,
+    borderWidth: 1,
+    color: colors.text,
+    fontSize: 17,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  filterRow: { flexDirection: 'row', gap: 8 },
+  filterChip: {
+    alignItems: 'center',
+    borderColor: colors.border,
+    borderRadius: 10,
+    borderWidth: 2,
+    flex: 1,
+    paddingVertical: 10,
+  },
+  filterChipSelected: { backgroundColor: colors.primarySurface, borderColor: colors.primary },
+  filterChipText: { color: colors.text, fontSize: 16 },
+  filterChipTextSelected: { fontWeight: '700' },
+  noMatches: { alignItems: 'center', justifyContent: 'center', padding: 24 },
+  noMatchesText: { color: colors.text, fontSize: 18, textAlign: 'center' },
+  clearButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+  },
+  clearButtonText: { color: colors.onPrimary, fontSize: 17, fontWeight: '600' },
   list: { gap: 12, paddingBottom: 24, paddingHorizontal: 16 },
   card: {
     backgroundColor: colors.background,
