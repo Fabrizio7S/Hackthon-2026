@@ -155,7 +155,7 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={easyReading ? 'Desactivar modo lectura fácil' : 'Activar modo lectura fácil'}
+            accessibilityLabel={easyReading ? 'Modo lectura fácil activado. Toca para desactivar' : 'Activar modo lectura fácil'}
             accessibilityHint="Aumenta el tamaño del texto y contraste"
             onPress={() => void toggleEasyReading()}
             style={({ pressed }) => [
@@ -164,10 +164,8 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
               pressed && s.pressed,
             ]}
           >
-            <AppIcon name="accessibility" size={16} color={easyReading ? colors.lime : colors.primary} />
-            <Text style={[s.easyReadText, easyReading && s.easyReadTextActive]}>
-              {easyReading ? 'Aa Grande' : 'Aa'}
-            </Text>
+            <Text style={[s.easyReadText, easyReading && s.easyReadTextActive]}>Aa</Text>
+            {easyReading && <View style={s.easyReadDot} />}
           </Pressable>
           {!emergencyMode && (
             <Pressable accessibilityRole="button" accessibilityLabel="Ir a emergencias" onPress={() => onNavigate('emergencias')} style={({ pressed }) => [s.emergency, pressed && s.pressed]}>
@@ -176,10 +174,6 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
             </Pressable>
           )}
         </View>
-        {(!emergencyMode || !!tour) && <Pressable accessibilityRole="button" accessibilityLabel="Ir a emergencias" testID={highlighted('nav:emergencias') ? 'tour-nav:emergency-header' : undefined} onPress={() => onNavigate('emergencias')} style={({ pressed }) => [s.emergency, highlighted('nav:emergencias') && s.tourTarget, pressed && s.pressed]}>
-          <AppIcon name="siren" size={18} color={colors.onDanger} weight={2} />
-          <Text style={s.emergencyText}>Emergencias</Text>
-        </Pressable>}
       </View>
       {isOffline && (
         <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={s.offlineBanner}>
@@ -243,7 +237,7 @@ export function NeighborhoodHome({ communityName, role = null, onNavigate, child
   const { easyReading } = useEasyReading();
   return <ScrollView contentContainerStyle={[s.homeScroll, !wide && { padding: 16, paddingBottom: 28 }]}><View style={s.homeInner}>
     {easyReading && (
-      <View style={s.easyReadBanner} accessibilityRole="status">
+      <View style={s.easyReadBanner} accessibilityLiveRegion="polite">
         <AppIcon name="accessibility" size={18} color={colors.primary} />
         <Text style={s.easyReadBannerText}>
           Modo Lectura Fácil activo · Letras ampliadas y mayor contraste.
@@ -278,7 +272,7 @@ export function NeighborhoodHome({ communityName, role = null, onNavigate, child
           {wide && <Text style={s.doorTitle}>{door.label}</Text>}
           {wide && <Text style={s.doorCopy}>{door.copy}</Text>}
         </View>
-        {!wide && <Text style={[s.doorLabel, easyReading && { fontSize: 16, fontWeight: "800" }]}>{door.label}</Text>}
+        {!wide && <Text style={[s.doorLabel, easyReading && { fontSize: 18, fontWeight: "800", lineHeight: 24 }]}>{door.label}</Text>}
       </Pressable>)}
     </View>
 
@@ -291,7 +285,6 @@ export function NeighborhoodHome({ communityName, role = null, onNavigate, child
       <AppIcon name="chevron" size={18} color={colors.danger} weight={2} />
     </Pressable>
 
-    <Text accessibilityRole="header" style={[s.sectionTitle, easyReading && { fontSize: 24 }]}>Tu comunidad empieza contigo</Text>
     {onShowTutorial && <Pressable accessibilityRole="button" accessibilityLabel="Ver recorrido de ayuda" onPress={onShowTutorial} style={s.tutorialLink}>
       <AppIcon name="support" size={22} color={colors.primary} />
       <Text style={s.tutorialLinkText}>Ver recorrido de ayuda</Text>
@@ -416,16 +409,23 @@ const s = StyleSheet.create({
     flex: 1,
   },
   easyReadBtn: {
-    height: 38,
-    paddingHorizontal: 10,
-    borderRadius: 19,
+    height: 36,
+    minWidth: 40,
+    paddingHorizontal: 8,
+    borderRadius: 18,
     backgroundColor: colors.surface,
     borderWidth: 1.5,
     borderColor: colors.borderStrong,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 4,
+  },
+  easyReadDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.lime,
   },
   easyReadBtnActive: {
     backgroundColor: colors.primary,

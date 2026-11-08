@@ -267,7 +267,7 @@ export default function MapaServicios({
     <View style={styles.container}>
       <View
         style={{ flex: 1, minHeight: 400 }}
-        accessibilityRole="region"
+        aria-label="Mapa interactivo"
         accessibilityLabel="Mapa de servicios, productos, emergencias y recursos cercanos"
       >
         <MapContainer
