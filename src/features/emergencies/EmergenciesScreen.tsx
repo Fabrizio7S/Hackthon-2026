@@ -165,6 +165,7 @@ export function EmergenciesScreen({
           onGoToCommunity={onGoToCommunity}
           filter={alertFilter}
           onFilterChange={setAlertFilter}
+          onTriggerSos={handleTriggerSos}
         />
       ) : null}
       {tab === 'reportar' ? (

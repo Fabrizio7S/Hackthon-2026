@@ -59,6 +59,10 @@ export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, o
         />
       ) : null}
 
+      
+      {onTriggerSos ? (
+        <SosButton onTriggerSos={onTriggerSos} easyReading={easyReading} />
+      ) : null}
       <StateView
         state={feed}
         onRetry={onReload}
