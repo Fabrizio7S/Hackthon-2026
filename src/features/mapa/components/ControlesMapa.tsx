@@ -41,13 +41,15 @@ export default function ControlesMapa({
 }: ControlesMapaProps) {
   return (
     <View style={styles.contenedor}>
-      <View style={styles.buscador}>
+      <View style={styles.buscador} accessibilityRole="search">
         <View style={styles.iconoBusqueda}>
           <AppIcon name="search" size={20} color={colors.text.muted} />
         </View>
 
         <TextInput
           style={styles.entrada}
+          accessibilityLabel="Buscar en el mapa"
+          accessibilityHint="Escribe para filtrar servicios, productos, emergencias y recursos"
           placeholder="Buscar servicios o productos..."
           placeholderTextColor={colors.disabled}
           value={busqueda}
@@ -61,6 +63,7 @@ export default function ControlesMapa({
         horizontal
         showsHorizontalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        accessibilityLabel="Filtrar el mapa por tipo"
         contentContainerStyle={styles.filtros}
       >
         {FILTROS.map((opcion) => {
@@ -75,9 +78,8 @@ export default function ControlesMapa({
                 seleccionado && styles.filtroActivo,
               ]}
               accessibilityRole="button"
-              accessibilityState={{
-                selected: seleccionado,
-              }}
+              accessibilityLabel={`Mostrar ${opcion.nombre.toLowerCase()}`}
+              aria-pressed={seleccionado}
             >
               {opcion.id !== 'todos' && (
                 <View

@@ -8,6 +8,14 @@ export type Profile = {
 
 const columns = 'id, display_name, personal_code';
 
+/**
+ * El servidor crea el perfil como «Vecino» cuando el registro no trae un nombre válido.
+ * Ese valor provisional no identifica a nadie: la app pide completar el nombre.
+ */
+export function isPlaceholderName(value: string | null | undefined): boolean {
+  return (value ?? '').trim().toLocaleLowerCase('es') === 'vecino';
+}
+
 export function normalizeDisplayName(value: string): string {
   const name = value.trim();
   if (!name || Array.from(name).length > 100 || /[\u0000-\u001f\u007f]/.test(name)) {

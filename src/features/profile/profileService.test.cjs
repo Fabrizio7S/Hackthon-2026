@@ -10,7 +10,7 @@ const code = ts.transpileModule(fs.readFileSync(path.join(__dirname, 'profileSer
 }).outputText;
 const sandbox = { exports: {} };
 vm.runInNewContext(code, sandbox);
-const { createProfileService, normalizeDisplayName, profileErrorMessage } = sandbox.exports;
+const { createProfileService, normalizeDisplayName, profileErrorMessage, isPlaceholderName } = sandbox.exports;
 
 const own = { id: 'A', display_name: 'Ana', personal_code: 'server-generated-code' };
 
@@ -110,4 +110,9 @@ test('un fallo de backend nunca se presenta como perfil guardado ni revela diagn
   const client = fakeClient([{ data: own, error: null }, { data: null, error: { code: '42501' } }]);
   await assert.rejects(createProfileService(client, 'A').save('Ana'));
   assert.equal(profileErrorMessage({ code: 'unknown', message: 'internal diagnosis' }).includes('internal diagnosis'), false);
+});
+
+test('el nombre provisional «Vecino» pide completar el perfil; un nombre propio no', () => {
+  for (const value of ['Vecino', ' vecino ', 'VECINO']) assert.equal(isPlaceholderName(value), true, value);
+  for (const value of ['Ana', 'Vecino Pérez', 'Mi vecino', '', null, undefined]) assert.equal(isPlaceholderName(value), false, String(value));
 });

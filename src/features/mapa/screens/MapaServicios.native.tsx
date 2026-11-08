@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 
-import MapView from 'react-native-maps';
+import MapView, { type Region } from 'react-native-maps';
 
 import ControlesMapa from '../components/ControlesMapa';
 import MarcadorServicio from '../components/MarcadorServicio';
@@ -27,23 +27,31 @@ import { calcularDistanciaKm } from '../utils/calcularDistancia';
 import { styles } from '../styles/MapaServicios.styles';
 import { AppIcon } from '../../../shared/AppIcon';
 
-import type { OfertaMapa } from '../types';
+import type { OfertaMapa, SesionMapa } from '../types';
 
 interface MapaServiciosProps {
   ofertas?: OfertaMapa[];
   onVerDetalles?: (id: string) => void;
+  /** Conserva filtros, selección y cámara al volver de un detalle. */
+  sesion?: SesionMapa;
 }
 
 export default function MapaServicios({
   ofertas,
   onVerDetalles,
+  sesion,
 }: MapaServiciosProps) {
   // Referencia al mapa para controlar su posición.
   const mapaRef = useRef<MapView>(null);
 
   // Estado del marcador seleccionado.
-  const [ofertaSeleccionadaId, setOfertaSeleccionadaId] =
-    useState<string | null>(null);
+  const [ofertaSeleccionadaId, setSeleccion] =
+    useState<string | null>(sesion?.seleccionId ?? null);
+
+  const setOfertaSeleccionadaId = (id: string | null) => {
+    if (sesion) sesion.seleccionId = id;
+    setSeleccion(id);
+  };
 
   // Obtener la ubicación mediante el hook.
   const {
@@ -56,6 +64,9 @@ export default function MapaServicios({
 
   // Centrar el mapa automáticamente al obtener el GPS (o en las ofertas de la comunidad si están lejos).
   useEffect(() => {
+    // Si la persona ya exploró el mapa, no se vuelve a centrar por sí solo.
+    if (sesion?.explorado) return;
+
     if (ofertas && ofertas.length > 0) {
       const primera = ofertas[0];
       const cercaDelUsuario =
@@ -91,7 +102,7 @@ export default function MapaServicios({
       },
       600
     );
-  }, [ubicacion, ofertas]);
+  }, [ubicacion, ofertas, sesion]);
 
   // Centrar el mapa manualmente.
   const centrarEnMiUbicacion = () => {
@@ -132,7 +143,7 @@ export default function MapaServicios({
     filtro,
     setFiltro,
     ofertasFiltradas,
-  } = useFiltrosMapa(ofertasVisibles);
+  } = useFiltrosMapa(ofertasVisibles, sesion);
 
   // Identificar la oferta seleccionada.
   const ofertaSeleccionada =
@@ -157,8 +168,28 @@ export default function MapaServicios({
       <MapView
         ref={mapaRef}
         style={styles.map}
-        initialRegion={REGION_INICIAL}
+        initialRegion={
+          sesion?.vista
+            ? {
+                latitude: sesion.vista.latitude,
+                longitude: sesion.vista.longitude,
+                latitudeDelta: sesion.vista.latitudeDelta ?? REGION_INICIAL.latitudeDelta,
+                longitudeDelta: sesion.vista.longitudeDelta ?? REGION_INICIAL.longitudeDelta,
+              }
+            : REGION_INICIAL
+        }
         showsUserLocation={ubicacion !== null}
+        accessibilityLabel="Mapa de servicios, productos, emergencias y recursos cercanos"
+        onRegionChangeComplete={(region: Region, detalles?: { isGesture?: boolean }) => {
+          if (!sesion) return;
+          sesion.vista = {
+            latitude: region.latitude,
+            longitude: region.longitude,
+            latitudeDelta: region.latitudeDelta,
+            longitudeDelta: region.longitudeDelta,
+          };
+          if (detalles?.isGesture) sesion.explorado = true;
+        }}
       >
         {ofertasFiltradas.map((oferta) => (
           <MarcadorServicio

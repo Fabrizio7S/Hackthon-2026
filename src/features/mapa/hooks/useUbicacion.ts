@@ -9,12 +9,18 @@ export type EstadoUbicacion =
   | 'denegado'
   | 'error';
 
+/**
+ * Última posición obtenida en esta sesión. Al volver al mapa desde un detalle se
+ * reutiliza y se refresca en segundo plano, sin mostrar «Buscando tu ubicación».
+ */
+let ultimaUbicacion: Location.LocationObjectCoords | null = null;
+
 export function useUbicacion() {
   const [estado, setEstado] =
-    useState<EstadoUbicacion>('inicial');
+    useState<EstadoUbicacion>(ultimaUbicacion ? 'disponible' : 'inicial');
 
   const [ubicacion, setUbicacion] =
-    useState<Location.LocationObjectCoords | null>(null);
+    useState<Location.LocationObjectCoords | null>(ultimaUbicacion);
 
   const [mensaje, setMensaje] = useState('');
   const [intento, setIntento] = useState(0);
@@ -26,12 +32,15 @@ export function useUbicacion() {
       | undefined;
 
     async function obtenerUbicacion() {
-      setEstado('buscando');
+      const conocida = ultimaUbicacion !== null;
+      if (!conocida) {
+        setEstado('buscando');
+        setUbicacion(null);
+      }
       setMensaje('');
-      setUbicacion(null);
 
       tiempoEspera = setTimeout(() => {
-        if (!activo) return;
+        if (!activo || conocida) return;
 
         setEstado('error');
         setMensaje(
@@ -64,11 +73,13 @@ export function useUbicacion() {
 
         if (!activo) return;
 
+        ultimaUbicacion = posicion.coords;
         setUbicacion(posicion.coords);
         setEstado('disponible');
         setMensaje('');
       } catch {
-        if (!activo) return;
+        // Con una posición ya conocida, un fallo al refrescar no debe molestar.
+        if (!activo || ultimaUbicacion) return;
 
         setEstado('error');
         setMensaje(

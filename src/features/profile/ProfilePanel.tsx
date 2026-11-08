@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import * as Clipboard from 'expo-clipboard';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { formatPersonalCode, normalizeDisplayName } from './profileService';
+import { formatPersonalCode, isPlaceholderName, normalizeDisplayName } from './profileService';
 import { useProfile } from './useProfile';
 import { archRadius, colors, fonts } from '../../shared/theme';
 import { AppIcon } from '../../shared/AppIcon';
@@ -23,13 +23,15 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
   const copyBusy = useRef(false);
   const mounted = useRef(false);
   const displayCode = profile.profile ? formatPersonalCode(profile.profile.personal_code) : '';
+  const needsName = isPlaceholderName(profile.profile?.display_name);
 
   useEffect(() => {
     mounted.current = true;
     return () => { mounted.current = false; };
   }, []);
 
-  useEffect(() => { setName(profile.profile?.display_name ?? ''); }, [profile.profile]);
+  // El nombre provisional «Vecino» no se muestra como valor: el campo queda vacío para completarlo.
+  useEffect(() => { setName(needsName ? '' : (profile.profile?.display_name ?? '')); }, [profile.profile, needsName]);
 
   async function copyCode() {
     if (!profile.profile || copyBusy.current) return;
@@ -98,10 +100,15 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
 
       <View style={styles.fieldGroup}>
         <Text style={styles.label}>Nombre visible para los vecinos</Text>
+        {needsName && (
+          <Text style={styles.needsName} accessibilityRole="alert">
+            Todavía apareces como «Vecino». Escribe tu nombre para que tus vecinos te reconozcan.
+          </Text>
+        )}
         <TextInput
           accessibilityLabel="Nombre visible"
           value={name}
-          style={styles.input}
+          style={[styles.input, needsName && styles.inputAttention]}
           editable={!profile.saving}
           autoComplete="name"
           placeholder="Tu nombre completo o de confianza"
@@ -213,6 +220,18 @@ const styles = StyleSheet.create({
   },
   fieldGroup: {
     gap: 6,
+  },
+  needsName: {
+    fontSize: 13.5,
+    lineHeight: 19,
+    fontWeight: '600',
+    color: colors.warningInk,
+    backgroundColor: colors.warningSurface,
+    borderRadius: 12,
+    padding: 10,
+  },
+  inputAttention: {
+    borderColor: colors.warningInk,
   },
   label: {
     fontSize: 14,

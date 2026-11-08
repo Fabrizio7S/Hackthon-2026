@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { openContact } from '../contact/openContact';
@@ -13,6 +13,7 @@ import { supabase } from '../../../lib/supabase';
 import { createEmergenciesApi, toEmergencyMapPoints, toResourceMapPoints } from '../../emergencies';
 import { useUbicacion } from '../../mapa/hooks/useUbicacion';
 import MapaServicios from '../../mapa/screens/MapaServicios';
+import { crearSesionMapa } from '../../mapa/types';
 import { EditOfferScreen } from './EditOfferScreen';
 import { MyOffersScreen } from './MyOffersScreen';
 import { OfferDetailScreen } from './OfferDetailScreen';
@@ -61,6 +62,8 @@ export function ServicesFlowScreen({
   const [route, setRoute] = useState<ServicesRoute>({ screen: 'tab', tab: initialTab });
   const [refreshKey, setRefreshKey] = useState(0);
   const [mapOffers, setMapOffers] = useState<ServiceMapOffer[] | undefined>(undefined);
+  // Búsqueda, filtro, selección y cámara del mapa sobreviven a abrir un detalle y volver.
+  const mapaSesion = useRef(crearSesionMapa());
   const { ubicacion } = useUbicacion();
   const effectiveLocation: Coordinates | null =
     userLocation ??
@@ -141,17 +144,20 @@ export function ServicesFlowScreen({
   }, [route, goBackToTab]);
 
   if (route.screen === 'detalle') {
+    const textoVolver = route.returnTab === 'mapa'
+      ? 'Volver al mapa'
+      : route.returnTab === 'mis_ofertas' ? 'Volver a mis ofertas' : 'Volver a ofertas';
     return (
       <View style={styles.screen}>
         <View style={styles.backBar}>
           <Pressable
-            accessibilityLabel="Volver a ofertas"
+            accessibilityLabel={textoVolver}
             accessibilityRole="button"
             onPress={() => goBackToTab(route.returnTab)}
             style={styles.backButton}
           >
             <AppIcon name="back" size={18} color={colors.primary} weight={2.2} />
-            <Text style={styles.backButtonText}>Volver a ofertas</Text>
+            <Text style={styles.backButtonText}>{textoVolver}</Text>
           </Pressable>
         </View>
         <OfferDetailScreen
@@ -253,6 +259,7 @@ export function ServicesFlowScreen({
           <MapaServicios
             key={`map-${refreshKey}`}
             ofertas={mapOffers}
+            sesion={mapaSesion.current}
             onVerDetalles={(offerId) => {
               if (offerId.startsWith('emergencia:')) {
                 onOpenEmergencies?.('alertas');

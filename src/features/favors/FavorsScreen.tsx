@@ -57,7 +57,8 @@ function Button({ label, onPress, primary = false, selected, disabled = false, i
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ selected, disabled }}
+      aria-pressed={selected}
+      accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [styles.button, (primary || selected) && styles.buttonActive, pressed && styles.pressed, disabled && styles.disabled]}
@@ -210,6 +211,8 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
   const userId = identity.status === 'authenticated' ? identity.user.id : null;
   const userEmail = identity.status === 'authenticated' ? identity.user.email : undefined;
   const communityId: string | null = null;
+  // Con cuenta y cliente, los datos son siempre los de la comunidad; los ejemplos solo existen sin conexión al servicio.
+  const remoteMode = Boolean(client && userId);
 
   const [tab, setTab] = useState<Tab>('Explorar');
   const [detail, setDetail] = useState<Publication | null>(null);
@@ -225,9 +228,11 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
   const [localPublications, setLocalPublications] = useState<Publication[]>([]);
   const [remotePublications, setRemotePublications] = useState<Publication[] | null>(null);
   const [remoteReviews, setRemoteReviews] = useState<Review[] | null>(null);
-  const [userName, setUserName] = useState<string>('Ana');
+  const [userName, setUserName] = useState<string>(remoteMode ? 'Vecino' : 'Ana');
   const [loadingRemote, setLoadingRemote] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  // Hasta recibir la primera respuesta no se muestra contenido, para no enseñar publicaciones ajenas.
+  const initialLoading = remoteMode && remotePublications === null && syncError === null;
 
   // Estado del formulario de reseña en detalle
   const [reviewStars, setReviewStars] = useState<1 | 2 | 3 | 4 | 5>(5);
@@ -268,11 +273,10 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
   }, [detail, creating]);
 
   const allPublications = useMemo(() => {
-    if (remotePublications !== null) {
-      return [...localPublications, ...remotePublications];
-    }
+    // Con cuenta nunca se mezclan ejemplos: si aún carga o falla la lectura, la lista queda vacía.
+    if (remoteMode) return [...localPublications, ...(remotePublications ?? [])];
     return [...localPublications, ...demoPublications];
-  }, [remotePublications, localPublications]);
+  }, [remoteMode, remotePublications, localPublications]);
 
   const myPublications = useMemo(
     () => allPublications.filter((item) => (userId && item.ownerId ? item.ownerId === userId : item.owner === actor)),
@@ -522,8 +526,8 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
         r.publicationId === detail.id
       );
     }
-    return neighborReviews[detail.owner] ?? [];
-  }, [detail, remoteReviews]);
+    return remoteMode ? [] : (neighborReviews[detail.owner] ?? []);
+  }, [detail, remoteReviews, remoteMode]);
 
   const averageRating = reviews.length > 0
     ? ratingFormat.format(reviews.reduce((sum, review) => sum + review.stars, 0) / reviews.length)
@@ -554,7 +558,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
             <View style={styles.headerRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.kicker}>HOY POR TI, MAÑANA POR MÍ</Text>
-                <Text accessibilityRole="header" style={styles.title}>Cadena de favores</Text>
+                <Text accessibilityRole="header" style={styles.title}>Favores</Text>
               </View>
               {client && userId && (
                 <Button label={loadingRemote ? 'Actualizando…' : 'Actualizar'} disabled={loadingRemote} onPress={() => void loadRemoteData()} />
@@ -566,17 +570,22 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
             {syncError && (
               <Text accessibilityRole="alert" style={styles.notice}>{syncError}</Text>
             )}
-            {loadingRemote && remotePublications === null && (
-              <SkeletonCardList count={2} accessibilityLabel="Cargando cadena de favores" />
+            {!remoteMode && (
+              <Text style={styles.notice}>
+                Datos de demostración: estas publicaciones son ejemplos y no pertenecen a tu comunidad.
+              </Text>
+            )}
+            {initialLoading && (
+              <SkeletonCardList count={2} accessibilityLabel="Cargando favores" />
             )}
           </View>
-          {!detail && (
+          {!detail && !initialLoading && (
             <View accessibilityRole="tablist" style={styles.segment}>
               {tabs.map((name) => (
                 <Pressable
                   key={name}
                   accessibilityRole="tab"
-                  accessibilityState={{ selected: tab === name }}
+                  aria-selected={tab === name}
                   onPress={() => chooseTab(name)}
                   style={({ pressed }) => [styles.segmentItem, tab === name && styles.segmentItemActive, pressed && styles.pressed]}
                 >
@@ -586,7 +595,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
             </View>
           )}
 
-          {detail ? (
+          {initialLoading ? null : detail ? (
             <View style={styles.section}>
               <View style={styles.row}>
                 <Button icon="back" label="Volver" onPress={() => setDetail(null)} />
@@ -822,7 +831,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
                     <Pressable
                       accessibilityRole="button"
                       accessibilityLabel={currentCardSaved ? 'Quitar de guardadas' : 'Guardar publicación'}
-                      accessibilityState={{ selected: currentCardSaved }}
+                      aria-pressed={currentCardSaved}
                       onPress={() => toggleSaved(currentCard.id)}
                       style={({ pressed }) => [
                         styles.button,

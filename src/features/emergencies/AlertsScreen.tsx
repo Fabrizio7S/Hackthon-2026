@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '../../shared/theme';
@@ -26,10 +26,12 @@ type Props = {
   onOpen: (id: string) => void;
   onReport: () => void;
   onGoToCommunity?: () => void;
+  /** El filtro lo conserva EmergenciesScreen para no perderlo al abrir un detalle. */
+  filter: StatusFilter;
+  onFilterChange: (filter: StatusFilter) => void;
 };
 
-export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, onGoToCommunity }: Props) {
-  const [filter, setFilter] = useState<StatusFilter>('todas');
+export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, onGoToCommunity, filter, onFilterChange }: Props) {
   const data = feed.data;
   const items = useMemo(() => (data ? sortEmergencies(data.items) : []), [data]);
   const counts = useMemo(() => countByStatus(items), [items]);
@@ -71,7 +73,7 @@ export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, o
 
             <View style={shared.row} accessibilityLabel="Filtrar por estado">
               {filters.map(f => (
-                <Chip key={f.value} label={f.label} selected={filter === f.value} onPress={() => setFilter(f.value)} />
+                <Chip key={f.value} label={f.label} selected={filter === f.value} onPress={() => onFilterChange(f.value)} />
               ))}
             </View>
 

@@ -9,6 +9,7 @@ import { createEmergenciesApi, type EmergenciesApi } from './emergenciesApi';
 import { EmergencyDetailScreen } from './EmergencyDetailScreen';
 import { useReportOutbox, useResource } from './hooks';
 import type { OutboxStorage } from './outbox';
+import type { StatusFilter } from './logic';
 import { ReportScreen } from './ReportScreen';
 import { SupportScreen } from './SupportScreen';
 import type { CommunityZone } from './types';
@@ -55,6 +56,8 @@ export function EmergenciesScreen({
   const api = useMemo(() => apiOverride ?? createEmergenciesApi(client), [apiOverride, client]);
   const [tab, setTab] = useState<EmergenciesTab>(initialTab);
   const [openId, setOpenId] = useState<string | null>(null);
+  // Se conserva aquí para que el filtro de Alertas sobreviva a abrir y cerrar un detalle.
+  const [alertFilter, setAlertFilter] = useState<StatusFilter>('todas');
   const [cachedZone, setCachedZone] = useState<CommunityZone | null>(null);
 
   const feed = useResource(useCallback(() => api.loadFeed(), [api]));
@@ -112,7 +115,7 @@ export function EmergenciesScreen({
             <Pressable
               key={item.value}
               accessibilityRole="tab"
-              accessibilityState={{ selected }}
+              aria-selected={selected}
               accessibilityLabel={item.label}
               onPress={() => setTab(item.value)}
               style={[styles.tab, selected && styles.tabSelected]}
@@ -133,6 +136,8 @@ export function EmergenciesScreen({
           onOpen={setOpenId}
           onReport={() => setTab('reportar')}
           onGoToCommunity={onGoToCommunity}
+          filter={alertFilter}
+          onFilterChange={setAlertFilter}
         />
       ) : null}
       {tab === 'reportar' ? (

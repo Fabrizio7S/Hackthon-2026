@@ -14,6 +14,7 @@ import {
   TileLayer,
   Tooltip,
   useMap,
+  useMapEvents,
 } from 'react-leaflet';
 
 import L from 'leaflet';
@@ -30,11 +31,13 @@ import { calcularDistanciaKm } from '../utils/calcularDistancia';
 import { styles } from '../styles/MapaServicios.styles';
 import { AppIcon } from '../../../shared/AppIcon';
 
-import type { OfertaMapa } from '../types';
+import { NOMBRE_CATEGORIA, type OfertaMapa, type SesionMapa } from '../types';
 
 interface MapaServiciosProps {
   ofertas?: OfertaMapa[];
   onVerDetalles?: (id: string) => void;
+  /** Conserva filtros, selección y cámara al volver de un detalle. */
+  sesion?: SesionMapa;
 }
 
 // Iconos de Leaflet personalizados.
@@ -107,10 +110,12 @@ function ControlCentrado({
   ubicacion,
   ofertas,
   solicitud,
+  sesion,
 }: {
   ubicacion: { latitude: number; longitude: number } | null;
   ofertas?: OfertaMapa[];
   solicitud: number;
+  sesion?: SesionMapa;
 }) {
   const map = useMap();
 
@@ -123,6 +128,9 @@ function ControlCentrado({
       );
       return;
     }
+
+    // Si la persona ya exploró el mapa, no se vuelve a centrar por sí solo.
+    if (sesion?.explorado) return;
 
     if (ofertas && ofertas.length > 0) {
       const primera = ofertas[0];
@@ -148,7 +156,43 @@ function ControlCentrado({
       15,
       { duration: 0.6 }
     );
-  }, [map, ubicacion, ofertas, solicitud]);
+  }, [map, ubicacion, ofertas, solicitud, sesion]);
+
+  return null;
+}
+
+// Guarda la cámara y marca cuándo la persona explora el mapa.
+function RegistroVista({ sesion }: { sesion?: SesionMapa }) {
+  const map = useMap();
+
+  useMapEvents({
+    moveend: () => {
+      if (!sesion) return;
+      const centro = map.getCenter();
+      sesion.vista = {
+        latitude: centro.lat,
+        longitude: centro.lng,
+        zoom: map.getZoom(),
+      };
+    },
+  });
+
+  React.useEffect(() => {
+    if (!sesion) return;
+    const contenedor = map.getContainer();
+    const marcar = () => {
+      sesion.explorado = true;
+    };
+    const eventos = ['mousedown', 'touchstart', 'wheel', 'keydown'] as const;
+    eventos.forEach((nombre) =>
+      contenedor.addEventListener(nombre, marcar, { passive: true })
+    );
+    return () => {
+      eventos.forEach((nombre) =>
+        contenedor.removeEventListener(nombre, marcar)
+      );
+    };
+  }, [map, sesion]);
 
   return null;
 }
@@ -156,9 +200,15 @@ function ControlCentrado({
 export default function MapaServicios({
   ofertas,
   onVerDetalles,
+  sesion,
 }: MapaServiciosProps) {
-  const [ofertaSeleccionadaId, setOfertaSeleccionadaId] =
-    useState<string | null>(null);
+  const [ofertaSeleccionadaId, setSeleccion] =
+    useState<string | null>(sesion?.seleccionId ?? null);
+
+  const setOfertaSeleccionadaId = (id: string | null) => {
+    if (sesion) sesion.seleccionId = id;
+    setSeleccion(id);
+  };
 
   const [solicitudCentrado, setSolicitudCentrado] = useState(0);
 
@@ -185,7 +235,7 @@ export default function MapaServicios({
     filtro,
     setFiltro,
     ofertasFiltradas,
-  } = useFiltrosMapa(ofertasVisibles);
+  } = useFiltrosMapa(ofertasVisibles, sesion);
 
   const ofertaSeleccionada =
     ofertasFiltradas.find(
@@ -215,13 +265,17 @@ export default function MapaServicios({
 
   return (
     <View style={styles.container}>
-      <View style={{ flex: 1, minHeight: 400 }}>
+      <View
+        style={{ flex: 1, minHeight: 400 }}
+        accessibilityRole="region"
+        accessibilityLabel="Mapa de servicios, productos, emergencias y recursos cercanos"
+      >
         <MapContainer
           center={[
-            REGION_INICIAL.latitude,
-            REGION_INICIAL.longitude,
+            sesion?.vista?.latitude ?? REGION_INICIAL.latitude,
+            sesion?.vista?.longitude ?? REGION_INICIAL.longitude,
           ]}
-          zoom={14}
+          zoom={sesion?.vista?.zoom ?? 14}
           style={{ height: '100%', width: '100%' }}
           zoomControl={true}
         >
@@ -234,7 +288,10 @@ export default function MapaServicios({
             ubicacion={ubicacion}
             ofertas={ofertas}
             solicitud={solicitudCentrado}
+            sesion={sesion}
           />
+
+          <RegistroVista sesion={sesion} />
 
           {ubicacion && (
             <Marker
@@ -243,6 +300,8 @@ export default function MapaServicios({
                 ubicacion.longitude,
               ]}
               icon={iconoUsuario}
+              title="Tu ubicación actual"
+              alt="Tu ubicación actual"
             >
               <Tooltip>Tu ubicación actual</Tooltip>
             </Marker>
@@ -264,8 +323,17 @@ export default function MapaServicios({
                       ? iconoEmergencia
                       : iconoRecurso
               }
+              title={`${NOMBRE_CATEGORIA[oferta.categoria]}: ${oferta.nombre}`}
+              alt={`${NOMBRE_CATEGORIA[oferta.categoria]}: ${oferta.nombre}`}
               eventHandlers={{
                 click: () => setOfertaSeleccionadaId(oferta.id),
+                add: (evento) =>
+                  (evento.target as L.Marker)
+                    .getElement()
+                    ?.setAttribute(
+                      'aria-label',
+                      `${NOMBRE_CATEGORIA[oferta.categoria]}: ${oferta.nombre}`
+                    ),
               }}
             >
               <Tooltip>{oferta.nombre}</Tooltip>

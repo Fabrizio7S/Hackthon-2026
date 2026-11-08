@@ -9,9 +9,9 @@ export type NeighborhoodSection = 'inicio' | 'comunidad' | 'servicios' | 'mapa' 
 const destinations: { key: NeighborhoodSection; label: string; icon: IconName }[] = [
   { key: 'inicio', label: 'Inicio', icon: 'home' },
   { key: 'servicios', label: 'Servicios', icon: 'services' },
-  { key: 'favores', label: 'Cadena de favores', icon: 'chain' },
+  { key: 'favores', label: 'Favores', icon: 'chain' },
   { key: 'mapa', label: 'Mapa', icon: 'map' },
-  { key: 'comunidad', label: 'Mi comunidad', icon: 'people' },
+  { key: 'comunidad', label: 'Perfil', icon: 'person' },
 ];
 
 /** Marca: puerta en arco con la palabra «Red vecinal.». */
@@ -58,8 +58,10 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
   section: NeighborhoodSection; onNavigate: (section: NeighborhoodSection) => void;
   communityName: string | null; onCreate: (action: CreateAction) => void; children: ReactNode;
 }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const desktop = width >= 1000;
+  // En horizontal en un teléfono (p. ej. 844 × 390) la hoja debe caber y desplazarse.
+  const compact = height < 520;
   const [createOpen, setCreateOpen] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const emergencyMode = section === 'emergencias';
@@ -72,10 +74,11 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
     return () => unsubscribe();
   }, []);
 
-  const tabButton = (key: NeighborhoodSection, label: string, icon: IconName) => {
+  const tabButton = (key: NeighborhoodSection) => {
+    const { label, icon } = destinations.find(d => d.key === key)!;
     const active = section === key;
     return <Pressable key={key} accessibilityRole="tab" accessibilityLabel={label}
-      accessibilityState={{ selected: active }} onPress={() => onNavigate(key)}
+      aria-selected={active} onPress={() => onNavigate(key)}
       style={({ pressed }) => [s.tab, pressed && s.pressed]}>
       <View style={[s.tabMarker, active && { backgroundColor: colors.primary }]} />
       <AppIcon name={icon} color={active ? colors.primary : colors.textMuted} />
@@ -87,7 +90,7 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
     const item = destinations.find(d => d.key === key)!;
     const active = section === key;
     return <Pressable key={key} accessibilityRole="tab" accessibilityLabel={item.label}
-      accessibilityState={{ selected: active }} onPress={() => onNavigate(key)}
+      aria-selected={active} onPress={() => onNavigate(key)}
       style={({ pressed, hovered }) => [s.sideItem, active && s.sideItemActive, (pressed || hovered) && !active && s.sideItemHover]}>
       <View style={[s.sideIcon, active && { backgroundColor: colors.primary }]}>
         <AppIcon name={item.icon} size={20} color={active ? colors.lime : colors.textMuted} />
@@ -100,7 +103,7 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
     <Brand />
     <Text style={s.sideCaption}>MI ESPACIO VECINAL</Text>
     <View accessibilityRole="tablist" style={{ gap: 4 }}>{destinations.map(d => sideButton(d.key))}</View>
-    <Pressable accessibilityRole="tab" accessibilityLabel="Emergencias" accessibilityState={{ selected: emergencyMode }} onPress={() => onNavigate('emergencias')}
+    <Pressable accessibilityRole="tab" accessibilityLabel="Emergencias" aria-selected={emergencyMode} onPress={() => onNavigate('emergencias')}
       style={({ pressed, hovered }) => [s.sideItem, { marginTop: 6 }, emergencyMode && { backgroundColor: colors.dangerSurface }, (pressed || hovered) && !emergencyMode && s.sideItemHover]}>
       <View style={[s.sideIcon, { backgroundColor: emergencyMode ? colors.danger : colors.dangerSurface }]}>
         <AppIcon name="siren" size={20} color={emergencyMode ? colors.onDanger : colors.danger} />
@@ -118,15 +121,15 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
   </View>;
 
   const bottomBar = <View style={s.bottomBar} accessibilityRole="tablist">
-    {tabButton('inicio', 'Inicio', 'home')}
-    {tabButton('mapa', 'Mapa', 'map')}
+    {tabButton('inicio')}
+    {tabButton('mapa')}
     <View style={s.createSlot}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Crear una publicación" accessibilityState={{ expanded: createOpen }} onPress={() => setCreateOpen(true)} style={({ pressed }) => [s.createButton, pressed && s.pressed]}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Crear una publicación" aria-expanded={createOpen} onPress={() => setCreateOpen(true)} style={({ pressed }) => [s.createButton, pressed && s.pressed]}>
         <AppIcon name="plus" size={26} color={colors.lime} weight={2.4} />
       </Pressable>
     </View>
-    {tabButton('favores', 'Solidario', 'chain')}
-    {tabButton('comunidad', 'Perfil', 'person')}
+    {tabButton('favores')}
+    {tabButton('comunidad')}
   </View>;
 
   const title = emergencyMode ? 'Emergencias y apoyo' : destinations.find(d => d.key === section)?.label;
@@ -159,8 +162,8 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
     <Modal visible={createOpen} transparent animationType="fade" onRequestClose={() => setCreateOpen(false)}>
       <View style={s.modalRoot}>
         <Pressable accessibilityRole="button" accessibilityLabel="Cerrar opciones de publicación" style={s.backdrop} onPress={() => setCreateOpen(false)} />
-        <View accessibilityViewIsModal style={s.createSheet}>
-          <View style={s.sheetHandle} />
+        <View accessibilityViewIsModal style={[s.createSheet, { maxHeight: height - (compact ? 8 : 48) }, compact && s.createSheetCompact]}>
+          {!compact && <View style={s.sheetHandle} />}
           <View style={s.sheetHeader}>
             <View style={{ flex: 1 }}>
               <Text accessibilityRole="header" style={s.sheetTitle}>¿Qué quieres compartir?</Text>
@@ -168,6 +171,7 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
             </View>
             <Pressable accessibilityRole="button" accessibilityLabel="Cerrar" onPress={() => setCreateOpen(false)} style={s.closeButton}><AppIcon name="close" size={18} color={colors.text} weight={2} /></Pressable>
           </View>
+          <ScrollView style={s.sheetScroll} contentContainerStyle={{ gap: compact ? 8 : 12 }} showsVerticalScrollIndicator={false}>
           {([
             { action: 'service', icon: 'services', title: 'Servicio o producto', copy: 'Ofrece tu oficio o algo que vendes.', tint: colors.primarySurface, ink: colors.primary },
             { action: 'favor', icon: 'chain', title: 'Préstamo o intercambio', copy: 'Comparte algo sin dinero de por medio.', tint: colors.claySurface, ink: colors.clay },
@@ -184,6 +188,7 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
               <AppIcon name="chevron" size={18} color={urgent ? colors.onDanger : colors.textMuted} weight={2} />
             </Pressable>;
           })}
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -193,11 +198,11 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
 const doors: { section: NeighborhoodSection; label: string; copy: string; icon: IconName; tint: string; ink: string }[] = [
   { section: 'servicios', label: 'Servicios', copy: 'Oficios y productos de tus vecinos.', icon: 'services', tint: colors.primarySurface, ink: colors.primary },
   { section: 'favores', label: 'Favores', copy: 'Presta, intercambia, pide una mano.', icon: 'chain', tint: colors.claySurface, ink: colors.clay },
-  { section: 'mapa', label: 'Cerca', copy: 'Lo disponible, cuadra por cuadra.', icon: 'pin', tint: colors.riverSurface, ink: colors.river },
-  { section: 'emergencias', label: 'Apoyo', copy: 'Alertas, recursos y brigadas.', icon: 'support', tint: colors.dangerSurface, ink: colors.danger },
+  { section: 'mapa', label: 'Mapa', copy: 'Lo disponible, cuadra por cuadra.', icon: 'pin', tint: colors.riverSurface, ink: colors.river },
+  { section: 'emergencias', label: 'Emergencias', copy: 'Alertas, recursos y brigadas.', icon: 'support', tint: colors.dangerSurface, ink: colors.danger },
 ];
 
-export function NeighborhoodHome({ communityName, onNavigate, children }: { communityName: string | null; onNavigate: (section: NeighborhoodSection) => void; children?: ReactNode }) {
+export function NeighborhoodHome({ communityName, role = null, onNavigate, children }: { communityName: string | null; role?: 'representative' | 'member' | null; onNavigate: (section: NeighborhoodSection) => void; children?: ReactNode }) {
   const { width } = useWindowDimensions();
   const wide = width >= 760;
   return <ScrollView contentContainerStyle={[s.homeScroll, !wide && { padding: 16, paddingBottom: 28 }]}><View style={s.homeInner}>
@@ -206,7 +211,7 @@ export function NeighborhoodHome({ communityName, onNavigate, children }: { comm
         <View style={[{ gap: 8 }, wide ? { flex: 1, paddingBottom: 28 } : { paddingBottom: 18 }]}>
           <View style={s.plaqueRow}>
             <Text style={s.plaqueEyebrow}>COMUNIDAD VECINAL</Text>
-            {communityName && <Text style={s.plaqueBadge}>INTEGRANTE</Text>}
+            {communityName && role && <Text style={s.plaqueBadge}>{role === 'representative' ? 'REPRESENTANTE' : 'INTEGRANTE'}</Text>}
           </View>
           <Text accessibilityRole="header" style={[s.plaqueTitle, wide && { fontSize: 50, lineHeight: 50 }]}>{communityName ?? 'Aquí empieza la comunidad.'}</Text>
           <Text style={s.plaqueCopy}>{communityName ? 'Un servicio que buscabas, algo que puedes prestar, una mano cuando hace falta. Todo a pocas cuadras.' : 'Únete o crea tu comunidad para empezar a compartir con tus vecinos.'}</Text>
@@ -293,6 +298,8 @@ const s = StyleSheet.create({
   modalRoot: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(14,34,27,0.5)' },
   createSheet: { width: '100%', maxWidth: 560, backgroundColor: colors.background, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 34, borderTopLeftRadius: 28, borderTopRightRadius: 28, gap: 12 },
+  createSheetCompact: { paddingTop: 12, paddingBottom: 12, gap: 8 },
+  sheetScroll: { flexShrink: 1 },
   sheetHandle: { width: 44, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong, alignSelf: 'center', marginBottom: 4 },
   sheetHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   sheetTitle: { fontSize: 24, fontWeight: '800', color: colors.text, letterSpacing: -0.6 },

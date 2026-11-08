@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ActivityIndicator, BackHandler, Button, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import type { AccessMode } from './authService';
 import { useAuth } from './useAuth';
 import { ProfilePanel } from '../profile/ProfilePanel';
+import { NamePrompt } from '../profile/NamePrompt';
 import { CommunityPanel } from '../community/CommunityPanel';
 import { FavorsScreen } from '../favors/FavorsScreen';
 import { EmergenciesScreen, type EmergenciesTab } from '../emergencies';
 import { createOffersApi, ServicesFlowScreen } from '../services';
 import { SessionIdentityProvider, useSessionActions, useSessionIdentity } from '../../shared/IdentityContext';
+import type { CommunityRole } from '../../shared/identity';
 import { colors, fonts } from '../../shared/theme';
 import { AppIcon } from '../../shared/AppIcon';
 
@@ -42,6 +44,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
   const [section, setSection] = useState<MainSection>('inicio');
   const [hasCommunity, setHasCommunity] = useState<boolean | null>(null);
   const [communityName, setCommunityName] = useState<string | null>(null);
+  const [communityRole, setCommunityRole] = useState<CommunityRole | null>(null);
   // Pestaña inicial de Emergencias; el contador fuerza a remontar la pantalla al usar los atajos.
   const [emergencyTab, setEmergencyTab] = useState<EmergenciesTab>('alertas');
   const [emergencyNonce, setEmergencyNonce] = useState(0);
@@ -61,6 +64,17 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
     });
     return () => subscription.remove();
   }, [mode, auth.session, auth.pending, auth.clearFeedback]);
+
+  const handleMembership = useCallback((isMember: boolean, name: string | null, role?: CommunityRole | null) => {
+    setHasCommunity(isMember);
+    setCommunityName(name);
+    setCommunityRole(role ?? null);
+  }, []);
+
+  // Tras iniciar sesión, el formulario vuelve a «Iniciar sesión» aunque se hubiera usado «Crear cuenta».
+  useEffect(() => {
+    if (identity.status === 'authenticated') setMode('signIn');
+  }, [identity.status]);
 
   function openEmergencies(tab: EmergenciesTab) {
     setEmergencyTab(tab);
@@ -116,8 +130,9 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
     return (
       <NeighborhoodShell onCreate={openCreate} section={section} communityName={communityName} onNavigate={navigateSection}>
         {section === 'inicio' ? (
-          <NeighborhoodHome communityName={communityName} onNavigate={navigateSection}>
-            <CommunityPanel key={identity.user.id} client={client} userId={identity.user.id} refreshVersion={communityVersion} onMembershipResolved={(isMember, name) => { setHasCommunity(isMember); setCommunityName(name); }} />
+          <NeighborhoodHome communityName={communityName} role={communityRole} onNavigate={navigateSection}>
+            <NamePrompt key={`name:${identity.user.id}:${communityVersion}`} client={client} userId={identity.user.id} onComplete={() => navigateSection('comunidad')} />
+            <CommunityPanel key={identity.user.id} client={client} userId={identity.user.id} refreshVersion={communityVersion} onMembershipResolved={handleMembership} />
           </NeighborhoodHome>
         ) : section !== 'comunidad' && section !== 'emergencias' && hasCommunity === false ? (
           <View style={styles.centerContainer}>
@@ -131,9 +146,9 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
               </Text>
               <Pressable
                 style={styles.buttonPrimary}
-                onPress={() => setSection('comunidad')}
+                onPress={() => navigateSection('comunidad')}
               >
-                <Text style={styles.buttonPrimaryText}>Ir a Comunidad</Text>
+                <Text style={styles.buttonPrimaryText}>Unirme a una comunidad</Text>
               </Pressable>
             </View>
           </View>
@@ -222,10 +237,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
               client={client}
               userId={identity.user.id}
               refreshVersion={communityVersion}
-              onMembershipResolved={(isMember, name) => {
-                setHasCommunity(isMember);
-                setCommunityName(name);
-              }}
+              onMembershipResolved={handleMembership}
             />
           </ScrollView>
         )}

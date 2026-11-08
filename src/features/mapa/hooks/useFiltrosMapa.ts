@@ -1,7 +1,7 @@
 
 import { useMemo, useState } from 'react';
 
-import type { OfertaMapa } from '../types';
+import type { OfertaMapa, SesionMapa } from '../types';
 import type { FiltroMapa } from '../components/ControlesMapa';
 
 /**
@@ -10,9 +10,19 @@ import type { FiltroMapa } from '../components/ControlesMapa';
  *
  * Funciona con ofertas reales o de demostración.
  */
-export function useFiltrosMapa(ofertas: OfertaMapa[]) {
-  const [busqueda, setBusqueda] = useState('');
-  const [filtro, setFiltro] = useState<FiltroMapa>('todos');
+export function useFiltrosMapa(ofertas: OfertaMapa[], sesion?: SesionMapa) {
+  // Con `sesion`, la búsqueda y el filtro se recuperan al volver de un detalle.
+  const [busqueda, setBusquedaLocal] = useState(sesion?.busqueda ?? '');
+  const [filtro, setFiltroLocal] = useState<FiltroMapa>(sesion?.filtro ?? 'todos');
+
+  const setBusqueda = (texto: string) => {
+    if (sesion) sesion.busqueda = texto;
+    setBusquedaLocal(texto);
+  };
+  const setFiltro = (nuevo: FiltroMapa) => {
+    if (sesion) sesion.filtro = nuevo;
+    setFiltroLocal(nuevo);
+  };
 
   const ofertasFiltradas = useMemo(() => {
     const texto = busqueda.trim().toLocaleLowerCase();

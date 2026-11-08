@@ -8,6 +8,7 @@ import { useCommunity } from './useCommunity';
 import { InvitationPanel } from './InvitationPanel';
 import { MembersPanel } from './MembersPanel';
 import { CommunityIdentityProvider } from '../../shared/IdentityContext';
+import type { CommunityRole } from '../../shared/identity';
 import { colors, fonts } from '../../shared/theme';
 import { SkeletonPanel } from '../../shared/Skeleton';
 
@@ -15,7 +16,7 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
   client: SupabaseClient;
   userId: string;
   refreshVersion: number;
-  onMembershipResolved?: (isMember: boolean, communityName: string | null) => void;
+  onMembershipResolved?: (isMember: boolean, communityName: string | null, role?: CommunityRole | null) => void;
 }) {
   const community = useCommunity(client, userId, refreshVersion);
   const identity = community.identity;
@@ -30,9 +31,9 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
 
   useEffect(() => {
     if (identity.status === 'member') {
-      onMembershipResolved?.(true, identity.community.name);
+      onMembershipResolved?.(true, identity.community.name, identity.membership.role);
     } else if (identity.status === 'withoutCommunity') {
-      onMembershipResolved?.(false, null);
+      onMembershipResolved?.(false, null, null);
     }
   }, [identity, onMembershipResolved]);
 
