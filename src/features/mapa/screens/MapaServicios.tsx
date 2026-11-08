@@ -20,11 +20,11 @@ import * as Location from 'expo-location';
 
 import ControlesMapa, {
     type FiltroMapa,
-} from './ControlesMapa';
+} from '../components/ControlesMapa';
 
-import MarcadorServicio from './MarcadorServicio';
-import TarjetaServicio from './TarjetaServicio';
-import type { OfertaMapa } from './types';
+import MarcadorServicio from '../components/MarcadorServicio';
+import TarjetaServicio from '../components/TarjetaServicio';
+import type { OfertaMapa } from '../types';
 
 // Región de referencia para pruebas.
 const REGION_INICIAL = {

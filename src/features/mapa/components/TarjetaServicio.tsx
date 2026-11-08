@@ -2,12 +2,12 @@
 import React from 'react';
 import {
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 
-import type { OfertaMapa } from './types';
+import type { OfertaMapa } from '../types';
+import { styles } from '../styles/TarjetaServicio.styles';
 
 interface TarjetaServicioProps {
   oferta: OfertaMapa;
@@ -65,7 +65,7 @@ export default function TarjetaServicio({
         {tieneCalificacion ? '⭐ ' : ''}
         {calificacion}
         {tieneCalificacion &&
-          oferta.cantidadCalificaciones !== undefined
+        oferta.cantidadCalificaciones !== undefined
           ? ` (${oferta.cantidadCalificaciones})`
           : ''}
       </Text>
@@ -101,80 +101,3 @@ export default function TarjetaServicio({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  tarjeta: {
-    position: 'absolute',
-    bottom: 20,
-    left: 14,
-    right: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  encabezado: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  categoria: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#18734F',
-  },
-  cerrar: {
-    padding: 5,
-  },
-  cerrarTexto: {
-    fontSize: 18,
-    color: '#6B7280',
-  },
-  nombre: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: '#172B23',
-    marginTop: 4,
-  },
-  distancia: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 5,
-  },
-  calificacion: {
-    fontSize: 13,
-    color: '#374151',
-    marginTop: 7,
-  },
-  descripcion: {
-    fontSize: 13,
-    color: '#4B5563',
-    marginTop: 8,
-    lineHeight: 19,
-  },
-  precio: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#18734F',
-    marginTop: 8,
-  },
-  boton: {
-    backgroundColor: '#18734F',
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 14,
-  },
-  botonDeshabilitado: {
-    backgroundColor: '#9CA3AF',
-  },
-  botonTexto: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-});

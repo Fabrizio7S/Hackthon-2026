@@ -3,13 +3,14 @@ import React from 'react';
 import {
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 
-import type { CategoriaMapa } from './types';
+import type { CategoriaMapa } from '../types';
+import { styles } from '../styles/ControlesMapa.styles';
+import { colors } from '../../../theme/colors';
 
 export type FiltroMapa = 'todos' | CategoriaMapa;
 
@@ -43,7 +44,7 @@ export default function ControlesMapa({
         <TextInput
           style={styles.entrada}
           placeholder="Buscar servicios o productos..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.disabled}
           value={busqueda}
           onChangeText={onCambiarBusqueda}
           returnKeyType="search"
@@ -88,59 +89,3 @@ export default function ControlesMapa({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  contenedor: {
-    position: 'absolute',
-    top: 12,
-    left: 14,
-    right: 14,
-    zIndex: 10,
-  },
-  buscador: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    height: 48,
-    elevation: 5,
-    shadowColor: '#000000',
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  iconoBusqueda: {
-    fontSize: 27,
-    color: '#18734F',
-    marginRight: 8,
-  },
-  entrada: {
-    flex: 1,
-    fontSize: 14,
-    color: '#172B23',
-  },
-  filtros: {
-    paddingTop: 12,
-    paddingBottom: 4,
-    gap: 8,
-  },
-  filtro: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    elevation: 3,
-  },
-  filtroActivo: {
-    backgroundColor: '#18734F',
-  },
-  textoFiltro: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  textoFiltroActivo: {
-    color: '#FFFFFF',
-  },
-});
