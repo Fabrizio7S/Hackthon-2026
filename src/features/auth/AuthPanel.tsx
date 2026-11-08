@@ -12,7 +12,7 @@ import { createOffersApi, ServicesFlowScreen } from '../services';
 import { SessionIdentityProvider, useSessionActions, useSessionIdentity } from '../../shared/IdentityContext';
 import { colors } from '../../shared/theme';
 
-type MainSection = 'comunidad' | 'servicios' | 'favores' | 'emergencias';
+type MainSection = 'comunidad' | 'servicios' | 'mapa' | 'favores' | 'emergencias';
 
 // Una sola fuente de sesión para el flujo de acceso montado en App.tsx.
 export function AuthPanel({ client }: { client: SupabaseClient | null }) {
@@ -115,8 +115,18 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             style={[styles.navTab, section === 'servicios' && styles.navTabActive]}
             onPress={() => setSection('servicios')}
           >
-            <Text style={[styles.navTabText, section === 'servicios' && styles.navTabTextActive]}>
+            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.navTabText, section === 'servicios' && styles.navTabTextActive]}>
               Servicios
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: section === 'mapa' }}
+            style={[styles.navTab, section === 'mapa' && styles.navTabActive]}
+            onPress={() => setSection('mapa')}
+          >
+            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.navTabText, section === 'mapa' && styles.navTabTextActive]}>
+              Mapa
             </Text>
           </Pressable>
           <Pressable
@@ -125,7 +135,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             style={[styles.navTab, section === 'favores' && styles.navTabActive]}
             onPress={() => setSection('favores')}
           >
-            <Text style={[styles.navTabText, section === 'favores' && styles.navTabTextActive]}>
+            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.navTabText, section === 'favores' && styles.navTabTextActive]}>
               Favores
             </Text>
           </Pressable>
@@ -165,6 +175,8 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
           </View>
         ) : section === 'servicios' ? (
           <ServicesFlowScreen key={`services:${identity.user.id}`} api={offersApi} />
+        ) : section === 'mapa' ? (
+          <ServicesFlowScreen key={`map:${identity.user.id}`} api={offersApi} initialTab="mapa" />
         ) : section === 'favores' ? (
           <FavorsScreen key={`favors:${identity.user.id}`} client={client} />
         ) : section === 'emergencias' ? (

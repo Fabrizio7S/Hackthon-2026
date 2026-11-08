@@ -6,14 +6,17 @@ import { offersApi as defaultApi } from '../data';
 import type { OffersApi } from '../data/offersApi';
 import type { Offer } from '../data/offerTypes';
 import type { Coordinates } from '../distance/distance';
+import { loadMapOffers, type ServiceMapOffer } from '../map/toMapOffers';
 import { colors } from '../theme';
+import { useUbicacion } from '../../mapa/hooks/useUbicacion';
+import MapaServicios from '../../mapa/screens/MapaServicios';
 import { EditOfferScreen } from './EditOfferScreen';
 import { MyOffersScreen } from './MyOffersScreen';
 import { OfferDetailScreen } from './OfferDetailScreen';
 import { OfferListScreen } from './OfferListScreen';
 import { PublishOfferScreen } from './PublishOfferScreen';
 
-export type ServicesTab = 'explorar' | 'publicar' | 'mis_ofertas';
+export type ServicesTab = 'explorar' | 'mapa' | 'publicar' | 'mis_ofertas';
 
 export type ServicesRoute =
   | { screen: 'tab'; tab: ServicesTab }
@@ -33,6 +36,7 @@ type Props = {
 
 const TABS: { value: ServicesTab; label: string }[] = [
   { value: 'explorar', label: 'Explorar' },
+  { value: 'mapa', label: 'Mapa' },
   { value: 'publicar', label: 'Publicar' },
   { value: 'mis_ofertas', label: 'Mis ofertas' },
 ];
@@ -50,6 +54,25 @@ export function ServicesFlowScreen({
 }: Props) {
   const [route, setRoute] = useState<ServicesRoute>({ screen: 'tab', tab: initialTab });
   const [refreshKey, setRefreshKey] = useState(0);
+  const [mapOffers, setMapOffers] = useState<ServiceMapOffer[] | undefined>(undefined);
+  const { ubicacion } = useUbicacion();
+  const effectiveLocation: Coordinates | null =
+    userLocation ??
+    (ubicacion ? { latitude: ubicacion.latitude, longitude: ubicacion.longitude } : null);
+
+  useEffect(() => {
+    let active = true;
+    loadMapOffers(api)
+      .then((offers) => {
+        if (active) setMapOffers(offers);
+      })
+      .catch(() => {
+        if (active) setMapOffers(undefined);
+      });
+    return () => {
+      active = false;
+    };
+  }, [api, refreshKey]);
 
   const goBackToTab = useCallback((tab: ServicesTab) => {
     setRefreshKey((k) => k + 1);
@@ -91,7 +114,7 @@ export function ServicesFlowScreen({
           contact={contact}
           key={`detail-${route.offerId}`}
           offerId={route.offerId}
-          userLocation={userLocation}
+          userLocation={effectiveLocation}
         />
       </View>
     );
@@ -169,14 +192,23 @@ export function ServicesFlowScreen({
             api={api}
             key={`list-${refreshKey}`}
             onOpenOffer={handleOpenOffer}
-            userLocation={userLocation}
+            userLocation={effectiveLocation}
+          />
+        )}
+        {activeTab === 'mapa' && (
+          <MapaServicios
+            key={`map-${refreshKey}`}
+            ofertas={mapOffers}
+            onVerDetalles={(offerId) =>
+              setRoute({ screen: 'detalle', offerId, returnTab: 'mapa' })
+            }
           />
         )}
         {activeTab === 'publicar' && (
           <PublishOfferScreen
             api={api}
             onPublished={() => setRefreshKey((k) => k + 1)}
-            userLocation={userLocation}
+            userLocation={effectiveLocation}
           />
         )}
         {activeTab === 'mis_ofertas' && (

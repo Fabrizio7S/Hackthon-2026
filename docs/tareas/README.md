@@ -30,7 +30,7 @@ No marcar tareas como en curso sin inicio confirmado por el responsable.
 | G02 | Persona 2: `@Fabrizio7S` | Servicios, productos, contacto y estrellas | [#2](https://github.com/Fabrizio7S/Hackthon-2026/issues/2) | Integrado en `dev`: [T02.1](T02-1-contrato-ofertas.md)–[T02.17](T02-17-recorrido-modulo.md) implementados y migración de ofertas/calificaciones aplicada en Supabase. |
 | G03 | Persona 3: pendiente de nombre | Cadena de favores y coordinación | Pendiente de enlazar | Integrado en `dev` al 100%: [G03](G03-cadena-favores.md) préstamos/intercambios, solicitudes, cancelaciones (D25), fotos en Storage y reseñas reales conectados a Supabase. |
 | G04 | Persona 4: `@reydiazz` | Emergencias y recursos de apoyo | [#4](https://github.com/Fabrizio7S/Hackthon-2026/issues/4) | Integrado en `dev`: [G04](G04-emergencias.md) reportes, coordinación de ayuda, recursos y grupos de apoyo, cola local offline, adaptador de mapa y migración/RLS en Supabase. |
-| G05 | Persona 5: pendiente de nombre | Integración, navegación, mapas, offline y entrega | Pendiente de enlazar | Pendiente |
+| G05 | Persona 5: pendiente de nombre | Integración, navegación, mapas, offline y entrega | [#5](https://github.com/Fabrizio7S/Hackthon-2026/issues/5) | Integrado en `dev`: mapa interactivo móvil (`react-native-maps`) y web (`react-leaflet`), geolocalización (`expo-location`), buscador/filtros en mapa y conexión directa con ofertas de Supabase (`toMapOffers`) y detalle de servicios. |
 
 ## Ramas sugeridas
 
