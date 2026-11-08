@@ -14,6 +14,8 @@ import { ListLoadError } from '../list/listLoader';
 import { ListStateView } from '../list/ListStateView';
 import { useListLoader } from '../list/useListLoader';
 import { RatingSummary } from '../rating/RatingSummary';
+import { StarRatingInput } from '../rating/StarRatingInput';
+import { useSubmitOnce } from '../submit/useSubmitOnce';
 import { colors } from '../theme';
 
 type Props = {
@@ -21,7 +23,7 @@ type Props = {
   /** Ubicación del vecino; sin ella no se muestra distancia. */
   userLocation?: Coordinates | null;
   /** Para pruebas; por defecto usa el Supabase compartido. */
-  api?: Pick<OffersApi, 'getById' | 'ratingSummaries'>;
+  api?: Pick<OffersApi, 'getById' | 'ratingSummaries' | 'rate'>;
   /** Para pruebas; por defecto abre el marcador o WhatsApp. */
   contact?: typeof openContact;
 };
@@ -54,7 +56,9 @@ export function OfferDetailScreen({
   return (
     <View style={styles.screen}>
       <ListStateView emptyMessage="Esta oferta ya no está disponible." onRetry={() => void reload()} state={state}>
-        {([detail]) => <DetailContent contact={contact} detail={detail} userLocation={userLocation} />}
+        {([detail]) => (
+          <DetailContent api={api} contact={contact} detail={detail} userLocation={userLocation} />
+        )}
       </ListStateView>
     </View>
   );
@@ -64,13 +68,35 @@ function DetailContent({
   detail,
   userLocation,
   contact,
+  api,
 }: {
   detail: Detail;
   userLocation: Coordinates | null;
   contact: typeof openContact;
+  api: NonNullable<Props['api']>;
 }) {
-  const { offer, rating } = detail;
+  const { offer } = detail;
+  const [rating, setRating] = useState(detail.rating);
+  const [myStars, setMyStars] = useState(0);
+  const [rateMessage, setRateMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [contactMessage, setContactMessage] = useState<string | null>(null);
+
+  // Califica y, solo si el servidor lo confirma, vuelve a pedir el resumen (issue, bloque 4).
+  const { submit: rate, submitting: sendingRating } = useSubmitOnce(async (stars: number) => {
+    setRateMessage(null);
+    const result = await api.rate(offer.id, stars);
+    if (!result.ok) {
+      setRateMessage({ ok: false, text: result.error.message });
+      return;
+    }
+    setMyStars(stars);
+    const summaries = await api.ratingSummaries([offer.id]);
+    setRating(summaries.ok ? (summaries.data[0] ?? null) : undefined);
+    setRateMessage({
+      ok: true,
+      text: `Calificaste con ${stars} ${stars === 1 ? 'estrella' : 'estrellas'}.`,
+    });
+  });
   const distance = formatDistance(userLocation, offer.location);
   const retired = offer.status === 'retirada';
 
@@ -113,6 +139,17 @@ function DetailContent({
           {contactMessage && (
             <Text accessibilityRole="alert" style={styles.contactError}>
               {contactMessage}
+            </Text>
+          )}
+
+          <Text style={styles.label}>Califica esta oferta</Text>
+          <StarRatingInput disabled={sendingRating} onSelect={(stars) => void rate(stars)} value={myStars} />
+          {rateMessage && (
+            <Text
+              accessibilityRole="alert"
+              style={rateMessage.ok ? styles.rateOk : styles.contactError}
+            >
+              {rateMessage.text}
             </Text>
           )}
         </>
@@ -166,6 +203,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     padding: 12,
   },
+  rateOk: { color: colors.text, fontSize: 16, marginTop: 8 },
   retired: {
     backgroundColor: colors.dangerSurface,
     borderRadius: 8,
