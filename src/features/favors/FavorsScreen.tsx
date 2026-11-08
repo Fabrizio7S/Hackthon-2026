@@ -181,7 +181,7 @@ function PublicationForm({ onCancel, onPublish, submitting = false }: {
   );
 }
 
-export function FavorsScreen({ client = null }: { client?: SupabaseClient | null }) {
+export function FavorsScreen({ client = null, initialCreating = false }: { client?: SupabaseClient | null; initialCreating?: boolean }) {
   const identity = useSessionIdentity();
   const userId = identity.status === 'authenticated' ? identity.user.id : null;
   const userEmail = identity.status === 'authenticated' ? identity.user.email : undefined;
@@ -196,7 +196,7 @@ export function FavorsScreen({ client = null }: { client?: SupabaseClient | null
   const [saved, setSaved] = useState<string[]>([]);
   const [requests, dispatch] = useReducer(updateRequests, []);
   const [contactError, setContactError] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(initialCreating);
   const [submitting, setSubmitting] = useState(false);
   const [localPublications, setLocalPublications] = useState<Publication[]>([]);
   const [remotePublications, setRemotePublications] = useState<Publication[] | null>(null);

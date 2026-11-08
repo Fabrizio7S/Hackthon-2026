@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { ActivityIndicator, BackHandler, Button, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, BackHandler, Button, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import type { AccessMode } from './authService';
 import { useAuth } from './useAuth';
@@ -12,7 +12,8 @@ import { createOffersApi, ServicesFlowScreen } from '../services';
 import { SessionIdentityProvider, useSessionActions, useSessionIdentity } from '../../shared/IdentityContext';
 import { colors } from '../../shared/theme';
 
-type MainSection = 'comunidad' | 'servicios' | 'mapa' | 'favores' | 'emergencias';
+import { NeighborhoodShell, NeighborhoodHome, WelcomeStory, type NeighborhoodSection, type CreateAction } from '../../shared/NeighborhoodUI';
+type MainSection = NeighborhoodSection;
 
 // Una sola fuente de sesión para el flujo de acceso montado en App.tsx.
 export function AuthPanel({ client }: { client: SupabaseClient | null }) {
@@ -31,17 +32,20 @@ function ConfiguredAuthPanel({ client }: { client: SupabaseClient }) {
 
 function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnType<typeof useAuth> }) {
   const identity = useSessionIdentity();
+  const { width } = useWindowDimensions();
   const sessionActions = useSessionActions();
   const [mode, setMode] = useState<AccessMode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [communityVersion, setCommunityVersion] = useState(0);
-  const [section, setSection] = useState<MainSection>('comunidad');
+  const [section, setSection] = useState<MainSection>('inicio');
   const [hasCommunity, setHasCommunity] = useState<boolean | null>(null);
   const [communityName, setCommunityName] = useState<string | null>(null);
   // Pestaña inicial de Emergencias; el contador fuerza a remontar la pantalla al usar los atajos.
   const [emergencyTab, setEmergencyTab] = useState<EmergenciesTab>('alertas');
   const [emergencyNonce, setEmergencyNonce] = useState(0);
+  const [createIntent, setCreateIntent] = useState<CreateAction | null>(null);
+  const [createNonce, setCreateNonce] = useState(0);
   const offersApi = useMemo(() => createOffersApi(client), [client]);
 
   useEffect(() => {
@@ -61,6 +65,19 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
     setEmergencyTab(tab);
     setEmergencyNonce(value => value + 1);
     setSection('emergencias');
+  }
+
+  function navigateSection(next: MainSection) {
+    setCreateIntent(null);
+    if (next === 'emergencias') openEmergencies('alertas');
+    else setSection(next);
+  }
+
+  function openCreate(action: CreateAction) {
+    setCreateIntent(action);
+    setCreateNonce(value => value + 1);
+    if (action === 'emergency') openEmergencies('reportar');
+    else setSection(action === 'service' ? 'servicios' : 'favores');
   }
 
   async function submit() {
@@ -97,66 +114,12 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
   }
   if (identity.status === 'authenticated') {
     return (
-      <View style={styles.root}>
-        <View style={styles.navBar} accessibilityRole="tablist">
-          <Pressable
-            accessibilityRole="tab"
-            accessibilityState={{ selected: section === 'comunidad' }}
-            style={[styles.navTab, section === 'comunidad' && styles.navTabActive]}
-            onPress={() => setSection('comunidad')}
-          >
-            <Text style={[styles.navTabText, section === 'comunidad' && styles.navTabTextActive]}>
-              Comunidad
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="tab"
-            accessibilityState={{ selected: section === 'servicios' }}
-            style={[styles.navTab, section === 'servicios' && styles.navTabActive]}
-            onPress={() => setSection('servicios')}
-          >
-            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.navTabText, section === 'servicios' && styles.navTabTextActive]}>
-              Servicios
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="tab"
-            accessibilityState={{ selected: section === 'mapa' }}
-            style={[styles.navTab, section === 'mapa' && styles.navTabActive]}
-            onPress={() => setSection('mapa')}
-          >
-            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.navTabText, section === 'mapa' && styles.navTabTextActive]}>
-              Mapa
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="tab"
-            accessibilityState={{ selected: section === 'favores' }}
-            style={[styles.navTab, section === 'favores' && styles.navTabActive]}
-            onPress={() => setSection('favores')}
-          >
-            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.navTabText, section === 'favores' && styles.navTabTextActive]}>
-              Favores
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="tab"
-            accessibilityLabel="Emergencias"
-            accessibilityState={{ selected: section === 'emergencias' }}
-            style={[styles.navTab, styles.navTabEmergency, section === 'emergencias' && styles.navTabEmergencyActive]}
-            onPress={() => openEmergencies('alertas')}
-          >
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              style={[styles.navTabText, styles.navTabTextEmergency, section === 'emergencias' && styles.navTabTextEmergencyActive]}
-            >
-              🚨 Emergencias
-            </Text>
-          </Pressable>
-        </View>
-
-        {section !== 'comunidad' && section !== 'emergencias' && hasCommunity === false ? (
+      <NeighborhoodShell onCreate={openCreate} section={section} communityName={communityName} onNavigate={navigateSection}>
+        {section === 'inicio' ? (
+          <NeighborhoodHome communityName={communityName} onNavigate={navigateSection}>
+            <CommunityPanel key={identity.user.id} client={client} userId={identity.user.id} refreshVersion={communityVersion} onMembershipResolved={(isMember, name) => { setHasCommunity(isMember); setCommunityName(name); }} />
+          </NeighborhoodHome>
+        ) : section !== 'comunidad' && section !== 'emergencias' && hasCommunity === false ? (
           <View style={styles.centerContainer}>
             <View style={styles.card}>
               <Text style={styles.authTitle} accessibilityRole="header">
@@ -174,11 +137,11 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             </View>
           </View>
         ) : section === 'servicios' ? (
-          <ServicesFlowScreen key={`services:${identity.user.id}`} api={offersApi} />
+          <ServicesFlowScreen key={`services:${identity.user.id}:${createNonce}`} api={offersApi} initialTab={createIntent === 'service' ? 'publicar' : 'explorar'} />
         ) : section === 'mapa' ? (
           <ServicesFlowScreen key={`map:${identity.user.id}`} api={offersApi} initialTab="mapa" />
         ) : section === 'favores' ? (
-          <FavorsScreen key={`favors:${identity.user.id}`} client={client} />
+          <FavorsScreen key={`favors:${identity.user.id}:${createNonce}`} client={client} initialCreating={createIntent === 'favor'} />
         ) : section === 'emergencias' ? (
           <EmergenciesScreen
             key={`emergencies:${identity.user.id}:${emergencyNonce}`}
@@ -251,14 +214,16 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             />
           </ScrollView>
         )}
-      </View>
+      </NeighborhoodShell>
     );
   }
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.centerContainer}>
-        <View style={styles.authCard}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.centerContainer, { alignItems: 'center' }]}>
+        <View style={{ width: '100%', maxWidth: 1120, gap: 32, flexDirection: width >= 900 ? 'row' : 'column', alignItems: 'center' }}>
+        <WelcomeStory />
+        <View style={[styles.authCard, width >= 900 && { flex: 1 }]}>
           <Text accessibilityRole="header" style={styles.authTitle}>
             {mode === 'signIn' ? 'Iniciar sesión' : 'Crear cuenta'}
           </Text>
@@ -335,6 +300,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             </Text>
           </Pressable>
         </View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -356,6 +322,9 @@ const styles = StyleSheet.create({
     gap: 16,
     backgroundColor: colors.surface,
     paddingBottom: 40,
+    width: '100%',
+    maxWidth: 1000,
+    alignSelf: 'center',
   },
   navBar: {
     flexDirection: 'row',

@@ -32,8 +32,8 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 48,
-    paddingBottom: 24,
+    paddingTop: Platform.OS === 'web' ? 0 : 48,
+    paddingBottom: Platform.OS === 'web' ? 0 : 12,
     backgroundColor: '#fff',
   },
 });

@@ -1,13 +1,13 @@
 // Paleta compartida de la aplicación vecinal, alineada con la guía visual.
 export const colors = {
   // Modo normal
-  primary: '#18803A', // Botones y acciones principales
-  primarySurface: '#E8F5E9', // Fondos suaves de tarjetas y etiquetas
+  primary: '#216349', // Botones y acciones principales
+  primarySurface: '#E4EEE3', // Fondos suaves de tarjetas y etiquetas
   onPrimary: '#FFFFFF',
 
   // Modo emergencia
-  danger: '#C62828', // Alertas, urgencias
-  dangerSurface: '#FDECEC',
+  danger: '#A8342C', // Alertas, urgencias
+  dangerSurface: '#FBECE6',
   onDanger: '#FFFFFF',
 
   // Estados y valoraciones
@@ -16,9 +16,9 @@ export const colors = {
   star: '#F5B400',
 
   // Neutros
-  text: '#1B1B1B',
-  textMuted: '#5F6368',
-  border: '#DADCE0',
-  surface: '#F8F9FA',
+  text: '#203D32',
+  textMuted: '#607066',
+  border: '#D9E1D5',
+  surface: '#F5F4ED',
   background: '#FFFFFF',
 } as const;
