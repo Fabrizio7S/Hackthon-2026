@@ -1,14 +1,24 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { launchImageLibraryAsync } from 'expo-image-picker';
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import {
-  Animated, BackHandler, Image, Linking, PanResponder, Platform, Pressable, SafeAreaView, ScrollView,
-  StatusBar, StyleSheet, Text, TextInput, View,
+  ActivityIndicator, Animated, BackHandler, Image, Linking, PanResponder, Platform, Pressable, SafeAreaView, ScrollView,
+  StyleSheet, Text, TextInput, View,
 } from 'react-native';
 
+import { useSessionIdentity } from '../../shared/IdentityContext';
 import {
-  neighborReviews, neighbors, publications, publicationStatus, requestLabels, updateRequests,
-  type Neighbor, type Publication,
+  neighborReviews, neighbors, publications as demoPublications, publicationStatus, requestLabels, updateRequests,
+  type FavorRequest, type Neighbor, type Publication,
 } from './demo';
+import {
+  acceptFavorRequestRemote,
+  createFavorPublicationRemote,
+  createFavorRequestRemote,
+  fetchFavorsData,
+  finishFavorRequestRemote,
+  toggleFavorSavedRemote,
+} from './favorsService';
 
 const tabs = ['Explorar', 'Guardadas', 'Mi actividad'] as const;
 type Tab = (typeof tabs)[number];
@@ -17,6 +27,14 @@ const webSwipeStyle = { position: 'relative', touchAction: 'pan-y' } as const;
 const ratingFormat = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const publicationKinds = ['Préstamo', 'Intercambio'] as const;
 type PublicationDraft = Pick<Publication, 'kind' | 'title' | 'description' | 'imageUri'>;
+
+function getOwnerDisplayName(item: Publication): string {
+  return item.ownerName || neighbors[item.owner];
+}
+
+function getRequesterDisplayName(request: FavorRequest): string {
+  return request.requesterName || neighbors[request.requester];
+}
 
 function Button({ label, onPress, primary = false, selected, disabled = false }: {
   label: string;
@@ -59,9 +77,10 @@ function ResourceArt({ item, compact = false, inset = false }: { item: Publicati
   );
 }
 
-function PublicationForm({ onCancel, onPublish }: {
+function PublicationForm({ onCancel, onPublish, submitting = false }: {
   onCancel: () => void;
   onPublish: (draft: PublicationDraft) => void;
+  submitting?: boolean;
 }) {
   const [kind, setKind] = useState<Publication['kind']>('Préstamo');
   const [title, setTitle] = useState('');
@@ -83,14 +102,14 @@ function PublicationForm({ onCancel, onPublish }: {
 
   function publish() {
     setAttempted(true);
-    if (missingFields) return;
+    if (missingFields || submitting) return;
     onPublish({ kind, title: title.trim(), description: description.trim(), imageUri });
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Button label="‹ Volver" onPress={onCancel} />
+        <Button label="‹ Volver" disabled={submitting} onPress={onCancel} />
       </View>
       <Text accessibilityRole="header" style={styles.title}>Crear publicación</Text>
       <View style={[styles.card, styles.form]}>
@@ -131,11 +150,8 @@ function PublicationForm({ onCancel, onPublish }: {
           />
         )}
         <View style={styles.row}>
-          <Button label={imageUri ? 'Cambiar imagen' : 'Añadir imagen'} onPress={chooseImage} />
-          {imageUri && <Button label="Quitar imagen" onPress={() => {
-            setImageUri(undefined);
-            setImageError(false);
-          }} />}
+          <Button label={imageUri ? 'Cambiar imagen' : 'Seleccionar imagen'} onPress={() => void chooseImage()} />
+          {imageUri && <Button label="Quitar imagen" onPress={() => setImageUri(undefined)} />}
         </View>
         {imageError && (
           <Text accessibilityRole="alert" style={styles.notice}>No se pudo seleccionar la imagen. Inténtalo de nuevo.</Text>
@@ -143,13 +159,18 @@ function PublicationForm({ onCancel, onPublish }: {
         {attempted && missingFields && (
           <Text accessibilityRole="alert" style={styles.notice}>Completa el título y la descripción para publicar.</Text>
         )}
-        <Button primary label="Publicar" onPress={publish} />
+        <Button primary disabled={submitting} label={submitting ? 'Publicando…' : 'Publicar'} onPress={publish} />
       </View>
     </View>
   );
 }
 
-export function FavorsScreen() {
+export function FavorsScreen({ client = null }: { client?: SupabaseClient | null }) {
+  const identity = useSessionIdentity();
+  const userId = identity.status === 'authenticated' ? identity.user.id : null;
+  const userEmail = identity.status === 'authenticated' ? identity.user.email : undefined;
+  const communityId: string | null = null;
+
   const [tab, setTab] = useState<Tab>('Explorar');
   const [detail, setDetail] = useState<Publication | null>(null);
   const [query, setQuery] = useState('');
@@ -160,7 +181,33 @@ export function FavorsScreen() {
   const [requests, dispatch] = useReducer(updateRequests, []);
   const [contactError, setContactError] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [myPublications, setMyPublications] = useState<Publication[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [localPublications, setLocalPublications] = useState<Publication[]>([]);
+  const [remotePublications, setRemotePublications] = useState<Publication[] | null>(null);
+  const [userName, setUserName] = useState<string>('Ana');
+  const [loadingRemote, setLoadingRemote] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  const loadRemoteData = useCallback(async () => {
+    if (!client || !userId) return;
+    setLoadingRemote(true);
+    setSyncError(null);
+    try {
+      const data = await fetchFavorsData(client, userId, userEmail);
+      setUserName(data.userName);
+      setRemotePublications(data.publications);
+      setSaved(data.savedIds);
+      dispatch({ type: 'hydrate', requests: data.requests });
+    } catch (err) {
+      setSyncError(err instanceof Error ? err.message : 'No se pudo sincronizar con Supabase.');
+    } finally {
+      setLoadingRemote(false);
+    }
+  }, [client, userId, userEmail]);
+
+  useEffect(() => {
+    void loadRemoteData();
+  }, [loadRemoteData]);
 
   useEffect(() => {
     if (!detail && !creating) return;
@@ -172,6 +219,18 @@ export function FavorsScreen() {
     return () => listener.remove();
   }, [detail, creating]);
 
+  const allPublications = useMemo(() => {
+    if (remotePublications !== null) {
+      return [...localPublications, ...remotePublications];
+    }
+    return [...localPublications, ...demoPublications];
+  }, [remotePublications, localPublications]);
+
+  const myPublications = useMemo(
+    () => allPublications.filter((item) => (userId && item.ownerId ? item.ownerId === userId : item.owner === actor)),
+    [allPublications, userId],
+  );
+
   function chooseTab(next: Tab) {
     setTab(next);
     setDetail(null);
@@ -182,11 +241,28 @@ export function FavorsScreen() {
     setDetail(item);
   }
 
-  function publish(draft: PublicationDraft) {
-    setMyPublications((previous) => [{
+  async function publish(draft: PublicationDraft) {
+    setSyncError(null);
+    if (client && userId) {
+      setSubmitting(true);
+      try {
+        const created = await createFavorPublicationRemote(client, userId, userName, communityId, draft);
+        setRemotePublications((previous) => [created, ...(previous ?? [])]);
+        setCreating(false);
+        chooseTab('Mi actividad');
+      } catch (err) {
+        setSyncError(err instanceof Error ? err.message : 'No se pudo publicar en Supabase.');
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    setLocalPublications((previous) => [{
       ...draft,
       id: `local-${previous.length + 1}`,
       owner: actor,
+      ownerName: userName,
       location: 'Tu comunidad',
       terms: 'Coordinar disponibilidad con quien publicó.',
       symbol: draft.kind === 'Préstamo' ? '📦' : '🔄',
@@ -197,21 +273,93 @@ export function FavorsScreen() {
   }
 
   function toggleSaved(id: string) {
-    setSaved((previous) => previous.includes(id)
+    const currentlySaved = saved.includes(id);
+    const shouldSave = !currentlySaved;
+    setSaved((previous) => (currentlySaved
       ? previous.filter((savedId) => savedId !== id)
-      : [...previous, id]);
+      : [...previous, id]));
+
+    if (client && userId) {
+      void toggleFavorSavedRemote(client, userId, id, shouldSave).catch((err) => {
+        setSaved((previous) => (shouldSave
+          ? previous.filter((savedId) => savedId !== id)
+          : [...previous, id]));
+        setSyncError(err instanceof Error ? err.message : 'No se pudo actualizar tus guardadas.');
+      });
+    }
+  }
+
+  function handleRequestFavor(item: Publication) {
+    dispatch({
+      type: 'request',
+      publicationId: item.id,
+      actor,
+      requester: actor,
+      requesterId: userId ?? undefined,
+      requesterName: userName,
+      publicationOwner: item.owner,
+    });
+    chooseTab('Mi actividad');
+
+    if (client && userId) {
+      void createFavorRequestRemote(client, item.id, userId, userName)
+        .then(() => loadRemoteData())
+        .catch((err) => {
+          setSyncError(err instanceof Error ? err.message : 'No se pudo enviar la solicitud.');
+        });
+    }
+  }
+
+  function handleAcceptRequest(item: Publication, request: FavorRequest) {
+    dispatch({
+      type: 'accept',
+      publicationId: item.id,
+      actor,
+      requester: request.requester,
+      requesterId: request.requesterId,
+      publicationOwner: item.owner,
+    });
+
+    if (client && userId && request.requesterId) {
+      void acceptFavorRequestRemote(client, item.id, request.requesterId)
+        .then(() => loadRemoteData())
+        .catch((err) => {
+          setSyncError(err instanceof Error ? err.message : 'No se pudo aceptar la solicitud.');
+        });
+    }
+  }
+
+  function handleFinishRequest(item: Publication, request: FavorRequest) {
+    dispatch({
+      type: 'finish',
+      publicationId: item.id,
+      actor,
+      requester: request.requester,
+      requesterId: request.requesterId,
+      publicationOwner: item.owner,
+    });
+
+    if (client && userId) {
+      void finishFavorRequestRemote(client, item.id, request.requesterId ?? userId)
+        .then(() => loadRemoteData())
+        .catch((err) => {
+          setSyncError(err instanceof Error ? err.message : 'No se pudo finalizar la solicitud.');
+        });
+    }
   }
 
   function openWhatsApp(item: Publication) {
-    const message = encodeURIComponent(`Hola, ${neighbors[item.owner]}. Me interesa tu publicación «${item.title}». ¿Podemos coordinar?`);
+    const ownerDisplay = getOwnerDisplayName(item);
+    const message = encodeURIComponent(`Hola, ${ownerDisplay}. Me interesa tu publicación «${item.title}». ¿Podemos coordinar?`);
     setContactError(false);
     void Linking.openURL(`https://wa.me/?text=${message}`).catch(() => setContactError(true));
   }
 
   const search = query.trim().toLocaleLowerCase('es');
-  const visible = publications.filter((item) => {
+  const visible = allPublications.filter((item) => {
     if (tab === 'Guardadas') return saved.includes(item.id);
-    return item.owner !== actor && `${item.title} ${item.kind} ${item.description}`.toLocaleLowerCase('es').includes(search);
+    const isOwn = userId && item.ownerId ? item.ownerId === userId : item.owner === actor;
+    return !isOwn && `${item.title} ${item.kind} ${item.description}`.toLocaleLowerCase('es').includes(search);
   });
   const isDeck = tab === 'Explorar' && layout === 'Tarjetas';
   const canCreate = tab === 'Explorar' && !detail && !creating;
@@ -245,7 +393,10 @@ export function FavorsScreen() {
     outputRange: ['-9deg', '0deg', '9deg'],
     extrapolate: 'clamp',
   }), [cardOffset]);
-  const detailRequest = requests.find((request) => request.publicationId === detail?.id && request.requester === actor);
+  const detailRequest = requests.find((request) =>
+    request.publicationId === detail?.id &&
+    (userId && request.requesterId ? request.requesterId === userId : request.requester === actor)
+  );
   const detailStatus = detail && publicationStatus(requests, detail.id);
   const reviews = detail ? neighborReviews[detail.owner] : [];
   const averageRating = reviews.length > 0
@@ -253,9 +404,12 @@ export function FavorsScreen() {
     : null;
 
   const activity = requests.flatMap((request) => {
-    const item = publications.find((publication) => publication.id === request.publicationId);
-    if (!item || (item.owner !== actor && request.requester !== actor)) return [];
-    return [{ request, item, received: item.owner === actor }];
+    const item = allPublications.find((publication) => publication.id === request.publicationId);
+    if (!item) return [];
+    const isOwner = userId && item.ownerId ? item.ownerId === userId : item.owner === actor;
+    const isRequester = userId && request.requesterId ? request.requesterId === userId : request.requester === actor;
+    if (!isOwner && !isRequester) return [];
+    return [{ request, item, received: isOwner }];
   });
 
   return (
@@ -268,12 +422,26 @@ export function FavorsScreen() {
         automaticallyAdjustKeyboardInsets={creating}
       >
         {creating ? (
-          <PublicationForm onCancel={() => setCreating(false)} onPublish={publish} />
+          <PublicationForm onCancel={() => setCreating(false)} onPublish={(draft) => void publish(draft)} submitting={submitting} />
         ) : <View style={styles.container}>
           <View style={styles.section}>
-            <Text accessibilityRole="header" style={styles.title}>Cadena de favores</Text>
+            <View style={styles.headerRow}>
+              <Text accessibilityRole="header" style={styles.title}>Cadena de favores</Text>
+              {client && userId && (
+                <Button label={loadingRemote ? 'Actualizando…' : 'Actualizar'} disabled={loadingRemote} onPress={() => void loadRemoteData()} />
+              )}
+            </View>
             {!detail && tab === 'Explorar' && (
               <Text style={styles.body}>Descubre préstamos e intercambios de tu comunidad.</Text>
+            )}
+            {syncError && (
+              <Text accessibilityRole="alert" style={styles.notice}>{syncError}</Text>
+            )}
+            {loadingRemote && remotePublications === null && (
+              <View style={styles.row}>
+                <ActivityIndicator size="small" color="#17613e" />
+                <Text style={styles.muted}>Sincronizando cadena de favores con Supabase…</Text>
+              </View>
             )}
           </View>
           {!detail && (
@@ -302,7 +470,7 @@ export function FavorsScreen() {
                   <Text style={styles.eyebrow}>{detail.kind.toUpperCase()}</Text>
                   <Text accessibilityRole="header" style={styles.cardTitle}>{detail.title}</Text>
                   <View style={styles.publisher}>
-                    <Text style={styles.publisherName}>Publicado por {neighbors[detail.owner]}</Text>
+                    <Text style={styles.publisherName}>Publicado por {getOwnerDisplayName(detail)}</Text>
                     <View style={styles.row}>
                       {averageRating && <Text aria-hidden style={styles.stars}>★</Text>}
                       <Text style={styles.muted}>
@@ -316,10 +484,7 @@ export function FavorsScreen() {
                   {detailRequest && <Badge label={requestLabels[detailRequest.status]} />}
                   <View style={styles.row}>
                     {detail.owner !== actor && detailStatus === 'Disponible' && !detailRequest && (
-                      <Button primary label={`Solicitar ${detail.kind.toLowerCase()}`} onPress={() => {
-                        dispatch({ type: 'request', publicationId: detail.id, actor, requester: actor });
-                        chooseTab('Mi actividad');
-                      }} />
+                      <Button primary label={`Solicitar ${detail.kind.toLowerCase()}`} onPress={() => handleRequestFavor(detail)} />
                     )}
                     {detail.owner !== actor && (detailStatus === 'Disponible' || detailRequest?.status === 'accepted') && (
                       <Button label="Abrir WhatsApp" onPress={() => openWhatsApp(detail)} />
@@ -330,16 +495,16 @@ export function FavorsScreen() {
                     )}
                   </View>
                   {detail.owner !== actor && (detailStatus === 'Disponible' || detailRequest?.status === 'accepted') && (
-                    <Text style={styles.muted}>En esta demo eliges el contacto en WhatsApp. El mensaje queda listo para revisar.</Text>
+                    <Text style={styles.muted}>Elige el contacto en WhatsApp. El mensaje queda listo para enviar.</Text>
                   )}
                   {contactError && <Text accessibilityRole="alert" style={styles.notice}>No se pudo abrir WhatsApp. Vuelve a intentarlo.</Text>}
                 </View>
               </View>
               <View style={[styles.card, styles.cardBody]}>
-                <Text accessibilityRole="header" style={styles.cardTitle}>Reseñas sobre {neighbors[detail.owner]}</Text>
+                <Text accessibilityRole="header" style={styles.cardTitle}>Reseñas sobre {getOwnerDisplayName(detail)}</Text>
                 {reviews.length > 0 ? (
                   <>
-                    <Text style={styles.muted}>Calificaciones y reseñas de ejemplo</Text>
+                    <Text style={styles.muted}>Calificaciones y reseñas vecinales</Text>
                     {reviews.map((review) => (
                       <View key={review.author} style={styles.review}>
                         <View style={styles.row}>
@@ -362,7 +527,9 @@ export function FavorsScreen() {
               {myPublications.length > 0 && (
                 <View style={styles.section}>
                   <Text accessibilityRole="header" style={styles.publisherName}>Mis publicaciones</Text>
-                  <Text style={styles.muted}>Publicaciones creadas en esta sesión de la demo.</Text>
+                  <Text style={styles.muted}>
+                    {client && userId ? 'Publicaciones guardadas en tu cuenta de Supabase.' : 'Publicaciones creadas en esta sesión.'}
+                  </Text>
                   {myPublications.map((item) => (
                     <View key={item.id} style={[styles.card, styles.cardBody]}>
                       <Text style={styles.eyebrow}>{item.kind.toUpperCase()}</Text>
@@ -378,27 +545,25 @@ export function FavorsScreen() {
               )}
               {activity.length === 0 && <Text style={styles.notice}>Aún no tienes solicitudes.</Text>}
               {activity.map(({ request, item, received }) => (
-                <View key={`${item.id}-${request.requester}`} style={[styles.card, styles.cardBody]}>
+                <View key={`${item.id}-${request.requesterId ?? request.requester}`} style={[styles.card, styles.cardBody]}>
                   <Text style={styles.eyebrow}>{received ? 'RECIBIDA' : 'ENVIADA'}</Text>
                   <Text accessibilityRole="header" style={styles.cardTitle}>{item.title}</Text>
                   <Text style={styles.muted}>
-                    {received ? `De ${neighbors[request.requester]}` : `Para ${neighbors[item.owner]}`}
+                    {received ? `De ${getRequesterDisplayName(request)}` : `Para ${getOwnerDisplayName(item)}`}
                   </Text>
                   <Badge label={requestLabels[request.status]} />
                   {request.status === 'pending' && !received && (
-                    <Text style={styles.notice}>Solicitud registrada en esta demo.</Text>
+                    <Text style={styles.notice}>
+                      {client && userId ? 'Solicitud enviada y sincronizada en Supabase.' : 'Solicitud registrada en esta sesión.'}
+                    </Text>
                   )}
                   <View style={styles.row}>
                     <Button label="Ver publicación" onPress={() => openDetail(item)} />
                     {received && request.status === 'pending' && (
-                      <Button primary label="Aceptar solicitud" onPress={() => dispatch({
-                        type: 'accept', publicationId: item.id, actor, requester: request.requester,
-                      })} />
+                      <Button primary label="Aceptar solicitud" onPress={() => handleAcceptRequest(item, request)} />
                     )}
                     {!received && request.status === 'accepted' && (
-                      <Button primary label="Marcar como terminada" onPress={() => dispatch({
-                        type: 'finish', publicationId: item.id, actor, requester: request.requester,
-                      })} />
+                      <Button primary label="Marcar como terminada" onPress={() => handleFinishRequest(item, request)} />
                     )}
                   </View>
                 </View>
@@ -455,7 +620,7 @@ export function FavorsScreen() {
                         <Badge label={publicationStatus(requests, currentCard.id)} />
                       </View>
                       <Text accessibilityRole="header" style={styles.cardTitle}>{currentCard.title}</Text>
-                      <Text style={styles.muted}>{neighbors[currentCard.owner]} · {currentCard.location}</Text>
+                      <Text style={styles.muted}>{getOwnerDisplayName(currentCard)} · {currentCard.location}</Text>
                       <ResourceArt item={currentCard} inset />
                       <Text style={styles.body}>{currentCard.description}</Text>
                       <View style={[styles.row, styles.deckActions]}>
@@ -500,7 +665,7 @@ export function FavorsScreen() {
                         <Badge label={publicationStatus(requests, item.id)} />
                       </View>
                       <Text style={styles.cardTitle}>{item.title}</Text>
-                      <Text style={styles.muted}>{neighbors[item.owner]} · {item.location}</Text>
+                      <Text style={styles.muted}>{getOwnerDisplayName(item)} · {item.location}</Text>
                       <Text style={styles.body}>{item.description}</Text>
                     </View>
                   </Pressable>
@@ -536,6 +701,7 @@ const styles = StyleSheet.create({
   scrollWithCreate: { paddingBottom: 88 },
   container: { alignSelf: 'center', width: '100%', maxWidth: 680, gap: 16 },
   row: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
   section: { gap: 14 },
   title: { color: '#112b22', fontSize: 30, fontWeight: '800', letterSpacing: -0.6 },
   cardTitle: { color: '#112b22', fontSize: 21, fontWeight: '700' },

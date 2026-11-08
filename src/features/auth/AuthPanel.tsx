@@ -122,7 +122,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
         {section === 'servicios' ? (
           <ServicesFlowScreen key={`services:${identity.user.id}`} api={offersApi} />
         ) : section === 'favores' ? (
-          <FavorsScreen key={`favors:${identity.user.id}`} />
+          <FavorsScreen key={`favors:${identity.user.id}`} client={client} />
         ) : (
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
             <View style={styles.sessionCard}>
