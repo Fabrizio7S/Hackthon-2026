@@ -180,6 +180,32 @@ export function createOffersApi(client: SupabaseClient | null) {
         })),
       };
     },
+
+    /**
+     * Devuelve el usuario actual (si hay sesión) y su calificación previa para
+     * esta oferta, para preseleccionar sus estrellas u ocultarlas si es el autor.
+     */
+    async viewerRating(
+      offerId: string,
+    ): Promise<DataResult<{ userId: string | null; stars: number | null }>> {
+      if (!client) return { ok: false, error: dataError('sin_configuracion') };
+      const user = await currentUserId();
+      if (!user.ok) {
+        return { ok: true, data: { userId: null, stars: null } };
+      }
+      const { data, error } = await client
+        .from('service_offer_ratings')
+        .select('stars')
+        .eq('offer_id', offerId)
+        .eq('rater_id', user.data)
+        .maybeSingle();
+      if (error) return { ok: false, error: mapDataError(error) };
+      const row = data as { stars: number } | null;
+      return {
+        ok: true,
+        data: { userId: user.data, stars: row ? Number(row.stars) : null },
+      };
+    },
   };
 }
 

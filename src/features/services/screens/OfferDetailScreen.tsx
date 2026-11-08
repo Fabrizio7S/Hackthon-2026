@@ -23,12 +23,18 @@ type Props = {
   /** Ubicación del vecino; sin ella no se muestra distancia. */
   userLocation?: Coordinates | null;
   /** Para pruebas; por defecto usa el Supabase compartido. */
-  api?: Pick<OffersApi, 'getById' | 'ratingSummaries' | 'rate'>;
+  api?: Pick<OffersApi, 'getById' | 'ratingSummaries' | 'rate'> &
+    Partial<Pick<OffersApi, 'viewerRating'>>;
   /** Para pruebas; por defecto abre el marcador o WhatsApp. */
   contact?: typeof openContact;
 };
 
-type Detail = { offer: Offer; rating: Summary | null | undefined };
+type Detail = {
+  offer: Offer;
+  rating: Summary | null | undefined;
+  viewerUserId: string | null;
+  myStars: number;
+};
 
 const KIND_LABEL = { servicio: 'Servicio', producto: 'Producto' } as const;
 
@@ -37,8 +43,11 @@ async function loadDetail(api: NonNullable<Props['api']>, offerId: string): Prom
   if (!offer.ok) throw new ListLoadError(offer.error.message);
   const summaries = await api.ratingSummaries([offerId]);
   const rating = summaries.ok ? (summaries.data[0] ?? null) : undefined;
+  const viewer = api.viewerRating ? await api.viewerRating(offerId) : null;
+  const viewerUserId = viewer?.ok ? viewer.data.userId : null;
+  const myStars = viewer?.ok && viewer.data.stars ? viewer.data.stars : 0;
   // Se reutilizan los estados del listado con un único elemento.
-  return [{ offer: offer.data, rating }];
+  return [{ offer: offer.data, rating, viewerUserId, myStars }];
 }
 
 /**
@@ -77,9 +86,10 @@ function DetailContent({
 }) {
   const { offer } = detail;
   const [rating, setRating] = useState(detail.rating);
-  const [myStars, setMyStars] = useState(0);
+  const [myStars, setMyStars] = useState(detail.myStars);
   const [rateMessage, setRateMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [contactMessage, setContactMessage] = useState<string | null>(null);
+  const isOwnOffer = Boolean(detail.viewerUserId && detail.viewerUserId === offer.authorId);
 
   // Califica y, solo si el servidor lo confirma, vuelve a pedir el resumen (issue, bloque 4).
   const { submit: rate, submitting: sendingRating } = useSubmitOnce(async (stars: number) => {
@@ -143,14 +153,20 @@ function DetailContent({
           )}
 
           <Text style={styles.label}>Califica esta oferta</Text>
-          <StarRatingInput disabled={sendingRating} onSelect={(stars) => void rate(stars)} value={myStars} />
-          {rateMessage && (
-            <Text
-              accessibilityRole="alert"
-              style={rateMessage.ok ? styles.rateOk : styles.contactError}
-            >
-              {rateMessage.text}
-            </Text>
+          {isOwnOffer ? (
+            <Text style={styles.muted}>Es tu oferta; otros vecinos pueden calificarla.</Text>
+          ) : (
+            <>
+              <StarRatingInput disabled={sendingRating} onSelect={(stars) => void rate(stars)} value={myStars} />
+              {rateMessage && (
+                <Text
+                  accessibilityRole="alert"
+                  style={rateMessage.ok ? styles.rateOk : styles.contactError}
+                >
+                  {rateMessage.text}
+                </Text>
+              )}
+            </>
           )}
         </>
       )}

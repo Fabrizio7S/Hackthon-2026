@@ -5,6 +5,7 @@ import { offersApi as defaultApi, newClientRequestId } from '../data';
 import type { OffersApi } from '../data/offersApi';
 import type { Offer } from '../data/offerTypes';
 import type { OfferErrors } from '../data/offerValidation';
+import { isValidCoordinates, type Coordinates } from '../distance/distance';
 import {
   EMPTY_OFFER_FORM,
   formStyles as styles,
@@ -14,6 +15,8 @@ import {
 import { useSubmitOnce } from '../submit/useSubmitOnce';
 
 type Props = {
+  /** Ubicación opcional proporcionada por el módulo de ubicación (Persona 5). */
+  userLocation?: Coordinates | null;
   /** Se llama con la oferta ya guardada en Supabase. */
   onPublished?: (offer: Offer) => void;
   /** Para pruebas; por defecto usa el Supabase compartido. */
@@ -22,9 +25,9 @@ type Props = {
 
 /**
  * Formulario para publicar una oferta (D16, D17).
- * Ubicación: pendiente de integrar con la de Persona 5; por ahora se publica sin ella.
+ * Si recibe `userLocation` válida, la adjunta a la oferta; si no, publica sin ubicación.
  */
-export function PublishOfferScreen({ onPublished, api = defaultApi }: Props) {
+export function PublishOfferScreen({ userLocation = null, onPublished, api = defaultApi }: Props) {
   const [values, setValues] = useState<OfferFormValues>(EMPTY_OFFER_FORM);
   const [errors, setErrors] = useState<OfferErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -36,7 +39,8 @@ export function PublishOfferScreen({ onPublished, api = defaultApi }: Props) {
   const { submit, submitting } = useSubmitOnce(async () => {
     setGeneralError(null);
     setErrors({});
-    const result = await api.create({ ...values, location: null }, requestId.current);
+    const validLocation = isValidCoordinates(userLocation) ? userLocation : null;
+    const result = await api.create({ ...values, location: validLocation }, requestId.current);
     if (result.ok) {
       requestId.current = newClientRequestId();
       setPublished(result.data);
