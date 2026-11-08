@@ -24,7 +24,8 @@ create policy representantes_autorizados_select_own on public.representantes_aut
   using (usuario_id = auth.uid());
 
 -- 3. Vista compatible public.profiles (permite lectura y edición desde profileService)
-create or replace view public.profiles as
+create or replace view public.profiles
+with (security_invoker = true) as
   select
     id,
     nombre as display_name,

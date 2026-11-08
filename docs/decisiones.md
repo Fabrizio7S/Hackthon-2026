@@ -26,6 +26,11 @@ Las propuestas y preguntas pendientes no son requisitos confirmados.
 | D17 | Q03, aprobada por el usuario para esta entrega: nombre visible obligatorio, correo privado obtenido de la sesión y código personal único generado por el servidor que el cliente no puede modificar. No se incorporan teléfono, dirección ni coordenadas. El perfil completo solo lo consulta su dueño; la búsqueda por código para invitaciones devolverá únicamente nombre y código a representantes autorizados. |
 | D18 | Q01, aprobada por el usuario: una comunidad por vecino. Sin comunidad puede gestionar su perfil e invitaciones. Los datos de comunidad e integrantes solo son accesibles a miembros de esa comunidad. No determina la visibilidad de emergencias ni otros módulos. |
 | D19 | Q02, aprobada por el usuario: representante autorizado manualmente en backend, sin asignación de roles desde el cliente. Solo el representante crea comunidad e invita. No se duplican invitaciones pendientes ni se invita a quien ya es miembro. Aceptar o rechazar repetidamente la misma invitación no produce cambios adicionales; después de rechazar puede enviarse una nueva invitación. |
+| D20 | G02, campos de oferta para la primera entrega: tipo (servicio o producto, mismos campos), título, descripción, teléfono, ubicación opcional y estado activa/retirada. Sin precio, categoría ni foto. Decidido por Persona 2 el 2026-11-07. Detalle en [T02.1](tareas/T02-1-contrato-ofertas.md). |
+| D21 | G02, el teléfono de contacto se escribe en cada oferta y se muestra completo a los vecinos que pueden ver la oferta. No depende del perfil. Decidido por Persona 2 el 2026-11-07. |
+| D22 | G02, estrellas de 1 a 5: cualquier vecino que pueda ver la oferta califica una vez por oferta, puede cambiar su nota y no califica su propia oferta. Resuelve Q04. Decidido por Persona 2 el 2026-11-07. |
+| D23 | G02, edición y retiro: solo el autor edita (todos los campos salvo el tipo), retira y reactiva su oferta. Decidido por Persona 2 el 2026-11-07. |
+| D24 | G02, búsqueda y filtros mínimos para la primera entrega: búsqueda por texto en título y descripción (sin distinguir mayúsculas ni tildes) y filtro por tipo (Todos, Servicios, Productos) conforme a los campos de D20. Decidido por Persona 2 el 2026-11-07. Detalle en [T02.14](tareas/T02-14-busqueda-filtros.md). |
 
 ## Organización prevista
 
@@ -57,7 +62,7 @@ Falta confirmar reglas de atención, coordinación y cierre.
 | Q01 | Resuelta para esta entrega en D18. | Pertenencia, consultas y permisos. |
 | Q02 | Resuelta para esta entrega en D19. | Roles e invitaciones. |
 | Q03 | Resuelta para esta entrega en D17. | Perfil y privacidad. |
-| Q04 | ¿Qué rango tienen las estrellas, quién califica y cuántas veces? | Servicios y productos. |
+| Q04 | Resuelta para esta entrega en D22. | Servicios y productos. |
 | Q05 | ¿Quién confirma finalización? ¿Cómo se cancela? ¿Qué ocurre con otros ofrecimientos? ¿Se publica ayuda disponible sin necesidad previa? | Favores y coordinación. |
 | Q06 | ¿Quién atiende y cierra emergencias? ¿Qué niveles, recursos y grupos se muestran? | Emergencias. |
 | Q07 | ¿Qué funciona offline? ¿Cómo se gestionan reintentos, duplicados y conflictos? | Modelos, persistencia y sincronización. |
