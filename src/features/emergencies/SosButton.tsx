@@ -18,10 +18,9 @@ const HOLD_DURATION_MS = 2000;
 type Props = {
   onTriggerSos: () => Promise<{ ok: boolean; duplicate?: boolean; message: string }>;
   disabled?: boolean;
-  easyReading?: boolean;
 };
 
-export function SosButton({ onTriggerSos, disabled = false, easyReading = false }: Props) {
+export function SosButton({ onTriggerSos, disabled = false }: Props) {
   const [holding, setHolding] = useState(false);
   const [sending, setSending] = useState(false);
   const [sentMessage, setSentMessage] = useState<string | null>(null);
@@ -31,6 +30,7 @@ export function SosButton({ onTriggerSos, disabled = false, easyReading = false 
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
   const mountedRef = useRef(true);
+  const triggeredRef = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -42,6 +42,7 @@ export function SosButton({ onTriggerSos, disabled = false, easyReading = false 
 
   function handlePressIn() {
     if (disabled || sending) return;
+    triggeredRef.current = false;
     setHint(null);
     setSentMessage(null);
     setHolding(true);
@@ -58,6 +59,8 @@ export function SosButton({ onTriggerSos, disabled = false, easyReading = false 
     // Disparar SOS si se mantiene presionado los 2 segundos completos
     holdTimerRef.current = setTimeout(async () => {
       if (!mountedRef.current) return;
+      triggeredRef.current = true;
+      holdTimerRef.current = null;
       setHolding(false);
       setSending(true);
 
@@ -92,7 +95,7 @@ export function SosButton({ onTriggerSos, disabled = false, easyReading = false 
   function handlePressOut() {
     if (sending) return;
     const elapsed = Date.now() - startTimeRef.current;
-    if (holdTimerRef.current) {
+    if (elapsed < HOLD_DURATION_MS && holdTimerRef.current) {
       clearTimeout(holdTimerRef.current);
       holdTimerRef.current = null;
     }
@@ -100,7 +103,7 @@ export function SosButton({ onTriggerSos, disabled = false, easyReading = false 
     progressAnim.setValue(0);
 
     // Si se soltó antes de 2 segundos, orientar al usuario
-    if (elapsed < HOLD_DURATION_MS && !sentMessage) {
+    if (!triggeredRef.current && elapsed < HOLD_DURATION_MS && !sentMessage) {
       setHint('Mantén presionado 2 segundos para activar la alerta.');
     }
   }
@@ -121,7 +124,6 @@ export function SosButton({ onTriggerSos, disabled = false, easyReading = false 
         onPressOut={handlePressOut}
         style={({ pressed }) => [
           styles.button,
-          easyReading && styles.buttonEasy,
           (disabled || sending) && styles.buttonDisabled,
           pressed && styles.buttonPressed,
         ]}
@@ -134,18 +136,18 @@ export function SosButton({ onTriggerSos, disabled = false, easyReading = false 
             {sending ? (
               <ActivityIndicator size="small" color="#FFF" />
             ) : (
-              <AppIcon name="siren" size={easyReading ? 28 : 24} color="#FFF" />
+              <AppIcon name="siren" size={24} color="#FFF" />
             )}
           </View>
           <View style={styles.textColumn}>
-            <Text style={[styles.title, easyReading && styles.titleEasy]}>
+            <Text style={styles.title}>
               {sending
                 ? 'ENVIANDO AUXILIO...'
                 : holding
                 ? '¡MANTÉN PRESIONADO!'
                 : 'ALERTA SOS INMEDIATA'}
             </Text>
-            <Text style={[styles.subtitle, easyReading && styles.subtitleEasy]}>
+            <Text style={styles.subtitle}>
               {holding
                 ? 'Activando auxilio comunitario...'
                 : 'Mantén presionado 2 seg ante peligro inminente'}
@@ -157,14 +159,14 @@ export function SosButton({ onTriggerSos, disabled = false, easyReading = false 
       {hint ? (
         <View style={styles.hintBox} accessibilityLiveRegion="polite">
           <AppIcon name="alert" size={16} color={colors.danger} />
-          <Text style={[styles.hintText, easyReading && styles.hintTextEasy]}>{hint}</Text>
+          <Text style={styles.hintText}>{hint}</Text>
         </View>
       ) : null}
 
       {sentMessage ? (
         <View style={styles.successBox} accessibilityLiveRegion="assertive">
           <AppIcon name="check" size={18} color="#1B5E20" />
-          <Text style={[styles.successText, easyReading && styles.successTextEasy]}>
+          <Text style={styles.successText}>
             {sentMessage}
           </Text>
         </View>
@@ -189,11 +191,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
-  },
-  buttonEasy: {
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: '#7F0000',
   },
   buttonPressed: {
     backgroundColor: '#B71C1C',
@@ -232,18 +229,11 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.6,
   },
-  titleEasy: {
-    fontSize: 19,
-  },
   subtitle: {
     color: '#FFCDD2',
     fontSize: 12,
     marginTop: 2,
     fontWeight: '500',
-  },
-  subtitleEasy: {
-    fontSize: 14,
-    color: '#FFFFFF',
   },
   hintBox: {
     flexDirection: 'row',
@@ -263,9 +253,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
-  hintTextEasy: {
-    fontSize: 14,
-  },
   successBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -283,8 +270,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     flex: 1,
-  },
-  successTextEasy: {
-    fontSize: 15,
   },
 });

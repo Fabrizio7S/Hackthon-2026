@@ -17,7 +17,6 @@ import {
 } from './types';
 import { ArchIcon, Badge, Banner, Button, Chip, LevelBars, StateView, shared, type Tone } from './ui';
 import { SosButton } from './SosButton';
-import { useEasyReading } from '../../shared/EasyReadingContext';
 
 const LEVEL_TONE: Record<EmergencyLevel, Tone> = { critica: 'danger', alta: 'warning', media: 'neutral' };
 const STATUS_TONE: Record<EmergencyStatus, Tone> = { abierta: 'danger', en_atencion: 'warning', solucionado: 'success' };
@@ -36,7 +35,6 @@ type Props = {
 };
 
 export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, onGoToCommunity, filter, onFilterChange, onTriggerSos }: Props) {
-  const { easyReading } = useEasyReading();
   const highlighted = useTourTargets();
   const data = feed.data;
   const items = useMemo(() => (data ? sortEmergencies(data.items) : []), [data]);
@@ -62,7 +60,7 @@ export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, o
       ) : null}
 
       {onTriggerSos ? (
-        <SosButton onTriggerSos={onTriggerSos} easyReading={easyReading} />
+        <SosButton onTriggerSos={onTriggerSos} />
       ) : null}
       {!feed.data && highlighted('emergency-alerts') && <TourTarget id="emergency-alerts" style={shared.card}><Text style={shared.body}>Aquí se mostrarán las alertas de tu comunidad. Revisa abajo si falta unirte o volver a cargar los datos.</Text></TourTarget>}
       <StateView

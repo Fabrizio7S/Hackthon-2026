@@ -3,7 +3,6 @@ import NetInfo from '@react-native-community/netinfo';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { archRadius, colors, fonts } from './theme';
 import { AppIcon, type IconName } from './AppIcon';
-import { useEasyReading } from './EasyReadingContext';
 import { TOUR_RED, useTourTargets } from './TourTargets';
 export type CreateAction = 'service' | 'favor' | 'emergency';
 
@@ -68,7 +67,6 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
   const landscapeTour = !!tour && !desktop && width > height;
   const highlighted = useTourTargets();
   const [createOpen, setCreateOpen] = useState(false);
-  const { easyReading, toggleEasyReading } = useEasyReading();
   const [isOffline, setIsOffline] = useState(false);
   const emergencyMode = section === 'emergencias';
 
@@ -152,28 +150,18 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
             <Text style={s.topLabel}>{title}</Text>
           </> : <Brand />}
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        {(!emergencyMode || !!tour) && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={easyReading ? 'Modo lectura fácil activado. Toca para desactivar' : 'Activar modo lectura fácil'}
-            accessibilityHint="Aumenta el tamaño del texto y contraste"
-            onPress={() => void toggleEasyReading()}
-            style={({ pressed }) => [
-              s.easyReadBtn,
-              easyReading && s.easyReadBtnActive,
-              pressed && s.pressed,
-            ]}
+            accessibilityLabel="Ir a emergencias"
+            testID={highlighted('nav:emergencias') ? 'tour-nav:emergency-header' : undefined}
+            onPress={() => onNavigate('emergencias')}
+            style={({ pressed }) => [s.emergency, highlighted('nav:emergencias') && s.tourTarget, pressed && s.pressed]}
           >
-            <Text style={[s.easyReadText, easyReading && s.easyReadTextActive]}>Aa</Text>
-            {easyReading && <View style={s.easyReadDot} />}
+            <AppIcon name="siren" size={18} color={colors.onDanger} weight={2} />
+            <Text style={s.emergencyText}>Emergencias</Text>
           </Pressable>
-          {!emergencyMode && (
-            <Pressable accessibilityRole="button" accessibilityLabel="Ir a emergencias" onPress={() => onNavigate('emergencias')} style={({ pressed }) => [s.emergency, pressed && s.pressed]}>
-              <AppIcon name="siren" size={18} color={colors.onDanger} weight={2} />
-              <Text style={s.emergencyText}>Emergencias</Text>
-            </Pressable>
-          )}
-        </View>
+        )}
       </View>
       {isOffline && (
         <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={s.offlineBanner}>
@@ -234,16 +222,7 @@ const doors: { section: NeighborhoodSection; label: string; copy: string; icon: 
 export function NeighborhoodHome({ communityName, role = null, onNavigate, children, onShowTutorial }: { communityName: string | null; role?: 'representative' | 'member' | null; onNavigate: (section: NeighborhoodSection) => void; children?: ReactNode; onShowTutorial?: () => void }) {
   const { width } = useWindowDimensions();
   const wide = width >= 760;
-  const { easyReading } = useEasyReading();
   return <ScrollView contentContainerStyle={[s.homeScroll, !wide && { padding: 16, paddingBottom: 28 }]}><View style={s.homeInner}>
-    {easyReading && (
-      <View style={s.easyReadBanner} accessibilityLiveRegion="polite">
-        <AppIcon name="accessibility" size={18} color={colors.primary} />
-        <Text style={s.easyReadBannerText}>
-          Modo Lectura Fácil activo · Letras ampliadas y mayor contraste.
-        </Text>
-      </View>
-    )}
     <View style={s.plaque}>
       <View style={[s.plaqueInner, wide && { flexDirection: 'row', alignItems: 'flex-end' }]}>
         <View style={[{ gap: 8 }, wide ? { flex: 1, paddingBottom: 28 } : { paddingBottom: 18 }]}>
@@ -251,8 +230,8 @@ export function NeighborhoodHome({ communityName, role = null, onNavigate, child
             <Text style={s.plaqueEyebrow}>COMUNIDAD VECINAL</Text>
             {communityName && role && <Text style={s.plaqueBadge}>{role === 'representative' ? 'REPRESENTANTE' : 'INTEGRANTE'}</Text>}
           </View>
-          <Text accessibilityRole="header" style={[s.plaqueTitle, wide && { fontSize: 50, lineHeight: 50 }, easyReading && { fontSize: 36, lineHeight: 40 }]}>{communityName ?? 'Aquí empieza la comunidad.'}</Text>
-          <Text style={[s.plaqueCopy, easyReading && { fontSize: 16, lineHeight: 22 }]}>{communityName ? 'Un servicio que buscabas, algo que puedes prestar, una mano cuando hace falta. Todo a pocas cuadras.' : 'Únete o crea tu comunidad para empezar a compartir con tus vecinos.'}</Text>
+          <Text accessibilityRole="header" style={[s.plaqueTitle, wide && { fontSize: 50, lineHeight: 50 }]}>{communityName ?? 'Aquí empieza la comunidad.'}</Text>
+          <Text style={s.plaqueCopy}>{communityName ? 'Un servicio que buscabas, algo que puedes prestar, una mano cuando hace falta. Todo a pocas cuadras.' : 'Únete o crea tu comunidad para empezar a compartir con tus vecinos.'}</Text>
           {wide && <Pressable accessibilityRole="button" onPress={() => onNavigate('servicios')} style={({ pressed }) => [s.plaqueButton, pressed && s.pressed]}>
             <Text style={s.plaqueButtonText}>Descubrir servicios</Text>
             <AppIcon name="arrow" size={16} color={colors.primaryDeep} weight={2.2} />
@@ -272,15 +251,15 @@ export function NeighborhoodHome({ communityName, role = null, onNavigate, child
           {wide && <Text style={s.doorTitle}>{door.label}</Text>}
           {wide && <Text style={s.doorCopy}>{door.copy}</Text>}
         </View>
-        {!wide && <Text style={[s.doorLabel, easyReading && { fontSize: 18, fontWeight: "800", lineHeight: 24 }]}>{door.label}</Text>}
+        {!wide && <Text style={s.doorLabel}>{door.label}</Text>}
       </Pressable>)}
     </View>
 
     <Pressable accessibilityRole="button" accessibilityLabel="Ver emergencias y apoyo" onPress={() => onNavigate('emergencias')} style={({ pressed }) => [s.helpStrip, pressed && s.pressed]}>
       <View style={s.pulseDot} />
       <View style={{ flex: 1 }}>
-        <Text style={[s.helpTitle, easyReading && { fontSize: 18, lineHeight: 22 }]}>Cuando más importa, estamos cerca.</Text>
-        <Text style={[s.helpCopy, easyReading && { fontSize: 15, lineHeight: 20 }]}>Consulta alertas, reporta una emergencia o encuentra recursos de apoyo.</Text>
+        <Text style={s.helpTitle}>Cuando más importa, estamos cerca.</Text>
+        <Text style={s.helpCopy}>Consulta alertas, reporta una emergencia o encuentra recursos de apoyo.</Text>
       </View>
       <AppIcon name="chevron" size={18} color={colors.danger} weight={2} />
     </Pressable>
@@ -290,7 +269,7 @@ export function NeighborhoodHome({ communityName, role = null, onNavigate, child
       <Text style={s.tutorialLinkText}>Ver recorrido de ayuda</Text>
       <AppIcon name="arrow" size={18} color={colors.primary} />
     </Pressable>}
-    <Text accessibilityRole="header" style={[s.sectionTitle, easyReading && { fontSize: 24 }]}>Tu comunidad empieza contigo</Text>
+    <Text accessibilityRole="header" style={s.sectionTitle}>Tu comunidad empieza contigo</Text>
     {children}
   </View></ScrollView>;
 }
@@ -390,53 +369,5 @@ const s = StyleSheet.create({
   storyEyebrow: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 1.6, color: '#C9DCA8', marginTop: 18 },
   storyTitle: { fontSize: 44, lineHeight: 46, letterSpacing: -1.6, fontWeight: '800', color: colors.onDeep },
   storyCopy: { color: colors.onDeepMuted, fontSize: 16, lineHeight: 25, maxWidth: 420 },
-  easyReadBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: colors.primarySurface,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 14,
-    marginBottom: 12,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-  },
-  easyReadBannerText: {
-    color: colors.primaryDeep,
-    fontSize: 13,
-    fontWeight: '700',
-    flex: 1,
-  },
-  easyReadBtn: {
-    height: 36,
-    minWidth: 40,
-    paddingHorizontal: 8,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
-    borderWidth: 1.5,
-    borderColor: colors.borderStrong,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  easyReadDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.lime,
-  },
-  easyReadBtnActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primaryDeep,
-  },
-  easyReadText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.primaryDeep,
-  },
-  easyReadTextActive: {
-    color: colors.lime,
-  },
+
 });

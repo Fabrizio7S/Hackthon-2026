@@ -8,7 +8,6 @@ import { useProfile } from './useProfile';
 import { archRadius, colors, fonts } from '../../shared/theme';
 import { AppIcon } from '../../shared/AppIcon';
 import { SkeletonPanel } from '../../shared/Skeleton';
-import { useEasyReading } from '../../shared/EasyReadingContext';
 import { TourTarget } from '../../shared/TourTargets';
 
 export function ProfilePanel({ client, userId, email, onSaved }: {
@@ -18,7 +17,6 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
   onSaved?: () => void;
 }) {
   const profile = useProfile(client, userId);
-  const { easyReading, toggleEasyReading } = useEasyReading();
   const [name, setName] = useState('');
   const [validation, setValidation] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
@@ -173,29 +171,7 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
       )}
       </TourTarget>
 
-      {/* Accesibilidad y Lectura Fácil */}
-      <View style={styles.accessibilityBox}>
-        <View style={styles.accessibilityHeader}>
-          <View style={styles.accessibilityIconWrap}>
-            <AppIcon name="accessibility" size={24} color={colors.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text accessibilityRole="header" style={styles.accessibilityTitle}>Modo Lectura Fácil</Text>
-            <Text style={styles.accessibilityHelp}>
-              Aumenta el tamaño de letra, refuerza el contraste y facilita el uso para personas mayores o con fatiga visual.
-            </Text>
-          </View>
-          <Switch
-            accessibilityRole="switch"
-            accessibilityLabel="Activar modo lectura fácil"
-            value={easyReading}
-            onValueChange={() => { void toggleEasyReading(); }}
-            trackColor={{ false: colors.borderStrong, true: colors.primary }}
-            thumbColor={easyReading ? colors.lime : '#f4f3f4'}
-          />
-        </View>
       </View>
-</View>
   );
 }
 
@@ -393,36 +369,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  accessibilityBox: {
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    padding: 16,
-    marginTop: 8,
-  },
-  accessibilityHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  accessibilityIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: colors.primarySurface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  accessibilityTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  accessibilityHelp: {
-    fontSize: 12,
-    color: colors.textMuted,
-    marginTop: 2,
-    lineHeight: 16,
-  },
+
 });
