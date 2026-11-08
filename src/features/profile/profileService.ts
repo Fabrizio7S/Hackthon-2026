@@ -16,6 +16,19 @@ export function normalizeDisplayName(value: string): string {
   return name;
 }
 
+/**
+ * Formatea un código personal (UUID o código corto) como código vecinal corto
+ * legible y fácil de compartir: `VEC-XXXX-XXXX`.
+ */
+export function formatPersonalCode(value: string): string {
+  const raw = value.trim().toUpperCase();
+  const clean = raw.replace(/^VEC-/, '').replace(/-/g, '');
+  if (/^[0-9A-F]{8}/.test(clean)) {
+    return `VEC-${clean.slice(0, 4)}-${clean.slice(4, 8)}`;
+  }
+  return raw;
+}
+
 export function profileErrorMessage(error: unknown): string {
   const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : '';
   switch (code) {

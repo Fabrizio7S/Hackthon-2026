@@ -8,6 +8,7 @@ import {
 
 import { useSessionIdentity } from '../../shared/IdentityContext';
 import { AppIcon, type IconName } from '../../shared/AppIcon';
+import { SkeletonCardList } from '../../shared/Skeleton';
 import { archRadius, colors, fonts } from '../../shared/theme';
 import {
   neighborReviews, neighbors, publications as demoPublications, publicationStatus, requestLabels, updateRequests,
@@ -566,10 +567,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
               <Text accessibilityRole="alert" style={styles.notice}>{syncError}</Text>
             )}
             {loadingRemote && remotePublications === null && (
-              <View style={styles.row}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.muted}>Sincronizando cadena de favores con Supabase…</Text>
-              </View>
+              <SkeletonCardList count={2} accessibilityLabel="Cargando cadena de favores" />
             )}
           </View>
           {!detail && (

@@ -3,10 +3,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import * as Clipboard from 'expo-clipboard';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { normalizeDisplayName } from './profileService';
+import { formatPersonalCode, normalizeDisplayName } from './profileService';
 import { useProfile } from './useProfile';
 import { archRadius, colors, fonts } from '../../shared/theme';
 import { AppIcon } from '../../shared/AppIcon';
+import { SkeletonPanel } from '../../shared/Skeleton';
 
 export function ProfilePanel({ client, userId, email, onSaved }: {
   client: SupabaseClient;
@@ -21,6 +22,7 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
   const [copying, setCopying] = useState(false);
   const copyBusy = useRef(false);
   const mounted = useRef(false);
+  const displayCode = profile.profile ? formatPersonalCode(profile.profile.personal_code) : '';
 
   useEffect(() => {
     mounted.current = true;
@@ -35,8 +37,8 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
     setCopying(true);
     setCopyMessage(null);
     try {
-      const copied = await Clipboard.setStringAsync(profile.profile.personal_code);
-      if (mounted.current) setCopyMessage(copied ? 'Código copiado al portapapeles.' : 'No se pudo copiar.');
+      const copied = await Clipboard.setStringAsync(displayCode);
+      if (mounted.current) setCopyMessage(copied ? `Código ${displayCode} copiado al portapapeles.` : 'No se pudo copiar.');
     } catch {
       if (mounted.current) setCopyMessage('No se pudo copiar automáticamente.');
     } finally {
@@ -58,8 +60,7 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
   if (profile.status === 'loading') {
     return (
       <View style={styles.card}>
-        <ActivityIndicator color={colors.primary} accessibilityLabel="Cargando perfil" />
-        <Text style={styles.mutedText}>Cargando perfil…</Text>
+        <SkeletonPanel lines={3} accessibilityLabel="Cargando perfil" />
       </View>
     );
   }
@@ -137,9 +138,9 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
               <AppIcon name="key" size={22} color={colors.primaryDeep} />
             </View>
             <View style={styles.codeBody}>
-              <Text style={styles.codeLabel}>Tu código personal único</Text>
-              <Text selectable style={styles.codeValue}>{profile.profile.personal_code}</Text>
-              <Text style={styles.codeHelp}>Compártelo con tu representante vecinal para que te invite a la comunidad.</Text>
+              <Text style={styles.codeLabel}>Tu código vecinal corto</Text>
+              <Text selectable style={styles.codeValue}>{displayCode}</Text>
+              <Text style={styles.codeHelp}>Fácil de dictar o copiar. Compártelo con tu representante vecinal para unirte a la comunidad.</Text>
             </View>
           </View>
 

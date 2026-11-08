@@ -9,14 +9,15 @@ const code = ts.transpileModule(fs.readFileSync(path.join(__dirname, 'invitation
 }).outputText;
 const sandbox = { exports: {} };
 vm.runInNewContext(code, sandbox);
-const { createInvitationService, normalizePersonalCode, invitationErrorMessage } = sandbox.exports;
+const { createInvitationService, normalizePersonalCode, formatPersonalCode, invitationErrorMessage } = sandbox.exports;
 const personalCode = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const shortCode = 'VEC-AAAA-AAAA';
 const invitation = {
   id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', community_id: 'community-A', community_name: 'Barrio',
   status: 'pending', direction: 'incoming', recipient_name: null,
 };
 
-test('valida código completo antes de consultar y normaliza mayúsculas/espacios', async () => {
+test('valida código completo o corto antes de consultar y normaliza mayúsculas/espacios', async () => {
   let calls = 0;
   const service = createInvitationService({ rpc: async () => { calls++; } });
   await assert.rejects(service.find('incompleto'));
@@ -24,16 +25,19 @@ test('valida código completo antes de consultar y normaliza mayúsculas/espacio
   await assert.rejects(service.process('otro-id', true));
   assert.equal(calls, 0);
   assert.equal(normalizePersonalCode(` ${personalCode.toUpperCase()} `), personalCode);
+  assert.equal(normalizePersonalCode(' vec-aaaa-aaaa '), shortCode);
+  assert.equal(normalizePersonalCode('aaaaaaaa'), shortCode);
+  assert.equal(formatPersonalCode(personalCode), shortCode);
 });
 
-test('búsqueda usa el código exacto y entrega solo nombre/código', async () => {
+test('búsqueda usa el código exacto o corto y entrega solo nombre/código', async () => {
   const service = createInvitationService({ rpc: async (name, args) => {
     assert.equal(name, 'find_neighbor');
     assert.equal(Object.keys(args).join(','), 'p_code');
-    assert.equal(args.p_code, personalCode);
+    assert.equal(args.p_code, shortCode);
     return { data: { display_name: 'Vecino', personal_code: personalCode, ignored: 'not exposed' }, error: null };
   } });
-  const neighbor = await service.find(personalCode);
+  const neighbor = await service.find('vec-aaaa-aaaa');
   assert.equal(Object.keys(neighbor).sort().join(','), 'display_name,personal_code');
 });
 

@@ -8,6 +8,7 @@ import { InvitationPanel } from './InvitationPanel';
 import { MembersPanel } from './MembersPanel';
 import { CommunityIdentityProvider } from '../../shared/IdentityContext';
 import { colors, fonts } from '../../shared/theme';
+import { SkeletonPanel } from '../../shared/Skeleton';
 
 export function CommunityPanel({ client, userId, refreshVersion, onMembershipResolved }: {
   client: SupabaseClient;
@@ -55,10 +56,7 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
         </View>
 
         {identity.status === 'loading' ? (
-          <View style={styles.loadingBox}>
-            <ActivityIndicator color={colors.primary} accessibilityLabel="Consultando comunidad" />
-            <Text style={styles.mutedText}>Consultando comunidad…</Text>
-          </View>
+          <SkeletonPanel lines={3} accessibilityLabel="Consultando comunidad" />
         ) : (
           <>
             {(community.error || identity.error) && (

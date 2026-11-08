@@ -10,12 +10,45 @@ export type Invitation = {
   recipient_name: string | null;
 };
 
-export function normalizePersonalCode(value: string): string {
-  const code = value.trim().toLowerCase();
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(code)) {
-    throw new Error('Ingresa el código personal completo, incluidos los guiones.');
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function formatPersonalCode(value: string): string {
+  const raw = value.trim().toUpperCase();
+  const clean = raw.replace(/^VEC-/, '').replace(/-/g, '');
+  if (/^[0-9A-F]{8}/.test(clean)) {
+    return `VEC-${clean.slice(0, 4)}-${clean.slice(4, 8)}`;
   }
-  return code;
+  return raw;
+}
+
+export function normalizePersonalCode(value: string): string {
+  const raw = value.trim();
+  if (UUID_PATTERN.test(raw)) {
+    return raw.toLowerCase();
+  }
+  const clean = raw.toUpperCase().replace(/^VEC-/, '').replace(/[\s-]/g, '');
+  if (/^[0-9A-F]{8}$/.test(clean)) {
+    return `VEC-${clean.slice(0, 4)}-${clean.slice(4, 8)}`;
+  }
+  throw new Error('Ingresa un código personal válido (ej. VEC-1A2B-3C4D).');
+}
+
+function normalizeInvitationId(value: string): string {
+  const id = value.trim().toLowerCase();
+  if (!UUID_PATTERN.test(id)) {
+    throw new Error('Identificador de invitación inválido.');
+  }
+  return id;
+}
+
+function samePersonalCode(a: string, b: string): boolean {
+  const cleanA = a.trim().toUpperCase().replace(/^VEC-/, '').replace(/-/g, '');
+  const cleanB = b.trim().toUpperCase().replace(/^VEC-/, '').replace(/-/g, '');
+  if (cleanA === cleanB) return true;
+  if (cleanA.length >= 8 && cleanB.length >= 8 && cleanA.slice(0, 8) === cleanB.slice(0, 8)) {
+    return true;
+  }
+  return false;
 }
 
 export function invitationErrorMessage(error: unknown): string {
@@ -66,7 +99,8 @@ export function createInvitationService(client: SupabaseClient) {
         const { data, error } = await client.rpc('find_neighbor', { p_code: code });
         if (error) throw error;
         if (data === null) return null;
-        if (!data || typeof data.display_name !== 'string' || data.personal_code !== code) {
+        if (!data || typeof data.display_name !== 'string' || typeof data.personal_code !== 'string'
+          || !samePersonalCode(data.personal_code, code)) {
           throw new Error('Invalid neighbor response');
         }
         return { display_name: data.display_name, personal_code: data.personal_code };
@@ -84,7 +118,7 @@ export function createInvitationService(client: SupabaseClient) {
     },
     process(id: string, accept: boolean): Promise<Invitation> {
       return exclusive(async () => {
-        const normalizedId = normalizePersonalCode(id);
+        const normalizedId = normalizeInvitationId(id);
         const { data, error } = await client.rpc('process_invitation', { p_id: normalizedId, p_accept: accept });
         if (error) throw error;
         const invitation = readInvitation(data);

@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { createMembersService, observeMembers, type MembersState } from './membersService';
 import { useCommunityActions, useCommunityIdentity } from '../../shared/IdentityContext';
 import { colors } from '../../shared/theme';
+import { SkeletonPanel } from '../../shared/Skeleton';
 
 export function MembersPanel({ client, refreshVersion }: {
   client: SupabaseClient;
@@ -37,10 +38,7 @@ export function MembersPanel({ client, refreshVersion }: {
       </View>
 
       {state.status === 'loading' ? (
-        <View style={styles.loadingBox}>
-          <ActivityIndicator color={colors.primary} accessibilityLabel="Consultando integrantes" />
-          <Text style={styles.mutedText}>Consultando lista de integrantes…</Text>
-        </View>
+        <SkeletonPanel lines={3} accessibilityLabel="Consultando integrantes" />
       ) : (
         <>
           {state.error && (

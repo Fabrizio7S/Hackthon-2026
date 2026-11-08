@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../theme';
+import { SkeletonCardList } from '../../../shared/Skeleton';
 import type { ListState } from './listLoader';
 
 type Props<T> = {
@@ -13,18 +14,13 @@ type Props<T> = {
 };
 
 /**
- * Muestra el estado de una lista: cargando, vacía, error con «Reintentar»
- * o los elementos. Estilos mínimos: la funcionalidad precede al acabado visual.
+ * Muestra el estado de una lista: cargando (skeleton), vacía, error con «Reintentar»
+ * o los elementos.
  */
 export function ListStateView<T>({ state, onRetry, emptyMessage, children }: Props<T>) {
   switch (state.status) {
     case 'cargando':
-      return (
-        <View accessibilityLiveRegion="polite" style={styles.center}>
-          <ActivityIndicator accessibilityLabel="Cargando" color={colors.primary} size="large" />
-          <Text style={styles.text}>Cargando…</Text>
-        </View>
-      );
+      return <SkeletonCardList count={3} accessibilityLabel="Cargando ofertas" />;
     case 'vacio':
       return (
         <View style={styles.center}>

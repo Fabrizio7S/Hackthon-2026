@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon, type IconName } from '../../shared/AppIcon';
+import { SkeletonCardList } from '../../shared/Skeleton';
 import { archRadius, colors, fonts } from '../../shared/theme';
 import type { ResourceState } from './hooks';
 
@@ -117,12 +118,7 @@ export function StateView<T>({ state, emptyMessage, isEmpty, onRetry, onGoToComm
   children: (data: T) => ReactNode;
 }) {
   if (state.status === 'cargando') {
-    return (
-      <View style={styles.center} accessibilityLiveRegion="polite">
-        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Cargando" />
-        <Text style={styles.centerText}>Cargando…</Text>
-      </View>
-    );
+    return <SkeletonCardList count={3} accessibilityLabel="Cargando emergencias y recursos" />;
   }
   if (state.status === 'error' || state.data === null) {
     const error = state.error;

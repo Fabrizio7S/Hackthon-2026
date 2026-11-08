@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { normalizePersonalCode } from './invitationService';
+import { formatPersonalCode, normalizePersonalCode } from './invitationService';
 import { useInvitations } from './useInvitations';
 import { colors } from '../../shared/theme';
+import { SkeletonPanel } from '../../shared/Skeleton';
 
 export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcceptedListChanged }: {
   client: SupabaseClient;
@@ -36,10 +37,7 @@ export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcce
       <Text accessibilityRole="header" style={styles.title}>Invitaciones</Text>
 
       {invitations.loading ? (
-        <View style={styles.loadingBox}>
-          <ActivityIndicator color={colors.primary} accessibilityLabel="Consultando invitaciones" />
-          <Text style={styles.mutedText}>Consultando invitaciones…</Text>
-        </View>
+        <SkeletonPanel lines={2} accessibilityLabel="Consultando invitaciones" />
       ) : (
         <>
           {invitations.error && <Text style={styles.errorText} accessibilityRole="alert">{invitations.error}</Text>}
@@ -57,9 +55,9 @@ export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcce
                 style={styles.input}
                 value={code}
                 editable={!invitations.pending}
-                autoCapitalize="none"
+                autoCapitalize="characters"
                 autoCorrect={false}
-                placeholder="Pega el código personal (UUID con guiones)"
+                placeholder="Ej. VEC-1A2B-3C4D"
                 placeholderTextColor={colors.textMuted}
                 onChangeText={value => {
                   setCode(value);
@@ -81,7 +79,7 @@ export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcce
               {invitations.neighbor && (
                 <View style={styles.neighborFoundCard}>
                   <Text style={styles.neighborName}>{invitations.neighbor.display_name}</Text>
-                  <Text selectable style={styles.neighborCode}>{invitations.neighbor.personal_code}</Text>
+                  <Text selectable style={styles.neighborCode}>{formatPersonalCode(invitations.neighbor.personal_code)}</Text>
                   <Pressable
                     style={[styles.buttonPrimary, invitations.pending && styles.buttonDisabled]}
                     disabled={invitations.pending}
