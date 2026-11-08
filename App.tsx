@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, View } from 'react-native';
 
-import MapaServicios from './src/features/mapa/MapaServicios';
+import MapaServicios from './src/features/mapa/screens/MapaServicios';
 
 export default function App() {
   // Controla si mostramos el inicio o el mapa
