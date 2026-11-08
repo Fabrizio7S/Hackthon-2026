@@ -26,7 +26,7 @@ type Props = {
   userLocation?: Coordinates | null;
   /** Para pruebas; por defecto usa el Supabase compartido. */
   api?: Pick<OffersApi, 'getById' | 'ratingSummaries' | 'rate'> &
-    Partial<Pick<OffersApi, 'viewerRating'>>;
+    Partial<Pick<OffersApi, 'viewerRating' | 'getAuthorName'>>;
   /** Para pruebas; por defecto abre el marcador o WhatsApp. */
   contact?: typeof openContact;
 };
@@ -36,6 +36,8 @@ type Detail = {
   rating: Summary | null | undefined;
   viewerUserId: string | null;
   myStars: number;
+  /** Nombre de quien publicó; null si no se pudo obtener (no bloquea el detalle). */
+  authorName: string | null;
 };
 
 const KIND_LABEL = { servicio: 'Servicio', producto: 'Producto' } as const;
@@ -48,8 +50,10 @@ async function loadDetail(api: NonNullable<Props['api']>, offerId: string): Prom
   const viewer = api.viewerRating ? await api.viewerRating(offerId) : null;
   const viewerUserId = viewer?.ok ? viewer.data.userId : null;
   const myStars = viewer?.ok && viewer.data.stars ? viewer.data.stars : 0;
+  const author = api.getAuthorName ? await api.getAuthorName(offer.data.authorId) : null;
+  const authorName = author?.ok ? author.data : null;
   // Se reutilizan los estados del listado con un único elemento.
-  return [{ offer: offer.data, rating, viewerUserId, myStars }];
+  return [{ offer: offer.data, rating, viewerUserId, myStars, authorName }];
 }
 
 /**
@@ -134,6 +138,14 @@ function DetailContent({
         </Text>
         {distance && <Text style={styles.distance}>{distance}</Text>}
       </View>
+
+      <Text style={styles.author} testID="offer-author">
+        {isOwnOffer
+          ? 'Publicado por ti'
+          : detail.authorName
+            ? `Publicado por ${detail.authorName}`
+            : 'Publicado por un vecino'}
+      </Text>
 
       {rating !== undefined && (
         <View style={styles.meta}>
@@ -239,6 +251,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
+  author: { color: colors.textMuted, fontSize: 15, fontWeight: '600', marginTop: 8 },
   meta: { alignItems: 'center', flexDirection: 'row', gap: 12, marginTop: 10 },
   muted: { color: colors.textMuted, fontSize: 15, lineHeight: 21 },
   description: { color: '#3B5247', fontSize: 16, lineHeight: 24, marginTop: 14 },

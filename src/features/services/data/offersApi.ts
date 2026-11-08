@@ -75,6 +75,22 @@ export function createOffersApi(client: SupabaseClient | null) {
     },
 
     /**
+     * Nombre de quien publicó la oferta. Lo ve cualquier vecino que comparta
+     * comunidad con el autor (RLS de perfiles). Devuelve null si no es visible.
+     */
+    async getAuthorName(authorId: string): Promise<DataResult<string | null>> {
+      if (!client) return { ok: false, error: dataError('sin_configuracion') };
+      const { data, error } = await client
+        .from('profiles')
+        .select('display_name')
+        .eq('id', authorId)
+        .maybeSingle();
+      if (error) return { ok: false, error: mapDataError(error) };
+      const name = (data as { display_name: string | null } | null)?.display_name?.trim();
+      return { ok: true, data: name ? name : null };
+    },
+
+    /**
      * Publica una oferta. Si el mismo envío ya llegó antes (mismo
      * clientRequestId), devuelve la oferta existente en lugar de duplicarla.
      */
