@@ -1,6 +1,10 @@
 # Migraciones del módulo G01
 
-Orden de aplicación tras revisión del esquema:
+## Migración recomendada para el proyecto compartido
+
+- `migrations/20261108020000_reconcile_existing_identity.sql`: **Migración de compatibilidad y reconciliación**. Diseñada para convivir con el esquema existente en español (`perfiles`, `comunidades`, `miembros`, `invitaciones`) sin destruir datos ni alterar vistas o claves foráneas ajenas (`emergencias`, `publicaciones`, etc.). Incorpora `codigo_personal` en `perfiles`, tabla `representantes_autorizados` (D19) y el puente de funciones RPC seguras compatibles con la app de G01.
+
+## Orden histórico de migraciones del modelo local independiente (conservadas como referencia)
 
 1. `migrations/20261107230506_own_profile.sql`: T01.2, perfil propio y código personal.
 2. `migrations/20261107231438_community_creation.sql`: T01.3, autorización manual de representante, creación atómica y pertenencia propia. No incluye invitaciones ni listado de integrantes.

@@ -5,6 +5,8 @@
 Base técnica inicial verificada.
 La apertura en teléfono fue confirmada por el usuario.
 
+Para retomar G01: [CONTINUAR-ISSUE-1.md](../CONTINUAR-ISSUE-1.md). Los dos diagnósticos del esquema existente ya están recibidos y analizados; evidencias completas en `docs/diagnosticos/issue-1/`. El siguiente paso es preparar la reconciliación, no repetir consultas ni aplicar las migraciones originales. La verificación del flujo real en teléfono sigue pendiente.
+
 El proyecto se distribuye entre cinco responsabilidades.
 Los nombres, usuarios de GitHub, enlaces de issues y asignaciones nominales
 deben completarse.
@@ -24,7 +26,7 @@ No marcar tareas como en curso sin inicio confirmado por el responsable.
 
 | Grupo | Responsable | Alcance | Issue | Estado |
 | --- | --- | --- | --- | --- |
-| G01 | Persona 1: pendiente de nombre | Acceso, perfil, comunidades e invitaciones | [#1](https://github.com/Fabrizio7S/Hackthon-2026/issues/1) | [T01.1](T01-1-autenticacion.md)–[T01.5](T01-5-integrantes.md): flujo implementado. [T01.6](T01-6-contratos.md): contratos preparados/usados en G01, revisión de consumidores pendiente. Migraciones/pruebas remotas y teléfono pendientes. |
+| G01 | Persona 1: pendiente de nombre | Acceso, perfil, comunidades e invitaciones | [#1](https://github.com/Fabrizio7S/Hackthon-2026/issues/1) | T01.1–T01.6: implementación local y contratos preparados. [T01.7](T01-7-compatibilidad.md): migración de compatibilidad aditiva verificada en suite SQL aislada; pendiente de revisión/aplicación en proyecto remoto y pruebas con teléfono. |
 | G02 | Persona 2: pendiente de nombre | Servicios, productos, contacto y estrellas | Pendiente de enlazar | Pendiente |
 | G03 | Persona 3: pendiente de nombre | Cadena de favores y coordinación | Pendiente de enlazar | Pendiente |
 | G04 | Persona 4: pendiente de nombre | Emergencias y recursos de apoyo | Pendiente de enlazar | Pendiente |
