@@ -4,6 +4,7 @@ import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDime
 import { archRadius, colors, fonts } from './theme';
 import { AppIcon, type IconName } from './AppIcon';
 import { useEasyReading } from './EasyReadingContext';
+import { TOUR_RED, useTourTargets } from './TourTargets';
 export type CreateAction = 'service' | 'favor' | 'emergency';
 
 export type NeighborhoodSection = 'inicio' | 'comunidad' | 'servicios' | 'mapa' | 'favores' | 'emergencias';
@@ -55,14 +56,17 @@ export function WelcomeStory() {
   </View>;
 }
 
-export function NeighborhoodShell({ section, onNavigate, communityName, onCreate, children }: {
+export function NeighborhoodShell({ section, onNavigate, communityName, onCreate, children, tour }: {
   section: NeighborhoodSection; onNavigate: (section: NeighborhoodSection) => void;
   communityName: string | null; onCreate: (action: CreateAction) => void; children: ReactNode;
+  tour?: ReactNode;
 }) {
   const { width, height } = useWindowDimensions();
   const desktop = width >= 1000;
   // En horizontal en un teléfono (p. ej. 844 × 390) la hoja debe caber y desplazarse.
   const compact = height < 520;
+  const landscapeTour = !!tour && !desktop && width > height;
+  const highlighted = useTourTargets();
   const [createOpen, setCreateOpen] = useState(false);
   const { easyReading, toggleEasyReading } = useEasyReading();
   const [isOffline, setIsOffline] = useState(false);
@@ -83,7 +87,9 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
       aria-selected={active} onPress={() => onNavigate(key)}
       style={({ pressed }) => [s.tab, pressed && s.pressed]}>
       <View style={[s.tabMarker, active && { backgroundColor: colors.primary }]} />
-      <AppIcon name={icon} color={active ? colors.primary : colors.textMuted} />
+      <View testID={highlighted(`nav:${key}`) ? `tour-nav:${key}` : undefined} style={[s.navRing, highlighted(`nav:${key}`) && s.tourTarget]}>
+        <AppIcon name={icon} color={active ? colors.primary : colors.textMuted} />
+      </View>
       <Text style={[s.tabLabel, active && s.tabLabelActive]}>{label}</Text>
     </Pressable>;
   };
@@ -94,7 +100,7 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
     return <Pressable key={key} accessibilityRole="tab" accessibilityLabel={item.label}
       aria-selected={active} onPress={() => onNavigate(key)}
       style={({ pressed, hovered }) => [s.sideItem, active && s.sideItemActive, (pressed || hovered) && !active && s.sideItemHover]}>
-      <View style={[s.sideIcon, active && { backgroundColor: colors.primary }]}>
+      <View testID={highlighted(`nav:${key}`) ? `tour-nav:${key}` : undefined} style={[s.sideIcon, active && { backgroundColor: colors.primary }, highlighted(`nav:${key}`) && s.tourTarget]}>
         <AppIcon name={item.icon} size={20} color={active ? colors.lime : colors.textMuted} />
       </View>
       <Text style={[s.sideLabel, active && s.sideLabelActive]}>{item.label}</Text>
@@ -107,12 +113,12 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
     <View accessibilityRole="tablist" style={{ gap: 4 }}>{destinations.map(d => sideButton(d.key))}</View>
     <Pressable accessibilityRole="tab" accessibilityLabel="Emergencias" aria-selected={emergencyMode} onPress={() => onNavigate('emergencias')}
       style={({ pressed, hovered }) => [s.sideItem, { marginTop: 6 }, emergencyMode && { backgroundColor: colors.dangerSurface }, (pressed || hovered) && !emergencyMode && s.sideItemHover]}>
-      <View style={[s.sideIcon, { backgroundColor: emergencyMode ? colors.danger : colors.dangerSurface }]}>
+      <View testID={highlighted('nav:emergencias') ? 'tour-nav:emergencias' : undefined} style={[s.sideIcon, { backgroundColor: emergencyMode ? colors.danger : colors.dangerSurface }, highlighted('nav:emergencias') && s.tourTarget]}>
         <AppIcon name="siren" size={20} color={emergencyMode ? colors.onDanger : colors.danger} />
       </View>
       <Text style={[s.sideLabel, { color: colors.danger, fontWeight: '700' }]}>Emergencias</Text>
     </Pressable>
-    <Pressable accessibilityRole="button" accessibilityLabel="Crear una publicación" onPress={() => setCreateOpen(true)} style={({ pressed }) => [s.desktopCreate, pressed && s.pressed]}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Crear una publicación" testID={highlighted('nav:create') ? 'tour-nav:create' : undefined} onPress={() => setCreateOpen(true)} style={({ pressed }) => [s.desktopCreate, highlighted('nav:create') && s.tourTarget, pressed && s.pressed]}>
       <AppIcon name="plus" size={18} color={colors.lime} weight={2.4} />
       <Text style={s.createLabel}>Crear publicación</Text>
     </Pressable>
@@ -126,7 +132,7 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
     {tabButton('inicio')}
     {tabButton('mapa')}
     <View style={s.createSlot}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Crear una publicación" aria-expanded={createOpen} onPress={() => setCreateOpen(true)} style={({ pressed }) => [s.createButton, pressed && s.pressed]}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Crear una publicación" testID={highlighted('nav:create') ? 'tour-nav:create' : undefined} aria-expanded={createOpen} accessibilityState={{ expanded: createOpen }} onPress={() => setCreateOpen(true)} style={({ pressed }) => [s.createButton, highlighted('nav:create') && s.tourTarget, pressed && s.pressed]}>
         <AppIcon name="plus" size={26} color={colors.lime} weight={2.4} />
       </Pressable>
     </View>
@@ -170,6 +176,10 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
             </Pressable>
           )}
         </View>
+        {(!emergencyMode || !!tour) && <Pressable accessibilityRole="button" accessibilityLabel="Ir a emergencias" testID={highlighted('nav:emergencias') ? 'tour-nav:emergency-header' : undefined} onPress={() => onNavigate('emergencias')} style={({ pressed }) => [s.emergency, highlighted('nav:emergencias') && s.tourTarget, pressed && s.pressed]}>
+          <AppIcon name="siren" size={18} color={colors.onDanger} weight={2} />
+          <Text style={s.emergencyText}>Emergencias</Text>
+        </Pressable>}
       </View>
       {isOffline && (
         <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={s.offlineBanner}>
@@ -178,7 +188,10 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
           </Text>
         </View>
       )}
-      <View style={s.content}>{children}</View>
+      <View style={[s.workspace, landscapeTour && { flexDirection: 'row' }]}>
+        {tour && <View style={landscapeTour ? { width: '45%', minWidth: 0, minHeight: 0 } : undefined}>{tour}</View>}
+        <View style={[s.content, landscapeTour && { alignSelf: 'stretch', width: undefined, minWidth: 0 }]}>{children}</View>
+      </View>
     </View>
     {!desktop && bottomBar}
     <Modal visible={createOpen} transparent animationType="fade" onRequestClose={() => setCreateOpen(false)}>
@@ -224,7 +237,7 @@ const doors: { section: NeighborhoodSection; label: string; copy: string; icon: 
   { section: 'emergencias', label: 'Emergencias', copy: 'Alertas, recursos y brigadas.', icon: 'support', tint: colors.dangerSurface, ink: colors.danger },
 ];
 
-export function NeighborhoodHome({ communityName, role = null, onNavigate, children }: { communityName: string | null; role?: 'representative' | 'member' | null; onNavigate: (section: NeighborhoodSection) => void; children?: ReactNode }) {
+export function NeighborhoodHome({ communityName, role = null, onNavigate, children, onShowTutorial }: { communityName: string | null; role?: 'representative' | 'member' | null; onNavigate: (section: NeighborhoodSection) => void; children?: ReactNode; onShowTutorial?: () => void }) {
   const { width } = useWindowDimensions();
   const wide = width >= 760;
   const { easyReading } = useEasyReading();
@@ -279,11 +292,22 @@ export function NeighborhoodHome({ communityName, role = null, onNavigate, child
     </Pressable>
 
     <Text accessibilityRole="header" style={[s.sectionTitle, easyReading && { fontSize: 24 }]}>Tu comunidad empieza contigo</Text>
+    {onShowTutorial && <Pressable accessibilityRole="button" accessibilityLabel="Ver recorrido de ayuda" onPress={onShowTutorial} style={s.tutorialLink}>
+      <AppIcon name="support" size={22} color={colors.primary} />
+      <Text style={s.tutorialLinkText}>Ver recorrido de ayuda</Text>
+      <AppIcon name="arrow" size={18} color={colors.primary} />
+    </Pressable>}
+    <Text accessibilityRole="header" style={[s.sectionTitle, easyReading && { fontSize: 24 }]}>Tu comunidad empieza contigo</Text>
     {children}
   </View></ScrollView>;
 }
 
 const s = StyleSheet.create({
+  tourTarget: { borderColor: TOUR_RED, borderWidth: 3 },
+  navRing: { padding: 3, borderWidth: 3, borderColor: 'transparent', borderRadius: 12 },
+  workspace: { flex: 1, minHeight: 0, minWidth: 0 },
+  tutorialLink: { minHeight: 48, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 12, borderWidth: 1, borderColor: colors.primary, borderRadius: 14, backgroundColor: colors.background },
+  tutorialLinkText: { color: colors.primary, fontSize: 15, fontWeight: '700' },
   pressed: { opacity: 0.72 },
   shell: { flex: 1, backgroundColor: colors.surface }, main: { flex: 1, minWidth: 0 }, content: { flex: 1, minHeight: 0, width: '100%', maxWidth: 1280, alignSelf: 'center' },
 

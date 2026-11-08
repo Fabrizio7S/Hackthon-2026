@@ -12,6 +12,7 @@ import type { CategoriaMapa } from '../types';
 import { styles } from '../styles/ControlesMapa.styles';
 import { colors } from '../../../theme/colors';
 import { AppIcon } from '../../../shared/AppIcon';
+import { TourTarget } from '../../../shared/TourTargets';
 
 export type FiltroMapa = 'todos' | CategoriaMapa;
 
@@ -40,7 +41,7 @@ export default function ControlesMapa({
   onCambiarFiltro,
 }: ControlesMapaProps) {
   return (
-    <View style={styles.contenedor}>
+    <TourTarget id="map-controls" style={styles.contenedor}>
       <View style={styles.buscador} accessibilityRole="search">
         <View style={styles.iconoBusqueda}>
           <AppIcon name="search" size={20} color={colors.text.muted} />
@@ -104,6 +105,6 @@ export default function ControlesMapa({
           );
         })}
       </ScrollView>
-    </View>
+    </TourTarget>
   );
 }

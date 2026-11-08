@@ -1,3 +1,4 @@
+import { TourTarget, TourScrollView, useTourTargets } from '../../shared/TourTargets';
 import { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -26,6 +27,7 @@ type Props = {
 };
 
 export function SupportScreen({ api, directory, onReload, onOpenServices, onGoToCommunity }: Props) {
+  const highlighted = useTourTargets();
   const [busyId, setBusyId] = useState<string | null>(null);
   const busyRef = useRef(false);
   const [message, setMessage] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
@@ -45,7 +47,10 @@ export function SupportScreen({ api, directory, onReload, onOpenServices, onGoTo
   }
 
   return (
-    <ScrollView style={shared.screen} contentContainerStyle={shared.content} keyboardShouldPersistTaps="handled">
+    <TourScrollView style={shared.screen} contentContainerStyle={shared.content} keyboardShouldPersistTaps="handled">
+      {!directory.data && (['support-resources', 'support-groups'] as const).filter(highlighted).map(id => (
+        <TourTarget key={id} id={id} style={shared.card}><Text style={shared.body}>Aquí aparecerá el apoyo registrado por tu comunidad cuando la información esté disponible. Revisa el estado que se muestra abajo.</Text></TourTarget>
+      ))}
       <StateView
         state={directory}
         onRetry={onReload}
@@ -98,7 +103,7 @@ export function SupportScreen({ api, directory, onReload, onOpenServices, onGoTo
           </>
         )}
       </StateView>
-    </ScrollView>
+    </TourScrollView>
   );
 }
 
@@ -106,7 +111,7 @@ function ResourcesSection({ resources, canManage, busyId, onToggle }: {
   resources: Resource[]; canManage: boolean; busyId: string | null; onToggle: (r: Resource) => void;
 }) {
   return (
-    <View style={styles.section}>
+    <TourTarget id="support-resources" style={styles.section}>
       <Text style={shared.title}>Recursos críticos</Text>
       {resources.length === 0 ? (
         <View style={shared.card}>
@@ -145,7 +150,7 @@ function ResourcesSection({ resources, canManage, busyId, onToggle }: {
           </View>
         );
       })}
-    </View>
+    </TourTarget>
   );
 }
 
@@ -154,7 +159,7 @@ function GroupsSection({ groups, canManage, busyId, onJoin, onToggleActive }: {
   onJoin: (g: SupportGroup) => void; onToggleActive: (g: SupportGroup) => void;
 }) {
   return (
-    <View style={styles.section}>
+    <TourTarget id="support-groups" style={styles.section}>
       <Text style={shared.title}>Grupos de apoyo</Text>
       {groups.length === 0 ? (
         <View style={shared.card}>
@@ -198,7 +203,7 @@ function GroupsSection({ groups, canManage, busyId, onJoin, onToggleActive }: {
           </View>
         );
       })}
-    </View>
+    </TourTarget>
   );
 }
 

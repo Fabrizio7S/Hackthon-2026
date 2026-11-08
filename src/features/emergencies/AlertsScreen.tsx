@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { TourTarget, TourScrollView, useTourTargets } from '../../shared/TourTargets';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '../../shared/theme';
@@ -36,6 +37,7 @@ type Props = {
 
 export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, onGoToCommunity, filter, onFilterChange, onTriggerSos }: Props) {
   const { easyReading } = useEasyReading();
+  const highlighted = useTourTargets();
   const data = feed.data;
   const items = useMemo(() => (data ? sortEmergencies(data.items) : []), [data]);
   const counts = useMemo(() => countByStatus(items), [items]);
@@ -49,7 +51,7 @@ export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, o
   ];
 
   return (
-    <ScrollView style={shared.screen} contentContainerStyle={shared.content} keyboardShouldPersistTaps="handled">
+    <TourScrollView style={shared.screen} contentContainerStyle={shared.content} keyboardShouldPersistTaps="handled">
       {pendingCount > 0 ? (
         <Banner
           tone="warning"
@@ -59,10 +61,10 @@ export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, o
         />
       ) : null}
 
-      
       {onTriggerSos ? (
         <SosButton onTriggerSos={onTriggerSos} easyReading={easyReading} />
       ) : null}
+      {!feed.data && highlighted('emergency-alerts') && <TourTarget id="emergency-alerts" style={shared.card}><Text style={shared.body}>Aquí se mostrarán las alertas de tu comunidad. Revisa abajo si falta unirte o volver a cargar los datos.</Text></TourTarget>}
       <StateView
         state={feed}
         onRetry={onReload}
@@ -79,11 +81,11 @@ export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, o
               <Button label="Actualizar" kind="outline" onPress={onReload} />
             </View>
 
-            <View style={shared.row} accessibilityLabel="Filtrar por estado">
+            <TourTarget id="emergency-alerts" style={shared.row} accessibilityLabel="Filtrar por estado">
               {filters.map(f => (
                 <Chip key={f.value} label={f.label} selected={filter === f.value} onPress={() => onFilterChange(f.value)} />
               ))}
-            </View>
+            </TourTarget>
 
             {items.length === 0 ? (
               <View style={shared.card}>
@@ -100,7 +102,7 @@ export function AlertsScreen({ feed, pendingCount, onReload, onOpen, onReport, o
           </>
         )}
       </StateView>
-    </ScrollView>
+    </TourScrollView>
   );
 }
 

@@ -6,6 +6,7 @@ import { formatPersonalCode, normalizePersonalCode } from './invitationService';
 import { useInvitations } from './useInvitations';
 import { colors } from '../../shared/theme';
 import { SkeletonPanel } from '../../shared/Skeleton';
+import { TourTarget } from '../../shared/TourTargets';
 
 export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcceptedListChanged }: {
   client: SupabaseClient;
@@ -33,7 +34,7 @@ export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcce
   }
 
   return (
-    <View style={styles.card}>
+    <TourTarget id="community-invitations" style={styles.card}>
       <Text accessibilityRole="header" style={styles.title}>Invitaciones</Text>
 
       {invitations.loading ? (
@@ -168,7 +169,7 @@ export function InvitationPanel({ client, canInvite, onMembershipChanged, onAcce
           </Pressable>
         </>
       )}
-    </View>
+    </TourTarget>
   );
 }
 

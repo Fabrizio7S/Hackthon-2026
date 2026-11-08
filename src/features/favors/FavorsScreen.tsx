@@ -1,3 +1,4 @@
+import { TourTarget } from '../../shared/TourTargets';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
@@ -580,7 +581,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
             )}
           </View>
           {!detail && !initialLoading && (
-            <View accessibilityRole="tablist" style={styles.segment}>
+            <TourTarget id="favors-tabs" accessibilityRole="tablist" style={styles.segment}>
               {tabs.map((name) => (
                 <Pressable
                   key={name}
@@ -592,7 +593,7 @@ export function FavorsScreen({ client = null, initialCreating = false }: { clien
                   <Text style={[styles.segmentText, tab === name && styles.segmentTextActive]}>{name}</Text>
                 </Pressable>
               ))}
-            </View>
+            </TourTarget>
           )}
 
           {initialLoading ? null : detail ? (

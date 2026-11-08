@@ -18,6 +18,7 @@ import { RatingSummary } from '../rating/RatingSummary';
 import { colors } from '../theme';
 import { AppIcon } from '../../../shared/AppIcon';
 import { archRadius, fonts } from '../../../shared/theme';
+import { TourTarget } from '../../../shared/TourTargets';
 
 type Props = {
   /** Ubicación del vecino; sin ella no se muestran distancias. */
@@ -42,7 +43,7 @@ export function OfferListScreen({ userLocation = null, onOpenOffer, api = defaul
   const [filter, setFilter] = useState<OfferFilter>(DEFAULT_OFFER_FILTER);
 
   return (
-    <View style={styles.screen}>
+    <TourTarget id="services-explorer" style={styles.screen}>
       <View style={styles.headerBlock}>
         <Text style={styles.eyebrow}>TALENTO A LA VUELTA</Text>
         <Text accessibilityRole="header" style={styles.header}>
@@ -127,7 +128,7 @@ export function OfferListScreen({ userLocation = null, onOpenOffer, api = defaul
           );
         }}
       </ListStateView>
-    </View>
+    </TourTarget>
   );
 }
 

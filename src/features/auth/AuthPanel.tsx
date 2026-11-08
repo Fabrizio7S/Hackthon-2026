@@ -14,6 +14,9 @@ import { SessionIdentityProvider, useSessionActions, useSessionIdentity } from '
 import type { CommunityRole } from '../../shared/identity';
 import { colors, fonts } from '../../shared/theme';
 import { AppIcon } from '../../shared/AppIcon';
+import { OnboardingTour, TOUR_STEPS } from '../../shared/OnboardingTour';
+import { useOnboardingTour } from '../../shared/useOnboardingTour';
+import { TourTarget, TourTargetsProvider, TourScrollView } from '../../shared/TourTargets';
 
 import { NeighborhoodShell, NeighborhoodHome, WelcomeStory, type NeighborhoodSection, type CreateAction } from '../../shared/NeighborhoodUI';
 type MainSection = NeighborhoodSection;
@@ -29,7 +32,7 @@ export function AuthPanel({ client }: { client: SupabaseClient | null }) {
 function ConfiguredAuthPanel({ client }: { client: SupabaseClient }) {
   const auth = useAuth(client);
   return <SessionIdentityProvider value={auth.identity} actions={{ signOut: auth.signOut, retry: auth.retry }}>
-    <AuthContent client={client} auth={auth} />
+    <AuthContent key={auth.identity.status === 'authenticated' ? auth.identity.user.id : 'guest'} client={client} auth={auth} />
   </SessionIdentityProvider>;
 }
 
@@ -51,6 +54,15 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
   const [createIntent, setCreateIntent] = useState<CreateAction | null>(null);
   const [createNonce, setCreateNonce] = useState(0);
   const offersApi = useMemo(() => createOffersApi(client), [client]);
+  const onboarding = useOnboardingTour(identity.status === 'authenticated' ? identity.user.id : null);
+
+  useEffect(() => {
+    if (onboarding.step === null) return;
+    setCreateIntent(null);
+    const step = TOUR_STEPS[onboarding.step];
+    setSection(step.section);
+    if (step.emergencyTab) setEmergencyTab(step.emergencyTab);
+  }, [onboarding.step]);
 
   useEffect(() => {
     if (mode !== 'signUp' || auth.session) return;
@@ -77,18 +89,21 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
   }, [identity.status]);
 
   function openEmergencies(tab: EmergenciesTab) {
+    onboarding.interrupt();
     setEmergencyTab(tab);
     setEmergencyNonce(value => value + 1);
     setSection('emergencias');
   }
 
   function navigateSection(next: MainSection) {
+    onboarding.interrupt();
     setCreateIntent(null);
     if (next === 'emergencias') openEmergencies('alertas');
     else setSection(next);
   }
 
   function openCreate(action: CreateAction) {
+    onboarding.interrupt();
     setCreateIntent(action);
     setCreateNonce(value => value + 1);
     if (action === 'emergency') openEmergencies('reportar');
@@ -128,15 +143,27 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
   }
   if (identity.status === 'authenticated') {
     return (
-      <NeighborhoodShell onCreate={openCreate} section={section} communityName={communityName} onNavigate={navigateSection}>
+      <TourTargetsProvider targets={onboarding.step === null ? [] : TOUR_STEPS[onboarding.step].targets}>
+      <NeighborhoodShell onCreate={openCreate} section={section} communityName={communityName} onNavigate={navigateSection}
+        tour={onboarding.step !== null ? <OnboardingTour step={onboarding.step} onMove={onboarding.move}
+          onFinish={onboarding.finish} onEmergency={() => openEmergencies('alertas')} /> : onboarding.error ? (
+          <View style={{ padding: 12, gap: 8, backgroundColor: colors.warningSurface }}>
+            <Text accessibilityRole="alert" style={{ color: colors.warningInk }}>
+              {onboarding.error === 'save' ? 'No se pudo guardar que ya viste el tutorial en este dispositivo.' : 'No se pudo consultar tu recorrido guardado. Puedes abrirlo desde Inicio.'}
+            </Text>
+            <Pressable accessibilityRole="button" style={styles.buttonOutline} onPress={onboarding.error === 'save' ? onboarding.finish : onboarding.start}>
+              <Text style={styles.buttonOutlineText}>{onboarding.error === 'save' ? 'Reintentar guardado' : 'Ver recorrido de ayuda'}</Text>
+            </Pressable>
+          </View>
+        ) : null}>
         {section === 'inicio' ? (
-          <NeighborhoodHome communityName={communityName} role={communityRole} onNavigate={navigateSection}>
+          <NeighborhoodHome communityName={communityName} role={communityRole} onNavigate={navigateSection} onShowTutorial={onboarding.start}>
             <NamePrompt key={`name:${identity.user.id}:${communityVersion}`} client={client} userId={identity.user.id} onComplete={() => navigateSection('comunidad')} />
             <CommunityPanel key={identity.user.id} client={client} userId={identity.user.id} refreshVersion={communityVersion} onMembershipResolved={handleMembership} />
           </NeighborhoodHome>
         ) : section !== 'comunidad' && section !== 'emergencias' && hasCommunity === false ? (
           <View style={styles.centerContainer}>
-            <View style={styles.card}>
+            <TourTarget id="community-required" style={styles.card}>
               <View style={styles.gateArch}><AppIcon name="people" size={30} color={colors.primary} /></View>
               <Text style={styles.authTitle} accessibilityRole="header">
                 Únete a una comunidad primero
@@ -150,7 +177,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
               >
                 <Text style={styles.buttonPrimaryText}>Unirme a una comunidad</Text>
               </Pressable>
-            </View>
+            </TourTarget>
           </View>
         ) : section === 'servicios' ? (
           <ServicesFlowScreen
@@ -174,11 +201,13 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             client={client}
             userId={identity.user.id}
             initialTab={emergencyTab}
-            onOpenServices={() => setSection('servicios')}
-            onGoToCommunity={() => setSection('comunidad')}
+            guidedTab={onboarding.step !== null ? TOUR_STEPS[onboarding.step].emergencyTab : undefined}
+            onTabChange={onboarding.interrupt}
+            onOpenServices={() => navigateSection('servicios')}
+            onGoToCommunity={() => navigateSection('comunidad')}
           />
         ) : (
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
+          <TourScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
             <View style={styles.sessionCard}>
               <View style={styles.sessionHeaderRow}>
                 <View style={styles.sessionInfo}>
@@ -239,9 +268,10 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
               refreshVersion={communityVersion}
               onMembershipResolved={handleMembership}
             />
-          </ScrollView>
+          </TourScrollView>
         )}
       </NeighborhoodShell>
+      </TourTargetsProvider>
     );
   }
 

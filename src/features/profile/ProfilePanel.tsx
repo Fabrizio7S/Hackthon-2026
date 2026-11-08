@@ -9,6 +9,7 @@ import { archRadius, colors, fonts } from '../../shared/theme';
 import { AppIcon } from '../../shared/AppIcon';
 import { SkeletonPanel } from '../../shared/Skeleton';
 import { useEasyReading } from '../../shared/EasyReadingContext';
+import { TourTarget } from '../../shared/TourTargets';
 
 export function ProfilePanel({ client, userId, email, onSaved }: {
   client: SupabaseClient;
@@ -100,6 +101,7 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
         <Text style={styles.emailText}>{email ?? 'No disponible'}</Text>
       </View>
 
+      <TourTarget id="profile-name" style={{ gap: 16 }}>
       <View style={styles.fieldGroup}>
         <Text style={styles.label}>Nombre visible para los vecinos</Text>
         {needsName && (
@@ -138,9 +140,11 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
       >
         <Text style={styles.buttonPrimaryText}>{profile.saving ? 'Guardando…' : 'Guardar perfil'}</Text>
       </Pressable>
+      </TourTarget>
 
-      {profile.profile && (
-        <View style={styles.codeWrap}>
+      <TourTarget id="profile-code" style={styles.codeWrap}>
+      {profile.profile ? (
+        <>
           <View style={styles.codeTag}>
             <View style={styles.codeStub}>
               <View style={styles.codeHole} />
@@ -163,8 +167,11 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
             <Text style={styles.buttonOutlineText}>{copying ? 'Copiando…' : 'Copiar código personal'}</Text>
           </Pressable>
           {copyMessage && <Text style={styles.copyHelpText} accessibilityLiveRegion="polite">{copyMessage}</Text>}
-        </View>
+        </>
+      ) : (
+        <Text style={styles.mutedText}>Tu código personal aparecerá aquí después de guardar tu perfil.</Text>
       )}
+      </TourTarget>
 
       {/* Accesibilidad y Lectura Fácil */}
       <View style={styles.accessibilityBox}>
@@ -188,7 +195,7 @@ export function ProfilePanel({ client, userId, email, onSaved }: {
           />
         </View>
       </View>
-    </View>
+</View>
   );
 }
 
