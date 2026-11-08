@@ -66,7 +66,12 @@ de Supabase por módulo.
 
 ## Contratos compartidos
 
-Definir antes de implementar consumidores:
+Los contratos de identidad de G01 están en `src/shared/identity.ts` y
+`src/shared/IdentityContext.tsx`, documentados en [contratos-identidad.md](contratos-identidad.md).
+Ya los consumen los paneles de acceso/comunidad/integrantes. La revisión y
+montaje en los módulos 2–5 sigue pendiente; no crear otra fuente de sesión.
+
+Aspectos que deben coordinar los módulos al integrar:
 
 | Contrato | Aspectos que deben acordarse |
 | --- | --- |

@@ -6,6 +6,7 @@ import type { AccessMode } from './authService';
 import { useAuth } from './useAuth';
 import { ProfilePanel } from '../profile/ProfilePanel';
 import { CommunityPanel } from '../community/CommunityPanel';
+import { SessionIdentityProvider, useSessionActions, useSessionIdentity } from '../../shared/IdentityContext';
 
 // Una sola fuente de sesión para el flujo de acceso montado en App.tsx.
 export function AuthPanel({ client }: { client: SupabaseClient | null }) {
@@ -17,6 +18,14 @@ export function AuthPanel({ client }: { client: SupabaseClient | null }) {
 
 function ConfiguredAuthPanel({ client }: { client: SupabaseClient }) {
   const auth = useAuth(client);
+  return <SessionIdentityProvider value={auth.identity} actions={{ signOut: auth.signOut, retry: auth.retry }}>
+    <AuthContent client={client} auth={auth} />
+  </SessionIdentityProvider>;
+}
+
+function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnType<typeof useAuth> }) {
+  const identity = useSessionIdentity();
+  const sessionActions = useSessionActions();
   const [mode, setMode] = useState<AccessMode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,34 +48,34 @@ function ConfiguredAuthPanel({ client }: { client: SupabaseClient }) {
     if (await auth.submit(mode, email, password)) setPassword('');
   }
 
-  if (auth.restoring) {
+  if (identity.status === 'loading') {
     return <View style={styles.container}><ActivityIndicator accessibilityLabel="Recuperando sesión" /><Text>Recuperando sesión…</Text></View>;
   }
-  if (auth.restoreError) {
+  if (identity.status === 'error') {
     return <View style={styles.container}>
-      <Text accessibilityRole="alert">{auth.restoreError}</Text>
+      <Text accessibilityRole="alert">{identity.error}</Text>
       {auth.error && <Text accessibilityRole="alert">{auth.error}</Text>}
-      <Button title="Reintentar" disabled={auth.pending} onPress={auth.retry} />
+      <Button title="Reintentar" disabled={auth.pending} onPress={sessionActions.retry} />
       <Button title={auth.pending ? 'Cerrando sesión…' : 'Cerrar sesión guardada'} disabled={auth.pending} onPress={() => {
         setPassword('');
         setEmail('');
-        void auth.signOut();
+        void sessionActions.signOut();
       }} />
     </View>;
   }
-  if (auth.session) {
+  if (identity.status === 'authenticated') {
     return (
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.container}>
         <Text accessibilityRole="header" style={styles.title}>Sesión iniciada</Text>
-        <Text>{auth.session.user.email}</Text>
-        <ProfilePanel key={auth.session.user.id} client={client} userId={auth.session.user.id} email={auth.session.user.email}
+        <Text>{identity.user.email}</Text>
+        <ProfilePanel key={identity.user.id} client={client} userId={identity.user.id} email={identity.user.email}
           onSaved={() => setCommunityVersion(value => value + 1)} />
-        <CommunityPanel key={auth.session.user.id} client={client} userId={auth.session.user.id} refreshVersion={communityVersion} />
+        <CommunityPanel key={identity.user.id} client={client} userId={identity.user.id} refreshVersion={communityVersion} />
         {auth.error && <Text accessibilityRole="alert">{auth.error}</Text>}
         <Button title={auth.pending ? 'Cerrando sesión…' : 'Cerrar sesión'} disabled={auth.pending} onPress={() => {
           setPassword('');
           setEmail('');
-          void auth.signOut();
+          void sessionActions.signOut();
         }} />
       </ScrollView>
     );

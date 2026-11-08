@@ -3,8 +3,9 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
 import { authErrorMessage, createAuthService, validateCredentials, type AccessMode } from './authService';
 import { observeSession } from './observeSession';
+import { toSessionIdentity } from '../../shared/identity';
 
-// Estado interno del módulo; no constituye todavía el contrato compartido del equipo.
+// Mantiene la sesión del SDK dentro de G01; el contrato de lectura omite tokens/metadatos.
 export function useAuth(client: SupabaseClient) {
   const service = useMemo(() => createAuthService(client), [client]);
   const [session, setSession] = useState<Session | null>(null);
@@ -53,7 +54,11 @@ export function useAuth(client: SupabaseClient) {
     }
   }
 
+  const identity = useMemo(() => toSessionIdentity({ restoring, restoreError, user: session?.user ?? null }),
+    [restoring, restoreError, session]);
+
   return {
+    identity,
     session, restoring, restoreError, pending, message, error,
     retry: () => setAttempt(value => value + 1),
     clearFeedback: () => { setMessage(null); setError(null); },

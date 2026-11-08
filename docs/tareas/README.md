@@ -24,7 +24,7 @@ No marcar tareas como en curso sin inicio confirmado por el responsable.
 
 | Grupo | Responsable | Alcance | Issue | Estado |
 | --- | --- | --- | --- | --- |
-| G01 | Persona 1: pendiente de nombre | Acceso, perfil, comunidades e invitaciones | [#1](https://github.com/Fabrizio7S/Hackthon-2026/issues/1) | [T01.1](T01-1-autenticacion.md), [T01.2](T01-2-perfil.md), [T01.3](T01-3-crear-comunidad.md), [T01.4](T01-4-invitaciones.md), [T01.5](T01-5-integrantes.md): flujo implementado. Contratos, migraciones/pruebas remotas y teléfono pendientes. |
+| G01 | Persona 1: pendiente de nombre | Acceso, perfil, comunidades e invitaciones | [#1](https://github.com/Fabrizio7S/Hackthon-2026/issues/1) | [T01.1](T01-1-autenticacion.md)–[T01.5](T01-5-integrantes.md): flujo implementado. [T01.6](T01-6-contratos.md): contratos preparados/usados en G01, revisión de consumidores pendiente. Migraciones/pruebas remotas y teléfono pendientes. |
 | G02 | Persona 2: pendiente de nombre | Servicios, productos, contacto y estrellas | Pendiente de enlazar | Pendiente |
 | G03 | Persona 3: pendiente de nombre | Cadena de favores y coordinación | Pendiente de enlazar | Pendiente |
 | G04 | Persona 4: pendiente de nombre | Emergencias y recursos de apoyo | Pendiente de enlazar | Pendiente |

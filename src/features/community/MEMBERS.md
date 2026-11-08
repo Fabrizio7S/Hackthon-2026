@@ -38,4 +38,4 @@ Regresión completa: 46 pruebas de servicio y 38 casos SQL (Node informa 42 cont
 
 ## Pendiente de integración
 
-Inspección del esquema, aplicación de las cuatro migraciones y asesores en el proyecto correcto. Verificar el recorrido con dos cuentas reales y una ajena, y en teléfono. No se ha comprobado visualmente esta pantalla privada con una cuenta real. Los contratos para los módulos 2–5 siguen en tarea posterior; los tipos actuales son internos de G01.
+Inspección del esquema, aplicación de las cuatro migraciones y asesores en el proyecto correcto. Verificar el recorrido con dos cuentas reales y una ajena, y en teléfono. No se ha comprobado visualmente esta pantalla privada con una cuenta real. T01.6 entrega los contratos/contextos de lectura para revisión de módulos 2–5, documentados en `docs/contratos-identidad.md`; MembersPanel consume ya la comunidad desde ese contexto.

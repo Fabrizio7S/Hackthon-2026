@@ -3,26 +3,34 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { ActivityIndicator, Button, StyleSheet, Text, View } from 'react-native';
 
 import { createMembersService, observeMembers, type MembersState } from './membersService';
+import { useCommunityActions, useCommunityIdentity } from '../../shared/IdentityContext';
 
-export function MembersPanel({ client, communityId, refreshVersion }: {
+export function MembersPanel({ client, refreshVersion }: {
   client: SupabaseClient;
-  communityId: string;
   refreshVersion: number;
 }) {
-  const service = useMemo(() => createMembersService(client, communityId), [client, communityId]);
+  const identity = useCommunityIdentity();
+  const communityActions = useCommunityActions();
+  const communityId = identity.status === 'member' ? identity.community.id : null;
+  const service = useMemo(() => communityId ? createMembersService(client, communityId) : null, [client, communityId]);
   const [state, setState] = useState<MembersState>({ status: 'loading', members: [], error: null });
   const [attempt, setAttempt] = useState(0);
   const loading = useRef(true);
 
-  useEffect(() => observeMembers(service, next => {
+  useEffect(() => service ? observeMembers(service, next => {
     loading.current = next.status === 'loading';
     setState(next);
-  }), [service, attempt, refreshVersion]);
+  }) : undefined, [service, attempt, refreshVersion]);
+
+  if (identity.status !== 'member') return null;
 
   return <View style={styles.section}>
     <Text accessibilityRole="header" style={styles.title}>Integrantes</Text>
     {state.status === 'loading' ? <><ActivityIndicator accessibilityLabel="Consultando integrantes" /><Text>Consultando integrantes…</Text></> : <>
-      {state.error && <Text accessibilityRole="alert">{state.error}</Text>}
+      {state.error && <>
+        <Text accessibilityRole="alert">{state.error}</Text>
+        <Button title="Volver a consultar mi comunidad" onPress={communityActions.refresh} />
+      </>}
       {state.status === 'ready' && <>
         <Text>{state.members.length} integrantes</Text>
         {!state.members.length && <Text>No hay integrantes para mostrar.</Text>}

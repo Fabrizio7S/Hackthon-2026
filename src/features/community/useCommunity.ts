@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { communityErrorMessage, createCommunityService, type CommunityStatus } from './communityService';
+import { toCommunityIdentity } from '../../shared/identity';
 
 export function useCommunity(client: SupabaseClient, userId: string, refreshVersion: number) {
   const service = useMemo(() => createCommunityService(client, userId), [client, userId]);
@@ -57,7 +58,9 @@ export function useCommunity(client: SupabaseClient, userId: string, refreshVers
     }
   }
 
-  return { data, loading, creating, error, create,
+  const identity = useMemo(() => toCommunityIdentity(userId, { loading, error, data }), [userId, loading, error, data]);
+
+  return { data, loading, creating, error, create, identity,
     refresh: () => { if (!busy.current) setAttempt(value => value + 1); },
   };
 }

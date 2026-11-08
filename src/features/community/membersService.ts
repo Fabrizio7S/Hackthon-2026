@@ -1,8 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { CommunityRole } from '../../shared/identity';
 
 export type CommunityMember = {
   display_name: string;
-  role: 'representative' | 'member';
+  role: CommunityRole;
   is_current_user: boolean;
 };
 

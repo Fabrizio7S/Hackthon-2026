@@ -9,7 +9,7 @@ Describe T01.3: creación y pertenencia propia bajo D18/D19. T01.4 añade invita
 - La vista muestra nombre de comunidad y rol propios solo después de respuesta del servidor.
 - Carga, error, actualización manual y bloqueo de solicitudes simultáneas implementados. No se anuncian como disponibles las invitaciones, todavía pendientes.
 
-Los tipos de `communityService.ts` son internos de G01. No constituyen un contrato compartido aprobado para consumidores de personas 2–5.
+`communityService.ts` reutiliza los contratos de membresía/rol de `src/shared/identity.ts`. Los contextos compartidos se usan ya en G01; su guía y revisión pendiente por personas 2–5 están en `docs/contratos-identidad.md`.
 
 ## Migración y seguridad
 
@@ -60,4 +60,4 @@ PGlite ejecuta PostgreSQL con fixtures de auth y roles. No verifica Supabase Aut
 
 ## Siguiente integración
 
-Inspeccionar primero el esquema del proyecto exacto de .env; revisar y aplicar las migraciones en el orden documentado en `supabase/README.md`, mantener el esquema interno no expuesto y ejecutar asesores. Probar con representante autorizado, vecino y cuenta ajena. Teléfono pendiente; el usuario indicó que no dispone de uno en esta sesión. El issue #1 sigue abierto para contratos y pruebas reales pendientes.
+Inspeccionar primero el esquema del proyecto exacto de .env; revisar y aplicar las migraciones en el orden documentado en `supabase/README.md`, mantener el esquema interno no expuesto y ejecutar asesores. Probar con representante autorizado, vecino y cuenta ajena. Teléfono pendiente; el usuario indicó que no dispone de uno en esta sesión. El issue #1 sigue abierto para recepción/revisión de contratos y pruebas reales pendientes.

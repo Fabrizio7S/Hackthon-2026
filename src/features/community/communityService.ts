@@ -1,17 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { CommunityMembership, CommunityStatusData } from '../../shared/identity';
 
-export type Membership = {
-  user_id: string;
-  community_id: string;
-  community_name: string;
-  role: 'representative' | 'member';
-};
-
-export type CommunityStatus = {
-  can_create: boolean;
-  has_profile: boolean;
-  membership: Membership | null;
-};
+export type Membership = CommunityMembership;
+export type CommunityStatus = CommunityStatusData;
 
 export function normalizeCommunityName(value: string): string {
   const name = value.trim();
