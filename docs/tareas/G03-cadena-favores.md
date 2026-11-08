@@ -34,6 +34,8 @@ El estado vive en memoria y se reinicia al recargar. La interfaz usa un perfil f
 - El botón «+» se fijó en la esquina inferior derecha de Explorar. En navegador se verificaron su posición, la validación de título y descripción, la creación y consulta de ambos tipos y la salida del formulario sin publicar. Pasaron `npm run typecheck` y la exportación de Android, iOS y web.
 - Crear publicación admite una imagen opcional con vista previa y acciones para cambiarla o quitarla. La imagen se muestra en «Mis publicaciones» y en el detalle durante la sesión. En navegador se verificaron la selección, la vista previa, la eliminación antes de publicar y la imagen en la publicación y su detalle. Pasaron `npm run typecheck` y la exportación de Android, iOS y web. La selección desde la galería queda pendiente de comprobar en Expo Go.
 - El texto del botón «Publicar» queda centrado en el formulario. `npm run typecheck` pasó con este ajuste.
+- Prueba de diseño en navegador a 320 × 568, 390 × 844, 430 × 932 y 844 × 390 px. Se revisaron Tarjetas, Lista, Guardadas, Mi actividad, detalle y formulario. Los controles y encabezados comprobados quedaron dentro del ancho disponible y ninguna vista presentó desplazamiento horizontal. A 320 px las pestañas se repartieron en dos filas. También se comprobó un título largo y el acceso al formulario desde el botón flotante. La prueba horizontal corresponde a la web. La app nativa está configurada en orientación vertical.
+- El usuario reportó que completó la prueba de usabilidad y que funcionó bien. La exportación para Android, iOS y web pasó durante la prueba de diseño.
 - Verificación en Expo Go y apertura de WhatsApp en teléfono pendientes.
 
 ## Resultado observable
