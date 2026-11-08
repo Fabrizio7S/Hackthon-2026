@@ -29,6 +29,26 @@ export const publications: Publication[] = [
     description: 'Escalera ligera de tres peldaños para tareas en casa.',
     location: '0.3 km · Zona A', terms: 'Disponible el fin de semana', symbol: '🪜', color: '#e4ebf4',
   },
+  {
+    id: 'costura', owner: 'luz', kind: 'Préstamo', title: 'Kit de costura',
+    description: 'Presto una caja con agujas, hilos, tijeras y cinta métrica para arreglos sencillos.',
+    location: '0.8 km · Zona B', terms: 'Disponible por la tarde · hasta 3 días', symbol: '🧵', color: '#f1e4e8',
+  },
+  {
+    id: 'libros', owner: 'carlos', kind: 'Intercambio', title: 'Libros infantiles',
+    description: 'Tengo cuentos ilustrados para cambiar por otros libros para niñas y niños.',
+    location: '0.5 km · Zona A', terms: 'Coordinar por la tarde', symbol: '📚', color: '#e4ebf4',
+  },
+  {
+    id: 'bomba', owner: 'carlos', kind: 'Préstamo', title: 'Bomba para bicicleta',
+    description: 'Bomba de pie con manómetro. Sirve para válvulas finas y gruesas.',
+    location: '0.5 km · Zona A', terms: 'Disponible hoy · préstamo por un día', symbol: '🚲', color: '#e5eddf',
+  },
+  {
+    id: 'rompecabezas', owner: 'luz', kind: 'Intercambio', title: 'Rompecabezas de 500 piezas',
+    description: 'Rompecabezas completo de un paisaje. Lo cambio por un juego de mesa o por otro rompecabezas.',
+    location: '0.8 km · Zona B', terms: 'Coordinar durante el fin de semana', symbol: '🧩', color: '#f2e9db',
+  },
 ];
 
 export type RequestStatus = 'pending' | 'accepted' | 'finished' | 'closed';

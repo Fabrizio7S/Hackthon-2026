@@ -1,6 +1,6 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
 import {
-  BackHandler, Linking, Platform, Pressable, SafeAreaView, ScrollView,
+  Animated, BackHandler, Linking, PanResponder, Platform, Pressable, SafeAreaView, ScrollView,
   StatusBar, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 
@@ -12,19 +12,22 @@ import {
 const tabs = ['Explorar', 'Guardadas', 'Mi actividad'] as const;
 type Tab = (typeof tabs)[number];
 const actor: Neighbor = 'ana';
+const webSwipeStyle = { position: 'relative', touchAction: 'pan-y' } as const;
 
-function Button({ label, onPress, primary = false, selected }: {
+function Button({ label, onPress, primary = false, selected, disabled = false }: {
   label: string;
   onPress: () => void;
   primary?: boolean;
   selected?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={selected === undefined ? undefined : { selected }}
+      accessibilityState={{ selected, disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, (primary || selected) && styles.buttonActive, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.button, (primary || selected) && styles.buttonActive, pressed && styles.pressed, disabled && styles.disabled]}
     >
       <Text style={[styles.buttonText, (primary || selected) && styles.buttonTextActive]}>{label}</Text>
     </Pressable>
@@ -35,9 +38,9 @@ function Badge({ label }: { label: string }) {
   return <Text style={styles.badge}>{label}</Text>;
 }
 
-function ResourceArt({ item, compact = false }: { item: Publication; compact?: boolean }) {
+function ResourceArt({ item, compact = false, inset = false }: { item: Publication; compact?: boolean; inset?: boolean }) {
   return (
-    <View accessible={false} style={[styles.art, { backgroundColor: item.color }, compact && styles.artCompact]}>
+    <View accessible={false} style={[styles.art, { backgroundColor: item.color }, compact && styles.artCompact, inset && styles.deckArt]}>
       <Text aria-hidden style={[styles.symbol, compact && styles.symbolCompact]}>{item.symbol}</Text>
     </View>
   );
@@ -48,6 +51,8 @@ export function FavorsScreen() {
   const [detail, setDetail] = useState<Publication | null>(null);
   const [query, setQuery] = useState('');
   const [layout, setLayout] = useState<'Tarjetas' | 'Lista'>('Tarjetas');
+  const [cardIndex, setCardIndex] = useState(0);
+  const [cardOffset] = useState(() => new Animated.Value(0));
   const [saved, setSaved] = useState<string[]>([]);
   const [requests, dispatch] = useReducer(updateRequests, []);
   const [contactError, setContactError] = useState(false);
@@ -88,6 +93,36 @@ export function FavorsScreen() {
     if (tab === 'Guardadas') return saved.includes(item.id);
     return item.owner !== actor && `${item.title} ${item.kind} ${item.description}`.toLocaleLowerCase('es').includes(search);
   });
+  const isDeck = tab === 'Explorar' && layout === 'Tarjetas';
+  const currentCard = visible[cardIndex];
+  const lastCardIndex = visible.length - 1;
+  const cardSwipe = useMemo(() => {
+    function resetOffset() {
+      Animated.spring(cardOffset, { toValue: 0, useNativeDriver: false }).start();
+    }
+
+    return PanResponder.create({
+      onMoveShouldSetPanResponderCapture: (_, { dx, dy, numberActiveTouches }) =>
+        lastCardIndex > 0 && numberActiveTouches === 1 && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.3,
+      onPanResponderGrant: () => cardOffset.setValue(0),
+      onPanResponderMove: (_, { dx }) => cardOffset.setValue(dx),
+      onPanResponderRelease: (_, { dx }) => {
+        if (Math.abs(dx) < 64) {
+          resetOffset();
+          return;
+        }
+        const step = dx < 0 ? 1 : -1;
+        setCardIndex((index) => Math.max(0, Math.min(lastCardIndex, index + step)));
+        cardOffset.setValue(0);
+      },
+      onPanResponderTerminate: resetOffset,
+    });
+  }, [cardOffset, lastCardIndex]);
+  const cardRotation = useMemo(() => cardOffset.interpolate({
+    inputRange: [-160, 0, 160],
+    outputRange: ['-9deg', '0deg', '9deg'],
+    extrapolate: 'clamp',
+  }), [cardOffset]);
   const detailRequest = requests.find((request) => request.publicationId === detail?.id && request.requester === actor);
   const detailStatus = detail && publicationStatus(requests, detail.id);
 
@@ -209,7 +244,10 @@ export function FavorsScreen() {
                     placeholder="¿Qué necesitas? Ej. taladro"
                     placeholderTextColor="#52645d"
                     value={query}
-                    onChangeText={setQuery}
+                    onChangeText={(value) => {
+                      setQuery(value);
+                      setCardIndex(0);
+                    }}
                     style={styles.search}
                   />
                   <View style={styles.row}>
@@ -221,7 +259,46 @@ export function FavorsScreen() {
               {visible.length === 0 && (
                 <Text style={styles.notice}>{tab === 'Guardadas' ? 'Aún no tienes publicaciones guardadas.' : 'No hay publicaciones que coincidan con la búsqueda.'}</Text>
               )}
-              {visible.map((item) => (
+              {isDeck && currentCard && (
+                <View style={styles.section}>
+                  <Text accessibilityLiveRegion="polite" style={styles.muted}>
+                    {`Publicación ${cardIndex + 1} de ${visible.length}`}
+                  </Text>
+                  <View style={cardIndex < visible.length - 1 && styles.deckStack}>
+                    {cardIndex < visible.length - 1 && <View aria-hidden style={styles.deckLayer} />}
+                    <Animated.View
+                      {...cardSwipe.panHandlers}
+                      style={[
+                        styles.card,
+                        styles.deckCard,
+                        Platform.OS === 'web' && webSwipeStyle,
+                        { transform: [{ translateX: cardOffset }, { rotate: cardRotation }] },
+                      ]}
+                    >
+                      <View style={styles.deckMeta}>
+                        <Text style={styles.eyebrow}>{currentCard.kind.toUpperCase()}</Text>
+                        <Badge label={publicationStatus(requests, currentCard.id)} />
+                      </View>
+                      <Text accessibilityRole="header" style={styles.cardTitle}>{currentCard.title}</Text>
+                      <Text style={styles.muted}>{neighbors[currentCard.owner]} · {currentCard.location}</Text>
+                      <ResourceArt item={currentCard} inset />
+                      <Text style={styles.body}>{currentCard.description}</Text>
+                      <View style={[styles.row, styles.deckActions]}>
+                        <Button label="Ver detalle" onPress={() => openDetail(currentCard)} />
+                        <Button
+                          label={saved.includes(currentCard.id) ? 'Quitar de guardadas' : 'Guardar publicación'}
+                          onPress={() => toggleSaved(currentCard.id)}
+                        />
+                      </View>
+                    </Animated.View>
+                  </View>
+                  <View style={[styles.row, styles.deckControls]}>
+                    <Button label="‹ Anterior" disabled={cardIndex === 0} onPress={() => setCardIndex(cardIndex - 1)} />
+                    <Button label="Pasar ›" primary disabled={cardIndex === visible.length - 1} onPress={() => setCardIndex(cardIndex + 1)} />
+                  </View>
+                </View>
+              )}
+              {!isDeck && visible.map((item) => (
                 <View key={item.id} style={styles.card}>
                   <Pressable
                     accessibilityRole="button"
@@ -237,7 +314,7 @@ export function FavorsScreen() {
                       </View>
                       <Text style={styles.cardTitle}>{item.title}</Text>
                       <Text style={styles.muted}>{neighbors[item.owner]} · {item.location}</Text>
-                      {layout === 'Tarjetas' && <Text style={styles.body}>{item.description}</Text>}
+                      <Text style={styles.body}>{item.description}</Text>
                     </View>
                   </Pressable>
                   <View style={styles.cardFooter}>
@@ -271,10 +348,18 @@ const styles = StyleSheet.create({
   buttonText: { color: '#194832', fontSize: 14, fontWeight: '700' },
   buttonTextActive: { color: '#fff' },
   pressed: { opacity: 0.75 },
+  disabled: { opacity: 0.5 },
   search: { minHeight: 48, color: '#112b22', fontSize: 16, borderWidth: 1, borderColor: '#cddbd1', backgroundColor: '#fff', borderRadius: 14, paddingHorizontal: 14 },
   card: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d9e4dc', borderRadius: 18, overflow: 'hidden' },
   cardBody: { padding: 16, gap: 9 },
   cardFooter: { paddingHorizontal: 16, paddingBottom: 14, alignItems: 'flex-start' },
+  deckStack: { paddingBottom: 8 },
+  deckLayer: { position: 'absolute', bottom: 0, left: 9, right: 9, height: 26, borderRadius: 16, borderWidth: 1, borderColor: '#cddbd1', backgroundColor: '#e2efe3' },
+  deckCard: { padding: 16, gap: 10 },
+  deckActions: { marginTop: 10 },
+  deckMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
+  deckArt: { height: 132, borderRadius: 14 },
+  deckControls: { justifyContent: 'center' },
   notice: { backgroundColor: '#eef4f2', color: '#334f43', fontSize: 14, lineHeight: 21, padding: 12, borderRadius: 10 },
   art: { height: 168, alignItems: 'center', justifyContent: 'center' },
   detailBadge: { position: 'absolute', top: 12, right: 12 },

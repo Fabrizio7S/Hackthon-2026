@@ -26,6 +26,8 @@ El estado vive en memoria y se reinicia al recargar. La interfaz usa un perfil f
 - Tras retirar el selector, se repitieron `npm run typecheck` y la exportación para Android, iOS y web. Ambas comprobaciones pasaron.
 - El título «Cadena de favores» encabeza el módulo. Las pestañas aparecen debajo y preceden al buscador en Explorar. En el detalle se ocultan y «Volver» regresa a la pestaña de origen. `npm run typecheck` pasó con este ajuste.
 - En el detalle, el estado de la publicación se muestra sobre la esquina superior derecha de la imagen. `npm run typecheck` pasó con el cambio.
+- En Explorar, Tarjetas muestra una publicación a la vez con contador y botones «Anterior» y «Pasar». Lista incluye la descripción. Pasaron `npm run typecheck` y la exportación de Android, iOS y web. En navegador se comprobaron el avance y el retroceso, los límites, la búsqueda sin resultados, abrir y volver del detalle y guardar desde una tarjeta.
+- Las tarjetas admiten arrastre horizontal y tienen más espacio entre la descripción y los botones. Explorar muestra seis publicaciones de ejemplo. Pasaron `npm run typecheck` y la exportación de Android, iOS y web. En el navegador se comprobó el arrastre con puntero en ambas direcciones, el límite de la primera tarjeta y la búsqueda de un ejemplo nuevo. El gesto táctil queda pendiente de comprobar en Expo Go.
 - Verificación en Expo Go y apertura de WhatsApp en teléfono pendientes.
 
 ## Resultado observable
