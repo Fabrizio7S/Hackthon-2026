@@ -8,13 +8,14 @@ import { ProfilePanel } from '../profile/ProfilePanel';
 import { CommunityPanel } from '../community/CommunityPanel';
 import { createOffersApi, ServicesFlowScreen } from '../services';
 import { SessionIdentityProvider, useSessionActions, useSessionIdentity } from '../../shared/IdentityContext';
+import { colors } from '../../shared/theme';
 
 type MainSection = 'comunidad' | 'servicios';
 
 // Una sola fuente de sesión para el flujo de acceso montado en App.tsx.
 export function AuthPanel({ client }: { client: SupabaseClient | null }) {
   if (!client) {
-    return <View style={styles.container}><Text>No se ha configurado el servicio de acceso. Revisa las variables públicas de Supabase y reinicia Expo.</Text></View>;
+    return <View style={styles.centerContainer}><Text>No se ha configurado el servicio de acceso. Revisa las variables públicas de Supabase y reinicia Expo.</Text></View>;
   }
   return <ConfiguredAuthPanel client={client} />;
 }
@@ -54,19 +55,32 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
   }
 
   if (identity.status === 'loading') {
-    return <View style={styles.container}><ActivityIndicator accessibilityLabel="Recuperando sesión" /><Text>Recuperando sesión…</Text></View>;
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Recuperando sesión" />
+        <Text style={styles.mutedText}>Recuperando sesión…</Text>
+      </View>
+    );
   }
   if (identity.status === 'error') {
-    return <View style={styles.container}>
-      <Text accessibilityRole="alert">{identity.error}</Text>
-      {auth.error && <Text accessibilityRole="alert">{auth.error}</Text>}
-      <Button title="Reintentar" disabled={auth.pending} onPress={sessionActions.retry} />
-      <Button title={auth.pending ? 'Cerrando sesión…' : 'Cerrar sesión guardada'} disabled={auth.pending} onPress={() => {
-        setPassword('');
-        setEmail('');
-        void sessionActions.signOut();
-      }} />
-    </View>;
+    return (
+      <View style={styles.centerContainer}>
+        <View style={styles.card}>
+          <Text style={styles.errorText} accessibilityRole="alert">{identity.error}</Text>
+          {auth.error && <Text style={styles.errorText} accessibilityRole="alert">{auth.error}</Text>}
+          <Pressable style={styles.buttonPrimary} disabled={auth.pending} onPress={sessionActions.retry}>
+            <Text style={styles.buttonPrimaryText}>Reintentar conexión</Text>
+          </Pressable>
+          <Pressable style={styles.buttonOutline} disabled={auth.pending} onPress={() => {
+            setPassword('');
+            setEmail('');
+            void sessionActions.signOut();
+          }}>
+            <Text style={styles.buttonOutlineText}>{auth.pending ? 'Cerrando sesión…' : 'Cerrar sesión guardada'}</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
   }
   if (identity.status === 'authenticated') {
     return (
@@ -93,81 +107,345 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             </Text>
           </Pressable>
         </View>
+
         {section === 'servicios' ? (
           <ServicesFlowScreen key={`services:${identity.user.id}`} api={offersApi} />
         ) : (
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.container}>
-            <Text accessibilityRole="header" style={styles.title}>Sesión iniciada</Text>
-            <Text>{identity.user.email}</Text>
-            <ProfilePanel key={`profile:${identity.user.id}`} client={client} userId={identity.user.id} email={identity.user.email}
-              onSaved={() => setCommunityVersion(value => value + 1)} />
-            <CommunityPanel key={`community:${identity.user.id}`} client={client} userId={identity.user.id} refreshVersion={communityVersion} />
-            {auth.error && <Text accessibilityRole="alert">{auth.error}</Text>}
-            <Button title={auth.pending ? 'Cerrando sesión…' : 'Cerrar sesión'} disabled={auth.pending} onPress={() => {
-              setPassword('');
-              setEmail('');
-              void sessionActions.signOut();
-            }} />
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
+            <View style={styles.sessionCard}>
+              <View style={styles.sessionHeaderRow}>
+                <View style={styles.sessionInfo}>
+                  <Text style={styles.sessionLabel}>Cuenta activa</Text>
+                  <Text style={styles.sessionEmail}>{identity.user.email}</Text>
+                </View>
+                <Pressable
+                  style={styles.logoutButton}
+                  disabled={auth.pending}
+                  onPress={() => {
+                    setPassword('');
+                    setEmail('');
+                    void sessionActions.signOut();
+                  }}
+                >
+                  <Text style={styles.logoutButtonText}>{auth.pending ? 'Saliendo…' : 'Cerrar sesión'}</Text>
+                </Pressable>
+              </View>
+              {auth.error && <Text style={styles.errorText} accessibilityRole="alert">{auth.error}</Text>}
+            </View>
+
+            <ProfilePanel
+              key={`profile:${identity.user.id}`}
+              client={client}
+              userId={identity.user.id}
+              email={identity.user.email}
+              onSaved={() => setCommunityVersion(value => value + 1)}
+            />
+
+            <CommunityPanel
+              key={`community:${identity.user.id}`}
+              client={client}
+              userId={identity.user.id}
+              refreshVersion={communityVersion}
+            />
           </ScrollView>
         )}
       </View>
     );
   }
+
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.container}>
-        <Text accessibilityRole="header" style={styles.title}>{mode === 'signIn' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
-        <Text>Correo electrónico</Text>
-        <TextInput accessibilityLabel="Correo electrónico" style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" editable={!auth.pending} />
-        <Text>Contraseña</Text>
-        <TextInput accessibilityLabel="Contraseña" style={styles.input} value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" autoCorrect={false} autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'} editable={!auth.pending} onSubmitEditing={() => { void submit(); }} />
-        {auth.error && <Text accessibilityRole="alert">{auth.error}</Text>}
-        {auth.message && <Text accessibilityLiveRegion="polite">{auth.message}</Text>}
-        <Button title={auth.pending ? 'Enviando…' : mode === 'signIn' ? 'Entrar' : 'Registrarme'} disabled={auth.pending} onPress={() => { void submit(); }} />
-        <Button title={mode === 'signIn' ? 'Quiero crear una cuenta' : 'Ya tengo cuenta'} disabled={auth.pending} onPress={() => {
-          setMode(mode === 'signIn' ? 'signUp' : 'signIn');
-          setPassword('');
-          auth.clearFeedback();
-        }} />
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.centerContainer}>
+        <View style={styles.authCard}>
+          <Text accessibilityRole="header" style={styles.authTitle}>
+            {mode === 'signIn' ? 'Iniciar sesión' : 'Crear cuenta'}
+          </Text>
+          <Text style={styles.authSubtitle}>Red de apoyo, productos y servicios vecinales</Text>
+
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Correo electrónico</Text>
+            <TextInput
+              accessibilityLabel="Correo electrónico"
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              placeholder="tu@correo.com"
+              placeholderTextColor={colors.textMuted}
+              editable={!auth.pending}
+            />
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Contraseña</Text>
+            <TextInput
+              accessibilityLabel="Contraseña"
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
+              placeholder="••••••••"
+              placeholderTextColor={colors.textMuted}
+              editable={!auth.pending}
+              onSubmitEditing={() => { void submit(); }}
+            />
+          </View>
+
+          {auth.error && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText} accessibilityRole="alert">{auth.error}</Text>
+            </View>
+          )}
+
+          {auth.message && (
+            <View style={styles.messageBox}>
+              <Text style={styles.messageText} accessibilityLiveRegion="polite">{auth.message}</Text>
+            </View>
+          )}
+
+          <Pressable
+            style={[styles.buttonPrimary, auth.pending && styles.buttonDisabled]}
+            disabled={auth.pending}
+            onPress={() => { void submit(); }}
+          >
+            <Text style={styles.buttonPrimaryText}>
+              {auth.pending ? 'Enviando…' : mode === 'signIn' ? 'Entrar a mi red vecinal' : 'Crear mi cuenta'}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.buttonSwitch}
+            disabled={auth.pending}
+            onPress={() => {
+              setMode(mode === 'signIn' ? 'signUp' : 'signIn');
+              setPassword('');
+              auth.clearFeedback();
+            }}
+          >
+            <Text style={styles.buttonSwitchText}>
+              {mode === 'signIn' ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión'}
+            </Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  container: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 16, backgroundColor: '#fff' },
-  title: { fontSize: 26, fontWeight: '600', color: '#111' },
-  input: { minHeight: 48, borderWidth: 1, borderColor: '#666', borderRadius: 6, padding: 12, color: '#111' },
+  root: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  centerContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: colors.surface,
+  },
+  scrollContent: {
+    padding: 16,
+    gap: 16,
+    backgroundColor: colors.surface,
+    paddingBottom: 40,
+  },
   navBar: {
     flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#d0d7de',
-    backgroundColor: '#f6f8fa',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
   },
   navTab: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d0d7de',
-    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
   },
   navTabActive: {
-    borderColor: '#0969da',
-    backgroundColor: '#ddf4ff',
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySurface,
   },
   navTabText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#24292f',
+    color: colors.text,
   },
   navTabTextActive: {
     fontWeight: '700',
-    color: '#0969da',
+    color: colors.primary,
+  },
+  sessionCard: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 14,
+    gap: 8,
+  },
+  sessionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  sessionInfo: {
+    flex: 1,
+  },
+  sessionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+  },
+  sessionEmail: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  logoutButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  logoutButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.danger,
+  },
+  card: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 20,
+    gap: 14,
+  },
+  authCard: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    padding: 24,
+    gap: 16,
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  authTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  authSubtitle: {
+    fontSize: 14,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: -8,
+    marginBottom: 4,
+  },
+  fieldGroup: {
+    gap: 6,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textMuted,
+  },
+  input: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: colors.text,
+    backgroundColor: colors.background,
+  },
+  buttonPrimary: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonPrimaryText: {
+    color: colors.onPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  buttonOutline: {
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonOutlineText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  buttonSwitch: {
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  buttonSwitchText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  mutedText: {
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 8,
+  },
+  errorBox: {
+    backgroundColor: colors.dangerSurface,
+    borderRadius: 8,
+    padding: 10,
+  },
+  errorText: {
+    fontSize: 13,
+    color: colors.danger,
+    lineHeight: 18,
+  },
+  messageBox: {
+    backgroundColor: colors.primarySurface,
+    borderRadius: 8,
+    padding: 10,
+  },
+  messageText: {
+    fontSize: 13,
+    color: colors.primary,
+    fontWeight: '600',
+    lineHeight: 18,
   },
 });
