@@ -25,7 +25,10 @@ Contratos de comportamiento previstos; no describen una aplicación ya existente
 
 ## Emergencias
 - Un vecino reporta una situación; otros identifican necesidad y apoyo disponible.
-- El esquema incluye urgencia y estado solucionado. Q06 define responsables y transiciones.
+- Reporte con tipo, urgencia, descripción y ubicación. Estados: abierta, en atención y solucionada. Atiende y cierra el autor o el representante (D26).
+- Otro vecino ofrece ayuda con una nota; el autor o el representante la acepta o la rechaza (D27).
+- Los reportes sobre personas vulnerables ocultan descripción y autor a quien no participa (D29).
+- Sin conexión, el reporte queda guardado en el teléfono y se marca como pendiente; solo es «enviado» cuando el servidor lo confirma.
 - Resultado esperado: distinguir necesidades abiertas de atendidas con vistas coherentes.
 - No inferir del prototipo activación por junta vecinal, reporte “estoy bien” ni envío por SMS.
 

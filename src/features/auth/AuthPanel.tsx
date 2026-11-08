@@ -7,11 +7,12 @@ import { useAuth } from './useAuth';
 import { ProfilePanel } from '../profile/ProfilePanel';
 import { CommunityPanel } from '../community/CommunityPanel';
 import { FavorsScreen } from '../favors/FavorsScreen';
+import { EmergenciesScreen, type EmergenciesTab } from '../emergencies';
 import { createOffersApi, ServicesFlowScreen } from '../services';
 import { SessionIdentityProvider, useSessionActions, useSessionIdentity } from '../../shared/IdentityContext';
 import { colors } from '../../shared/theme';
 
-type MainSection = 'comunidad' | 'servicios' | 'favores';
+type MainSection = 'comunidad' | 'servicios' | 'favores' | 'emergencias';
 
 // Una sola fuente de sesión para el flujo de acceso montado en App.tsx.
 export function AuthPanel({ client }: { client: SupabaseClient | null }) {
@@ -36,6 +37,9 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
   const [password, setPassword] = useState('');
   const [communityVersion, setCommunityVersion] = useState(0);
   const [section, setSection] = useState<MainSection>('comunidad');
+  // Pestaña inicial de Emergencias; el contador fuerza a remontar la pantalla al usar los atajos.
+  const [emergencyTab, setEmergencyTab] = useState<EmergenciesTab>('alertas');
+  const [emergencyNonce, setEmergencyNonce] = useState(0);
   const offersApi = useMemo(() => createOffersApi(client), [client]);
 
   useEffect(() => {
@@ -50,6 +54,12 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
     });
     return () => subscription.remove();
   }, [mode, auth.session, auth.pending, auth.clearFeedback]);
+
+  function openEmergencies(tab: EmergenciesTab) {
+    setEmergencyTab(tab);
+    setEmergencyNonce(value => value + 1);
+    setSection('emergencias');
+  }
 
   async function submit() {
     if (await auth.submit(mode, email, password)) setPassword('');
@@ -117,12 +127,36 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
               Favores
             </Text>
           </Pressable>
+          <Pressable
+            accessibilityRole="tab"
+            accessibilityLabel="Emergencias"
+            accessibilityState={{ selected: section === 'emergencias' }}
+            style={[styles.navTab, styles.navTabEmergency, section === 'emergencias' && styles.navTabEmergencyActive]}
+            onPress={() => openEmergencies('alertas')}
+          >
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={[styles.navTabText, styles.navTabTextEmergency, section === 'emergencias' && styles.navTabTextEmergencyActive]}
+            >
+              🚨 Emergencias
+            </Text>
+          </Pressable>
         </View>
 
         {section === 'servicios' ? (
           <ServicesFlowScreen key={`services:${identity.user.id}`} api={offersApi} />
         ) : section === 'favores' ? (
           <FavorsScreen key={`favors:${identity.user.id}`} client={client} />
+        ) : section === 'emergencias' ? (
+          <EmergenciesScreen
+            key={`emergencies:${identity.user.id}:${emergencyNonce}`}
+            client={client}
+            userId={identity.user.id}
+            initialTab={emergencyTab}
+            onOpenServices={() => setSection('servicios')}
+            onGoToCommunity={() => setSection('comunidad')}
+          />
         ) : (
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
             <View style={styles.sessionCard}>
@@ -144,6 +178,24 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
                 </Pressable>
               </View>
               {auth.error && <Text style={styles.errorText} accessibilityRole="alert">{auth.error}</Text>}
+            </View>
+
+            <View style={styles.emergencyCard}>
+              <Text accessibilityRole="header" style={styles.emergencyTitle}>🚨 Emergencias y apoyo</Text>
+              <Text style={styles.emergencyText}>
+                Reporta un problema en tu zona, mira las alertas de tu comunidad y encuentra recursos y grupos de apoyo.
+              </Text>
+              <View style={styles.emergencyActions}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Reportar una emergencia" style={styles.emergencyPrimary} onPress={() => openEmergencies('reportar')}>
+                  <Text style={styles.emergencyPrimaryText}>Reportar</Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel="Ver alertas de la comunidad" style={styles.emergencySecondary} onPress={() => openEmergencies('alertas')}>
+                  <Text style={styles.emergencySecondaryText}>Ver alertas</Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel="Ver recursos y grupos de apoyo" style={styles.emergencySecondary} onPress={() => openEmergencies('apoyo')}>
+                  <Text style={styles.emergencySecondaryText}>Recursos y grupos</Text>
+                </Pressable>
+              </View>
             </View>
 
             <ProfilePanel
@@ -301,6 +353,68 @@ const styles = StyleSheet.create({
   navTabTextActive: {
     fontWeight: '700',
     color: colors.primary,
+  },
+  navTabEmergency: {
+    borderColor: colors.danger,
+  },
+  navTabEmergencyActive: {
+    backgroundColor: colors.dangerSurface,
+  },
+  navTabTextEmergency: {
+    color: colors.danger,
+  },
+  navTabTextEmergencyActive: {
+    fontWeight: '800',
+    color: colors.danger,
+  },
+  emergencyCard: {
+    backgroundColor: colors.dangerSurface,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    borderRadius: 12,
+    padding: 14,
+    gap: 10,
+  },
+  emergencyTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.danger,
+  },
+  emergencyText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.text,
+  },
+  emergencyActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  emergencyPrimary: {
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: colors.danger,
+  },
+  emergencyPrimaryText: {
+    color: colors.onPrimary,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  emergencySecondary: {
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.danger,
+    backgroundColor: colors.background,
+  },
+  emergencySecondaryText: {
+    color: colors.danger,
+    fontWeight: '700',
+    fontSize: 14,
   },
   sessionCard: {
     backgroundColor: colors.background,
