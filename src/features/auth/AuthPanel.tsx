@@ -36,6 +36,8 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
   const [password, setPassword] = useState('');
   const [communityVersion, setCommunityVersion] = useState(0);
   const [section, setSection] = useState<MainSection>('comunidad');
+  const [hasCommunity, setHasCommunity] = useState<boolean | null>(null);
+  const [communityName, setCommunityName] = useState<string | null>(null);
   const offersApi = useMemo(() => createOffersApi(client), [client]);
 
   useEffect(() => {
@@ -119,7 +121,24 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
           </Pressable>
         </View>
 
-        {section === 'servicios' ? (
+        {section !== 'comunidad' && hasCommunity === false ? (
+          <View style={styles.centerContainer}>
+            <View style={styles.card}>
+              <Text style={styles.authTitle} accessibilityRole="header">
+                Únete a una comunidad primero
+              </Text>
+              <Text style={styles.mutedText}>
+                Para explorar y publicar servicios, productos y favores de tus vecinos, primero debes pertenecer a una comunidad de tu cuadra.
+              </Text>
+              <Pressable
+                style={styles.buttonPrimary}
+                onPress={() => setSection('comunidad')}
+              >
+                <Text style={styles.buttonPrimaryText}>Ir a Comunidad</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : section === 'servicios' ? (
           <ServicesFlowScreen key={`services:${identity.user.id}`} api={offersApi} />
         ) : section === 'favores' ? (
           <FavorsScreen key={`favors:${identity.user.id}`} client={client} />
@@ -128,7 +147,9 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             <View style={styles.sessionCard}>
               <View style={styles.sessionHeaderRow}>
                 <View style={styles.sessionInfo}>
-                  <Text style={styles.sessionLabel}>Cuenta activa</Text>
+                  <Text style={styles.sessionLabel}>
+                    {communityName ? `Comunidad: ${communityName}` : 'Cuenta activa'}
+                  </Text>
                   <Text style={styles.sessionEmail}>{identity.user.email}</Text>
                 </View>
                 <Pressable
@@ -159,6 +180,10 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
               client={client}
               userId={identity.user.id}
               refreshVersion={communityVersion}
+              onMembershipResolved={(isMember, name) => {
+                setHasCommunity(isMember);
+                setCommunityName(name);
+              }}
             />
           </ScrollView>
         )}

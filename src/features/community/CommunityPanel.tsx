@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -9,10 +9,11 @@ import { MembersPanel } from './MembersPanel';
 import { CommunityIdentityProvider } from '../../shared/IdentityContext';
 import { colors } from '../../shared/theme';
 
-export function CommunityPanel({ client, userId, refreshVersion }: {
+export function CommunityPanel({ client, userId, refreshVersion, onMembershipResolved }: {
   client: SupabaseClient;
   userId: string;
   refreshVersion: number;
+  onMembershipResolved?: (isMember: boolean, communityName: string | null) => void;
 }) {
   const community = useCommunity(client, userId, refreshVersion);
   const identity = community.identity;
@@ -20,6 +21,14 @@ export function CommunityPanel({ client, userId, refreshVersion }: {
   const [validation, setValidation] = useState<string | null>(null);
   const [membersVersion, setMembersVersion] = useState(0);
   const refreshMembers = useCallback(() => setMembersVersion(value => value + 1), []);
+
+  useEffect(() => {
+    if (identity.status === 'member') {
+      onMembershipResolved?.(true, identity.community.name);
+    } else if (identity.status === 'withoutCommunity') {
+      onMembershipResolved?.(false, null);
+    }
+  }, [identity, onMembershipResolved]);
 
   async function create() {
     try {
