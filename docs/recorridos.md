@@ -19,10 +19,9 @@ Contratos de comportamiento previstos; no describen una aplicación ya existente
 ## Favores
 - El solicitante publica una necesidad; otro vecino ofrece ayuda.
 - El solicitante acepta un ofrecimiento y la coordinación queda en curso.
-- Se registra la finalización; quién confirma está pendiente de Q05.
+- El solicitante registra la finalización. Las reglas de cancelación y cierre de ofrecimientos están en [D25](decisiones.md#confirmadas).
 - Resultado: ambas cuentas ven el mismo estado al volver a abrir.
-- Antes de implementar, definir cancelación, otros ofrecimientos y aceptación simultánea.
-- Si se incluye devolución, definir entrega y retorno del objeto con comprobaciones propias.
+- Dos aceptaciones simultáneas deben dejar una sola coordinación.
 
 ## Emergencias
 - Un vecino reporta una situación; otros identifican necesidad y apoyo disponible.

@@ -6,11 +6,12 @@ import type { AccessMode } from './authService';
 import { useAuth } from './useAuth';
 import { ProfilePanel } from '../profile/ProfilePanel';
 import { CommunityPanel } from '../community/CommunityPanel';
+import { FavorsScreen } from '../favors/FavorsScreen';
 import { createOffersApi, ServicesFlowScreen } from '../services';
 import { SessionIdentityProvider, useSessionActions, useSessionIdentity } from '../../shared/IdentityContext';
 import { colors } from '../../shared/theme';
 
-type MainSection = 'comunidad' | 'servicios';
+type MainSection = 'comunidad' | 'servicios' | 'favores';
 
 // Una sola fuente de sesión para el flujo de acceso montado en App.tsx.
 export function AuthPanel({ client }: { client: SupabaseClient | null }) {
@@ -93,7 +94,7 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             onPress={() => setSection('comunidad')}
           >
             <Text style={[styles.navTabText, section === 'comunidad' && styles.navTabTextActive]}>
-              Comunidad y Perfil
+              Comunidad
             </Text>
           </Pressable>
           <Pressable
@@ -103,13 +104,25 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             onPress={() => setSection('servicios')}
           >
             <Text style={[styles.navTabText, section === 'servicios' && styles.navTabTextActive]}>
-              Servicios y Productos
+              Servicios
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: section === 'favores' }}
+            style={[styles.navTab, section === 'favores' && styles.navTabActive]}
+            onPress={() => setSection('favores')}
+          >
+            <Text style={[styles.navTabText, section === 'favores' && styles.navTabTextActive]}>
+              Favores
             </Text>
           </Pressable>
         </View>
 
         {section === 'servicios' ? (
           <ServicesFlowScreen key={`services:${identity.user.id}`} api={offersApi} />
+        ) : section === 'favores' ? (
+          <FavorsScreen key={`favors:${identity.user.id}`} />
         ) : (
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
             <View style={styles.sessionCard}>
@@ -267,7 +280,9 @@ const styles = StyleSheet.create({
   navTab: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 10,
+    paddingHorizontal: 6,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: colors.border,
@@ -278,9 +293,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primarySurface,
   },
   navTabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '500',
     color: colors.text,
+    textAlign: 'center',
   },
   navTabTextActive: {
     fontWeight: '700',

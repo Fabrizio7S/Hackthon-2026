@@ -31,6 +31,7 @@ Las propuestas y preguntas pendientes no son requisitos confirmados.
 | D22 | G02, estrellas de 1 a 5: cualquier vecino que pueda ver la oferta califica una vez por oferta, puede cambiar su nota y no califica su propia oferta. Resuelve Q04. Decidido por Persona 2 el 2026-11-07. |
 | D23 | G02, edición y retiro: solo el autor edita (todos los campos salvo el tipo), retira y reactiva su oferta. Decidido por Persona 2 el 2026-11-07. |
 | D24 | G02, búsqueda y filtros mínimos para la primera entrega: búsqueda por texto en título y descripción (sin distinguir mayúsculas ni tildes) y filtro por tipo (Todos, Servicios, Productos) conforme a los campos de D20. Decidido por Persona 2 el 2026-11-07. Detalle en [T02.14](tareas/T02-14-busqueda-filtros.md). |
+| D25 | Q05 resuelta para la primera entrega de G03: el solicitante finaliza. Antes de aceptar, solo el solicitante puede cancelar. Durante la coordinación, puede cancelar el solicitante o el vecino cuyo ofrecimiento se aceptó. Al aceptar uno, se cierran los demás ofrecimientos. La ayuda se ofrece sobre una necesidad publicada. La devolución de objetos queda fuera de esta entrega. Detalle en [G03](tareas/G03-cadena-favores.md). |
 
 ## Organización prevista
 
@@ -63,7 +64,7 @@ Falta confirmar reglas de atención, coordinación y cierre.
 | Q02 | Resuelta para esta entrega en D19. | Roles e invitaciones. |
 | Q03 | Resuelta para esta entrega en D17. | Perfil y privacidad. |
 | Q04 | Resuelta para esta entrega en D22. | Servicios y productos. |
-| Q05 | ¿Quién confirma finalización? ¿Cómo se cancela? ¿Qué ocurre con otros ofrecimientos? ¿Se publica ayuda disponible sin necesidad previa? | Favores y coordinación. |
+| Q05 | Resuelta para esta entrega en D25. | Favores y coordinación. |
 | Q06 | ¿Quién atiende y cierra emergencias? ¿Qué niveles, recursos y grupos se muestran? | Emergencias. |
 | Q07 | ¿Qué funciona offline? ¿Cómo se gestionan reintentos, duplicados y conflictos? | Modelos, persistencia y sincronización. |
 | Q08 | ¿Desde dónde se cuentan tres clics? ¿Cómo se verifica tutorial y accesibilidad? | Publicación y validación transversal. |

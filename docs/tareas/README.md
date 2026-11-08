@@ -28,7 +28,7 @@ No marcar tareas como en curso sin inicio confirmado por el responsable.
 | --- | --- | --- | --- | --- |
 | G01 | Persona 1: pendiente de nombre | Acceso, perfil, comunidades e invitaciones | [#1](https://github.com/Fabrizio7S/Hackthon-2026/issues/1) | [T01.1](T01-1-autenticacion.md)–[T01.7](T01-7-compatibilidad.md): implementación, contratos y reconciliación con Supabase completados y verificados en teléfono. |
 | G02 | Persona 2: `@Fabrizio7S` | Servicios, productos, contacto y estrellas | [#2](https://github.com/Fabrizio7S/Hackthon-2026/issues/2) | Integrado en `dev`: [T02.1](T02-1-contrato-ofertas.md)–[T02.17](T02-17-recorrido-modulo.md) implementados y migración de ofertas/calificaciones aplicada en Supabase. |
-| G03 | Persona 3: pendiente de nombre | Cadena de favores y coordinación | Pendiente de enlazar | Pendiente |
+| G03 | Persona 3: pendiente de nombre | Cadena de favores y coordinación | Pendiente de enlazar | Integrado en `dev`: [G03](G03-cadena-favores.md) demo frontend de préstamos/intercambios implementada y Q05 resuelta en D25. |
 | G04 | Persona 4: pendiente de nombre | Emergencias y recursos de apoyo | Pendiente de enlazar | Pendiente |
 | G05 | Persona 5: pendiente de nombre | Integración, navegación, mapas, offline y entrega | Pendiente de enlazar | Pendiente |
 
