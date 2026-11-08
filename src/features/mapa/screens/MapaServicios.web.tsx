@@ -41,12 +41,22 @@ interface MapaServiciosProps {
 // Así evitamos los problemas con sus imágenes predeterminadas.
 function crearIcono(categoria: OfertaMapa['categoria']) {
   const color =
-    categoria === 'servicio' ? '#216349' : '#9A4524';
+    categoria === 'servicio'
+      ? '#216349'
+      : categoria === 'producto'
+        ? '#9A4524'
+        : categoria === 'emergencia'
+          ? '#B8332A'
+          : '#2D5B68';
   // Icono lineal propio (misma rejilla de 24 que AppIcon), sin emojis.
   const trazo =
     categoria === 'servicio'
       ? '<path d="M3.5 9h17v10.5h-17zM9 9V6h6v3M3.5 13.5h17"/>'
-      : '<path d="M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0"/>';
+      : categoria === 'producto'
+        ? '<path d="M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0"/>'
+        : categoria === 'emergencia'
+          ? '<path d="M12 4L3 20h18L12 4zM12 10v4M12 17h.01"/>'
+          : '<path d="M12 3v18M3 12h18"/>';
 
   return L.divIcon({
     className: '',
@@ -73,6 +83,8 @@ function crearIcono(categoria: OfertaMapa['categoria']) {
 
 const iconoServicio = crearIcono('servicio');
 const iconoProducto = crearIcono('producto');
+const iconoEmergencia = crearIcono('emergencia');
+const iconoRecurso = crearIcono('recurso');
 
 const iconoUsuario = L.divIcon({
   className: '',
@@ -246,7 +258,11 @@ export default function MapaServicios({
               icon={
                 oferta.categoria === 'servicio'
                   ? iconoServicio
-                  : iconoProducto
+                  : oferta.categoria === 'producto'
+                    ? iconoProducto
+                    : oferta.categoria === 'emergencia'
+                      ? iconoEmergencia
+                      : iconoRecurso
               }
               eventHandlers={{
                 click: () => setOfertaSeleccionadaId(oferta.id),

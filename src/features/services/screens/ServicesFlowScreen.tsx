@@ -9,6 +9,8 @@ import type { Coordinates } from '../distance/distance';
 import { loadMapOffers, type ServiceMapOffer } from '../map/toMapOffers';
 import { colors } from '../theme';
 import { AppIcon } from '../../../shared/AppIcon';
+import { supabase } from '../../../lib/supabase';
+import { createEmergenciesApi, toEmergencyMapPoints, toResourceMapPoints } from '../../emergencies';
 import { useUbicacion } from '../../mapa/hooks/useUbicacion';
 import MapaServicios from '../../mapa/screens/MapaServicios';
 import { EditOfferScreen } from './EditOfferScreen';
@@ -33,6 +35,8 @@ type Props = {
   api?: OffersApi;
   /** Función de contacto inyectable para pruebas. */
   contact?: typeof openContact;
+  /** Abre la sección de emergencias o recursos cuando se pulsa un marcador de emergencia/recurso en el mapa. */
+  onOpenEmergencies?: (tab?: 'alertas' | 'apoyo') => void;
 };
 
 const TABS: { value: ServicesTab; label: string }[] = [
@@ -52,6 +56,7 @@ export function ServicesFlowScreen({
   userLocation = null,
   api = defaultApi,
   contact,
+  onOpenEmergencies,
 }: Props) {
   const [route, setRoute] = useState<ServicesRoute>({ screen: 'tab', tab: initialTab });
   const [refreshKey, setRefreshKey] = useState(0);
@@ -63,13 +68,50 @@ export function ServicesFlowScreen({
 
   useEffect(() => {
     let active = true;
-    loadMapOffers(api)
-      .then((offers) => {
-        if (active) setMapOffers(offers);
-      })
-      .catch(() => {
-        if (active) setMapOffers(undefined);
-      });
+    const emergenciesApi = createEmergenciesApi(supabase);
+    Promise.all([
+      loadMapOffers(api).catch(() => null),
+      emergenciesApi.loadFeed().catch(() => null),
+      emergenciesApi.loadSupport().catch(() => null),
+    ]).then(([offers, feedRes, supportRes]) => {
+      if (!active) return;
+      if (!offers && (!feedRes || !feedRes.ok) && (!supportRes || !supportRes.ok)) {
+        setMapOffers(undefined);
+        return;
+      }
+      const combined: ServiceMapOffer[] = [...(offers ?? [])];
+      if (feedRes?.ok) {
+        const emergencyPoints = toEmergencyMapPoints(feedRes.data.items);
+        for (const p of emergencyPoints) {
+          if (p.kind !== 'emergencia') continue;
+          combined.push({
+            id: `emergencia:${p.id}`,
+            nombre: p.nombre,
+            descripcion: p.descripcion,
+            categoria: 'emergencia',
+            latitud: p.latitud,
+            longitud: p.longitud,
+            etiquetaEstado: p.estado === 'en_atencion' ? 'En atención vecinal' : 'Alerta activa',
+          });
+        }
+      }
+      if (supportRes?.ok) {
+        const resourcePoints = toResourceMapPoints(supportRes.data.resources);
+        for (const r of resourcePoints) {
+          if (r.kind !== 'recurso') continue;
+          combined.push({
+            id: `recurso:${r.id}`,
+            nombre: r.nombre,
+            descripcion: r.descripcion,
+            categoria: 'recurso',
+            latitud: r.latitud,
+            longitud: r.longitud,
+            etiquetaEstado: r.disponible ? 'Recurso disponible' : 'No disponible',
+          });
+        }
+      }
+      setMapOffers(combined);
+    });
     return () => {
       active = false;
     };
@@ -202,9 +244,17 @@ export function ServicesFlowScreen({
           <MapaServicios
             key={`map-${refreshKey}`}
             ofertas={mapOffers}
-            onVerDetalles={(offerId) =>
-              setRoute({ screen: 'detalle', offerId, returnTab: 'mapa' })
-            }
+            onVerDetalles={(offerId) => {
+              if (offerId.startsWith('emergencia:')) {
+                onOpenEmergencies?.('alertas');
+                return;
+              }
+              if (offerId.startsWith('recurso:')) {
+                onOpenEmergencies?.('apoyo');
+                return;
+              }
+              setRoute({ screen: 'detalle', offerId, returnTab: 'mapa' });
+            }}
           />
         )}
         {activeTab === 'publicar' && (

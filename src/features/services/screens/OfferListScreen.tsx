@@ -25,7 +25,7 @@ type Props = {
   /** Abre el detalle de una oferta (navegación de Persona 5). */
   onOpenOffer?: (offer: Offer) => void;
   /** Para pruebas; por defecto usa el Supabase compartido. */
-  api?: Pick<OffersApi, 'listActive' | 'ratingSummaries'>;
+  api?: Pick<OffersApi, 'listActive' | 'ratingSummaries'> & Partial<Pick<OffersApi, 'authorNames'>>;
 };
 
 const KIND_LABEL = { servicio: 'Servicio', producto: 'Producto' } as const;
@@ -140,7 +140,7 @@ function OfferCard({
   userLocation: Coordinates | null;
   onPress?: (offer: Offer) => void;
 }) {
-  const { offer, rating } = item;
+  const { offer, rating, authorName } = item;
   const distance = formatDistance(userLocation, offer.location);
 
   const product = offer.kind === 'producto';
@@ -166,6 +166,11 @@ function OfferCard({
         <Text numberOfLines={2} style={styles.title}>
           {offer.title}
         </Text>
+        {authorName && (
+          <Text numberOfLines={1} style={styles.author}>
+            Publicado por {authorName}
+          </Text>
+        )}
         {rating !== undefined && (
           <View style={styles.meta}>
             <RatingSummary average={rating?.average} count={rating?.count} maxStars={5} />
@@ -243,6 +248,7 @@ const styles = StyleSheet.create({
   cardTop: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
   kind: { fontFamily: fonts.mono, fontSize: 11, fontWeight: '600', letterSpacing: 0.8 },
   title: { color: colors.text, fontSize: 17, fontWeight: '700', lineHeight: 22 },
+  author: { color: colors.textMuted, fontSize: 13, fontWeight: '600', marginTop: 1 },
   meta: { alignItems: 'center', flexDirection: 'row', gap: 12, marginTop: 2 },
   distance: {
     borderColor: colors.text,

@@ -15,11 +15,13 @@ export type ServiceMapOffer = {
   id: string;
   nombre: string;
   descripcion: string;
-  categoria: OfferKind;
+  categoria: OfferKind | 'emergencia' | 'recurso';
   latitud: number;
   longitud: number;
   calificacionPromedio?: number | null;
   cantidadCalificaciones?: number;
+  autorNombre?: string | null;
+  etiquetaEstado?: string | null;
 };
 
 /**
@@ -29,7 +31,7 @@ export type ServiceMapOffer = {
 export function toMapOffers(items: readonly OfferListItem[]): ServiceMapOffer[] {
   const result: ServiceMapOffer[] = [];
 
-  for (const { offer, rating } of items) {
+  for (const { offer, rating, authorName } of items) {
     if (offer.status !== 'activa') continue;
     if (!isValidCoordinates(offer.location)) continue;
 
@@ -42,6 +44,7 @@ export function toMapOffers(items: readonly OfferListItem[]): ServiceMapOffer[] 
       longitud: offer.location.longitude,
       calificacionPromedio: rating ? rating.average : null,
       cantidadCalificaciones: rating ? rating.count : 0,
+      autorNombre: authorName ?? null,
     });
   }
 
@@ -50,7 +53,7 @@ export function toMapOffers(items: readonly OfferListItem[]): ServiceMapOffer[] 
 
 /** Carga las ofertas activas con sus calificaciones listas para `MapaServicios`. */
 export async function loadMapOffers(
-  api: Pick<OffersApi, 'listActive' | 'ratingSummaries'>,
+  api: Pick<OffersApi, 'listActive' | 'ratingSummaries'> & Partial<Pick<OffersApi, 'authorNames'>>,
 ): Promise<ServiceMapOffer[]> {
   const items = await loadOfferListItems(api);
   return toMapOffers(items);

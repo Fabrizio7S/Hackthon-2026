@@ -91,6 +91,26 @@ export function createOffersApi(client: SupabaseClient | null) {
     },
 
     /**
+     * Nombres visibles de varios autores en una sola consulta a `profiles`.
+     */
+    async authorNames(authorIds: string[]): Promise<DataResult<Record<string, string>>> {
+      if (!client) return { ok: false, error: dataError('sin_configuracion') };
+      const unique = Array.from(new Set(authorIds.filter(Boolean)));
+      if (unique.length === 0) return { ok: true, data: {} };
+      const { data, error } = await client
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', unique);
+      if (error) return { ok: false, error: mapDataError(error) };
+      const map: Record<string, string> = {};
+      for (const row of (data ?? []) as { id: string; display_name: string | null }[]) {
+        const clean = row.display_name?.trim();
+        if (row.id && clean) map[row.id] = clean;
+      }
+      return { ok: true, data: map };
+    },
+
+    /**
      * Publica una oferta. Si el mismo envío ya llegó antes (mismo
      * clientRequestId), devuelve la oferta existente en lugar de duplicarla.
      */

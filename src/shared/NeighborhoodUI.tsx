@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import NetInfo from '@react-native-community/netinfo';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { archRadius, colors, fonts } from './theme';
 import { AppIcon, type IconName } from './AppIcon';
@@ -60,7 +61,16 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
   const { width } = useWindowDimensions();
   const desktop = width >= 1000;
   const [createOpen, setCreateOpen] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
   const emergencyMode = section === 'emergencias';
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      const offline = state.isConnected === false || state.isInternetReachable === false;
+      setIsOffline(Boolean(offline));
+    });
+    return () => unsubscribe();
+  }, []);
 
   const tabButton = (key: NeighborhoodSection, label: string, icon: IconName) => {
     const active = section === key;
@@ -136,6 +146,13 @@ export function NeighborhoodShell({ section, onNavigate, communityName, onCreate
           <Text style={s.emergencyText}>Emergencias</Text>
         </Pressable>}
       </View>
+      {isOffline && (
+        <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={s.offlineBanner}>
+          <Text style={s.offlineBannerText}>
+            Sin conexión a internet · Modo offline activo (los reportes de emergencia se guardan en tu teléfono)
+          </Text>
+        </View>
+      )}
       <View style={s.content}>{children}</View>
     </View>
     {!desktop && bottomBar}
@@ -269,6 +286,8 @@ const s = StyleSheet.create({
   topLabel: { fontSize: 22, fontWeight: '800', color: colors.text, letterSpacing: -0.5, marginTop: 2 },
   emergency: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 14, borderRadius: 14, backgroundColor: colors.danger },
   emergencyText: { fontSize: 13, color: colors.onDanger, fontWeight: '700' },
+  offlineBanner: { backgroundColor: colors.warningSurface, borderBottomWidth: 1, borderBottomColor: colors.warningInk, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
+  offlineBannerText: { color: colors.warningInk, fontSize: 12.5, fontWeight: '700', textAlign: 'center' },
 
   // Hoja de creación
   modalRoot: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },

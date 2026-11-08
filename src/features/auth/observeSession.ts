@@ -10,25 +10,36 @@ export function observeSession(client: SupabaseClient, receive: (state: SessionS
   let active = true;
   let eventReceived = false;
   let version = 0;
+  let verifiedUserId: string | null = null;
 
   async function verify(session: Session | null, expectedVersion: number) {
     if (!active || expectedVersion !== version) return;
     if (!session) {
+      verifiedUserId = null;
       receive({ status: 'ready', session: null });
       return;
     }
-    receive({ status: 'checking', session: null });
+    const isSameUser = verifiedUserId !== null && verifiedUserId === session.user.id;
+    if (!isSameUser) {
+      verifiedUserId = null;
+      receive({ status: 'checking', session: null });
+    }
     try {
       // JWT explícito evita adquirir el bloqueo de sesión dentro de un evento de Auth.
       const { data, error } = await client.auth.getUser(session.access_token);
       if (!active || expectedVersion !== version) return;
       if (error || !data.user || data.user.id !== session.user.id) {
+        verifiedUserId = null;
         receive({ status: 'error', session: null });
       } else {
+        verifiedUserId = data.user.id;
         receive({ status: 'ready', session: { ...session, user: data.user } });
       }
     } catch {
-      if (active && expectedVersion === version) receive({ status: 'error', session: null });
+      if (active && expectedVersion === version) {
+        verifiedUserId = null;
+        receive({ status: 'error', session: null });
+      }
     }
   }
   const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {

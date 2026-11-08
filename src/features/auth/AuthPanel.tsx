@@ -89,7 +89,6 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Recuperando sesión" />
-        <Text style={styles.mutedText}>Recuperando sesión…</Text>
       </View>
     );
   }
@@ -139,9 +138,19 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
             </View>
           </View>
         ) : section === 'servicios' ? (
-          <ServicesFlowScreen key={`services:${identity.user.id}:${createNonce}`} api={offersApi} initialTab={createIntent === 'service' ? 'publicar' : 'explorar'} />
+          <ServicesFlowScreen
+            key={`services:${identity.user.id}:${createNonce}`}
+            api={offersApi}
+            initialTab={createIntent === 'service' ? 'publicar' : 'explorar'}
+            onOpenEmergencies={tab => openEmergencies(tab ?? 'alertas')}
+          />
         ) : section === 'mapa' ? (
-          <ServicesFlowScreen key={`map:${identity.user.id}`} api={offersApi} initialTab="mapa" />
+          <ServicesFlowScreen
+            key={`map:${identity.user.id}`}
+            api={offersApi}
+            initialTab="mapa"
+            onOpenEmergencies={tab => openEmergencies(tab ?? 'alertas')}
+          />
         ) : section === 'favores' ? (
           <FavorsScreen key={`favors:${identity.user.id}:${createNonce}`} client={client} initialCreating={createIntent === 'favor'} />
         ) : section === 'emergencias' ? (

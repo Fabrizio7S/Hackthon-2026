@@ -25,6 +25,8 @@ export default function TarjetaServicio({
   onCerrar,
 }: TarjetaServicioProps) {
   const esServicio = oferta.categoria === 'servicio';
+  const esEmergencia = oferta.categoria === 'emergencia';
+  const esRecurso = oferta.categoria === 'recurso';
   const tieneCalificacion =
     oferta.calificacionPromedio != null;
 
@@ -37,24 +39,56 @@ export default function TarjetaServicio({
       ? `${distanciaKm.toFixed(1)} km`
       : 'Distancia no disponible';
 
+  const colorFondo = esEmergencia
+    ? colors.dangerSurface
+    : esRecurso
+      ? colors.riverSurface
+      : esServicio
+        ? colors.primarySurface
+        : colors.claySurface;
+
+  const colorTinta = esEmergencia
+    ? colors.danger
+    : esRecurso
+      ? colors.river
+      : esServicio
+        ? colors.primary
+        : colors.clay;
+
+  const icono = esEmergencia
+    ? 'siren'
+    : esRecurso
+      ? 'support'
+      : esServicio
+        ? 'services'
+        : 'bag';
+
+  const etiquetaCategoria = esEmergencia
+    ? 'EMERGENCIA'
+    : esRecurso
+      ? 'RECURSO DE APOYO'
+      : esServicio
+        ? 'SERVICIO'
+        : 'PRODUCTO';
+
   return (
     <View style={styles.tarjeta}>
       <View
         style={[
           styles.arco,
-          { backgroundColor: esServicio ? colors.primarySurface : colors.claySurface },
+          { backgroundColor: colorFondo },
         ]}
       >
         <AppIcon
-          name={esServicio ? 'services' : 'bag'}
+          name={icono}
           size={26}
-          color={esServicio ? colors.primary : colors.clay}
+          color={colorTinta}
         />
       </View>
       <View style={styles.cuerpo}>
       <View style={styles.encabezado}>
-        <Text style={[styles.categoria, !esServicio && { color: colors.clay }]}>
-          {esServicio ? 'SERVICIO' : 'PRODUCTO'} · {distancia.toUpperCase()}
+        <Text style={[styles.categoria, { color: colorTinta }]}>
+          {etiquetaCategoria} · {distancia.toUpperCase()}
         </Text>
 
         <Pressable
@@ -71,14 +105,28 @@ export default function TarjetaServicio({
         {oferta.nombre}
       </Text>
 
-      <Text style={styles.calificacion}>
-        {tieneCalificacion ? '★ ' : ''}
-        {calificacion}
-        {tieneCalificacion &&
-        oferta.cantidadCalificaciones !== undefined
-          ? ` (${oferta.cantidadCalificaciones})`
-          : ''}
-      </Text>
+      {oferta.autorNombre ? (
+        <Text style={styles.calificacion}>
+          Publicado por {oferta.autorNombre}
+        </Text>
+      ) : null}
+
+      {esEmergencia || esRecurso ? (
+        oferta.etiquetaEstado ? (
+          <Text style={[styles.calificacion, { color: colorTinta, fontWeight: '700' }]}>
+            {oferta.etiquetaEstado}
+          </Text>
+        ) : null
+      ) : (
+        <Text style={styles.calificacion}>
+          {tieneCalificacion ? '★ ' : ''}
+          {calificacion}
+          {tieneCalificacion &&
+          oferta.cantidadCalificaciones !== undefined
+            ? ` (${oferta.cantidadCalificaciones})`
+            : ''}
+        </Text>
+      )}
 
       <Text
         style={styles.descripcion}

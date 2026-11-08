@@ -134,3 +134,19 @@ test('una verificación de identidad atrasada no reabre una sesión cerrada', as
   assert.equal(h.states.at(-1).session, null);
   h.stop();
 });
+
+test('revalidar la misma cuenta al enfocar pestaña no desmonta la sesión activa con checking', async () => {
+  const h = setup();
+  h.resolve({ data: { session: { user: { id: 'A' }, access_token: 'A' } }, error: null });
+  await settle();
+  assert.equal(h.states.at(-1).status, 'ready');
+  assert.equal(h.states.at(-1).session.user.id, 'A');
+  const countBeforeFocus = h.states.length;
+  h.emit('SIGNED_IN', { user: { id: 'A' }, access_token: 'A' });
+  h.emit('TOKEN_REFRESHED', { user: { id: 'A' }, access_token: 'A' });
+  await settle();
+  const afterFocusStates = h.states.slice(countBeforeFocus);
+  assert.equal(afterFocusStates.some(s => s.status === 'checking'), false);
+  assert.equal(h.states.at(-1).session.user.id, 'A');
+  h.stop();
+});

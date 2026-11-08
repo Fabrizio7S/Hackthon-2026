@@ -20,6 +20,8 @@ export const colors = {
   category: {
     servicio: '#216349',
     producto: '#9A4524',
+    emergencia: '#B8332A',
+    recurso: '#2D5B68',
   },
 
   // Elementos deshabilitados

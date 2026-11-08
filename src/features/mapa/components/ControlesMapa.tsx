@@ -29,6 +29,8 @@ const FILTROS: {
   { id: 'todos', nombre: 'Todos' },
   { id: 'servicio', nombre: 'Servicios' },
   { id: 'producto', nombre: 'Productos' },
+  { id: 'emergencia', nombre: 'Emergencias' },
+  { id: 'recurso', nombre: 'Recursos' },
 ];
 
 export default function ControlesMapa({

@@ -19,6 +19,8 @@ interface MarcadorServicioProps {
 const COLORES: Record<CategoriaMapa, string> = {
   servicio: colors.category.servicio,
   producto: colors.category.producto,
+  emergencia: colors.category.emergencia,
+  recurso: colors.category.recurso,
 };
 
 export default function MarcadorServicio({
