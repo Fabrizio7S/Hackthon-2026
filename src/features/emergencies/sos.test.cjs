@@ -1,67 +1,105 @@
-const test = require('node:test');
+const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const ts = require('typescript');
 
-test('la alerta SOS requiere una ubicacion valida y genera reporte critico de salud', () => {
-  function isValidCoordinate(lat, lng) {
-    return (
-      typeof lat === 'number' && typeof lng === 'number' &&
-      Number.isFinite(lat) && Number.isFinite(lng) &&
-      lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 &&
-      !(lat === 0 && lng === 0)
-    );
+// Componentes reales, con hooks/GPS/red controlados. No sustituye probar en telefono.
+function harness({ device = null, zone = null, outcome = { state: 'enviado' } } = {}) {
+  const submitted = [], states = [], timers = [];
+  const react = {
+    useState: value => {
+      const index = states.push(value) - 1;
+      return [value, next => { states[index] = next; }];
+    },
+    useRef: current => ({ current }), useMemo: fn => fn(),
+    useCallback: fn => fn, useEffect: () => {},
+    createElement: (type, props, ...children) => ({ type, props: { ...props, children } }),
+  };
+  const animation = { setValue() {}, interpolate() {}, start() {} };
+  const mocks = {
+    react,
+    'react-native': {
+      View: 'View', Text: 'Text', Pressable: 'Pressable',
+      StyleSheet: { create: value => value }, Platform: { OS: 'web' },
+      Animated: { Value: function () { return animation; }, timing: () => animation },
+    },
+    '@react-native-async-storage/async-storage': {},
+    '../../shared/theme': { colors: {} },
+    '../../shared/AppIcon': { AppIcon: 'AppIcon' },
+    '../../shared/TourTargets': { useTourTargets: () => () => false },
+    '../mapa/hooks/useUbicacion': { useUbicacion: () => ({ ubicacion: device }) },
+    './AlertsScreen': { AlertsScreen: 'AlertsScreen' },
+    './EmergencyDetailScreen': {}, './ReportScreen': {}, './SupportScreen': {},
+    './emergenciesApi': { newClientRequestId: () => 'sos-request' },
+    './hooks': {
+      useResource: () => ({ state: { data: { zone } }, reload: async () => {} }),
+      useReportOutbox: () => ({ entries: [], submit: async report => { submitted.push(report); return outcome; } }),
+    },
+  };
+  const cache = {};
+  function load(name) {
+    if (cache[name]) return cache[name];
+    const filename = path.join(__dirname, name);
+    const source = fs.readFileSync(fs.existsSync(`${filename}.tsx`) ? `${filename}.tsx` : `${filename}.ts`, 'utf8');
+    const code = ts.transpileModule(source, {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React, esModuleInterop: true },
+    }).outputText;
+    const sandbox = { exports: {}, React: react, setTimeout: fn => { timers.push(fn); return 1; }, clearTimeout() {},
+      require: id => id in mocks ? mocks[id] : load(id.replace('./', '')) };
+    vm.runInNewContext(code, sandbox);
+    return cache[name] = sandbox.exports;
   }
-
-  function resolveReportLocation(device, zone) {
-    if (device && isValidCoordinate(device.latitude, device.longitude)) {
-      return { lat: device.latitude, lng: device.longitude, origin: 'dispositivo' };
-    }
-    if (zone && isValidCoordinate(zone.lat, zone.lng)) {
-      return { lat: zone.lat, lng: zone.lng, origin: 'zona_comunidad' };
-    }
-    return null;
+  function find(node, type) {
+    if (!node || typeof node !== 'object') return null;
+    if (node.type === type) return node;
+    return (node.props?.children ?? []).flat(Infinity).map(child => find(child, type)).find(Boolean);
   }
+  const screen = load('EmergenciesScreen').EmergenciesScreen({ client: null, userId: 'neighbor', api: {} });
+  return { load, find, submitted, states, timers, trigger: find(screen, 'AlertsScreen').props.onTriggerSos };
+}
 
-  function createSosReport(device, zone, clientRequestId) {
-    const loc = resolveReportLocation(device, zone);
-    if (!loc) {
-      return { ok: false, error: 'Ubicacion requerida para alerta SOS' };
-    }
-    return {
-      ok: true,
-      report: {
-        category: 'salud',
-        level: 'critica',
-        description: '¡ALERTA SOS! Solicitud de auxilio urgente en el sector.',
-        vulnerable: false,
-        lat: loc.lat,
-        lng: loc.lng,
-        locationOrigin: loc.origin,
-        clientRequestId,
-      },
-    };
+test('SOS obtiene el GPS sin prop y conserva sus coordenadas hasta el adaptador del mapa', async () => {
+  const h = harness({ device: { latitude: -12.05, longitude: -77.04 }, zone: { lat: -12.1, lng: -77.1 } });
+  assert.equal((await h.trigger()).ok, true);
+  assert.equal(h.submitted[0].locationOrigin, 'dispositivo');
+  assert.equal(h.submitted[0].level, 'critica');
+  const points = h.load('mapPoints').toEmergencyMapPoints([{
+    ...h.submitted[0], id: 'sos', status: 'abierta', approximate: false,
+  }]);
+  assert.equal(points.length, 1);
+  assert.equal(points[0].latitud, -12.05);
+  assert.equal(points[0].longitud, -77.04);
+});
+
+test('SOS informa respaldo aproximado y no envia sin ninguna ubicacion', async () => {
+  const withZone = harness({ zone: { lat: -12.1, lng: -77.1 } });
+  assert.match((await withZone.trigger()).message, /aproximada/);
+  assert.equal(withZone.submitted[0].locationOrigin, 'zona_comunidad');
+  const missing = harness();
+  assert.equal((await missing.trigger()).ok, false);
+  assert.equal(missing.submitted.length, 0);
+});
+
+test('SOS distingue pendiente guardado, fallo de almacenamiento y rechazo', async () => {
+  for (const saved of [true, false]) {
+    const h = harness({ device: { latitude: -12.05, longitude: -77.04 }, outcome: { state: 'pendiente', saved } });
+    const result = await h.trigger();
+    assert.equal(result.ok, false);
+    assert.match(result.message, saved ? /pendiente de envío/ : /ni pudo guardarse/);
   }
+  const h = harness({ zone: { lat: -12.1, lng: -77.1 }, outcome: { state: 'error', error: { message: 'Sin permisos' } } });
+  assert.equal((await h.trigger()).ok, false);
+});
 
-  // 1. Sin ubicación falla de manera defensiva
-  const sinUbicacion = createSosReport(null, null, 'req-1');
-  assert.equal(sinUbicacion.ok, false);
-  assert.equal(sinUbicacion.error, 'Ubicacion requerida para alerta SOS');
-
-  // 2. Con zona comunitaria genera reporte con origen zona_comunidad
-  const conZona = createSosReport(null, { lat: -12.0464, lng: -77.0428 }, 'req-2');
-  assert.equal(conZona.ok, true);
-  assert.equal(conZona.report.category, 'salud');
-  assert.equal(conZona.report.level, 'critica');
-  assert.equal(conZona.report.locationOrigin, 'zona_comunidad');
-  assert.equal(conZona.report.lat, -12.0464);
-
-  // 3. Con GPS del dispositivo prefiere el dispositivo
-  const conGps = createSosReport(
-    { latitude: -12.0500, longitude: -77.0400 },
-    { lat: -12.0464, lng: -77.0428 },
-    'req-3'
-  );
-  assert.equal(conGps.ok, true);
-  assert.equal(conGps.report.locationOrigin, 'dispositivo');
-  assert.equal(conGps.report.lat, -12.0500);
-  assert.equal(conGps.report.lng, -77.0400);
+test('el boton muestra como error un fallo y como exito solo un envio confirmado', async () => {
+  for (const ok of [false, true]) {
+    const h = harness(), offset = h.states.length;
+    const button = h.load('SosButton').SosButton({ onTriggerSos: async () => ({ ok, message: 'Resultado' }) });
+    h.find(button, 'Pressable').props.onPressIn();
+    await h.timers[0]();
+    assert.equal(h.states[offset + 2], ok ? 'Resultado' : null);
+    assert.equal(h.states[offset + 3], ok ? null : 'Resultado');
+  }
 });

@@ -76,8 +76,8 @@ export function SosButton({ onTriggerSos, disabled = false }: Props) {
       try {
         const result = await onTriggerSos();
         if (mountedRef.current) {
-          setSentMessage(result.message);
-          setHint(null);
+          setSentMessage(result.ok ? result.message : null);
+          setHint(result.ok ? null : result.message);
         }
       } catch (err) {
         if (mountedRef.current) {

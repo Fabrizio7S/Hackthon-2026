@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../shared/theme';
+import { useUbicacion } from '../mapa/hooks/useUbicacion';
 import { TOUR_RED, useTourTargets } from '../../shared/TourTargets';
 import { AlertsScreen } from './AlertsScreen';
 import { createEmergenciesApi, newClientRequestId, type EmergenciesApi } from './emergenciesApi';
@@ -58,6 +59,8 @@ export function EmergenciesScreen({
   guidedTab, onTabChange,
 }: Props) {
   const highlighted = useTourTargets();
+  const { ubicacion } = useUbicacion();
+  const effectiveLocation = userLocation ?? ubicacion;
   const api = useMemo(() => apiOverride ?? createEmergenciesApi(client), [apiOverride, client]);
   const [tab, setTab] = useState<EmergenciesTab>(initialTab);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -106,7 +109,7 @@ export function EmergenciesScreen({
 
 
   const handleTriggerSos = useCallback(async () => {
-    const loc = resolveReportLocation(userLocation, zone);
+    const loc = resolveReportLocation(effectiveLocation, zone);
     if (!loc) {
       return { ok: false, message: 'No se pudo determinar tu ubicación para enviar la alerta SOS. Activa la ubicación o conéctate para sincronizar la zona.' };
     }
@@ -123,13 +126,17 @@ export function EmergenciesScreen({
     });
     void reloadFeed({ silent: true });
     if (outcome.state === 'enviado') {
-      return { ok: true, duplicate: outcome.duplicate, message: '¡Alerta SOS enviada con éxito a tus vecinos!' };
+      return { ok: true, duplicate: outcome.duplicate, message: loc.origin === 'dispositivo'
+        ? '¡Alerta SOS enviada! Tus vecinos pueden ver la ubicación capturada en el mapa.'
+        : '¡Alerta SOS enviada con la zona aproximada de tu comunidad! No se obtuvo tu ubicación del teléfono.' };
     } else if (outcome.state === 'pendiente') {
-      return { ok: true, message: 'Alerta guardada en el teléfono. Se enviará en cuanto haya conexión.' };
+      return { ok: false, message: outcome.saved
+        ? 'Alerta guardada en el teléfono, pendiente de envío. Todavía no es visible para tus vecinos ni en el mapa. Reintenta desde Reportar.'
+        : 'La alerta no se envió ni pudo guardarse en el teléfono. Vuelve a intentarlo.' };
     } else {
       return { ok: false, message: outcome.error.message };
     }
-  }, [outbox, userLocation, zone, reloadFeed]);
+  }, [outbox, effectiveLocation, zone, reloadFeed]);
 
   const refreshAll = useCallback(() => {
     void feed.reload({ silent: true });
@@ -188,7 +195,7 @@ export function EmergenciesScreen({
         <ReportScreen
           outbox={outbox}
           zone={zone}
-          userLocation={userLocation}
+          userLocation={effectiveLocation}
           onViewAlerts={() => selectTab('alertas')}
         />
       ) : null}

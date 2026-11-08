@@ -47,7 +47,7 @@ Los permisos y las transiciones se validan en triggers y funciones `SECURITY DEF
 ## Cierre y continuación
 - Cambios realizados: ver Alcance. Se añadió una pestaña «Emergencias» a la barra principal y una tarjeta de atajos en Comunidad por petición expresa del usuario; AGENTS.md pide coordinar los cambios de navegación, por lo que Persona 5 debe revisarlos.
 - Fallos y pendientes:
-  - La ubicación del dispositivo no está disponible (`expo-location` no está instalado): se usa el centro de la zona de la comunidad y se avisa como aproximada. Lo conectará Persona 5 mediante `userLocation`.
+  - Corregido el 2026-11-08: `expo-location` ya estaba instalado, pero Emergencias no obtenía el GPS ni recibía `userLocation` desde su montaje. Ahora consume el hook existente `useUbicacion`; conserva la zona comunitaria como respaldo y avisa cuando es aproximada.
   - Reabrir un reporte solucionado no está permitido. Si un ayudante aceptado se retira, el reporte no vuelve solo a «abierta»; el autor o el representante pueden hacerlo.
   - No se comparte teléfono ni contacto entre vecinos.
   - La regla «emergencias siempre disponible» sigue provisional hasta cerrar Q07.
@@ -55,3 +55,13 @@ Los permisos y las transiciones se validan en triggers y funciones `SECURITY DEF
   - Adjuntos no implementados (Q09).
 - Siguiente paso: probar con dos cuentas de la misma comunidad (una reporta; la otra ofrece ayuda; el autor acepta y cierra), repetir con el teléfono en modo avión y confirmar D26–D29 con el equipo.
 - Propuesta de archivos para git add y mensaje de commit: ver la respuesta final; la ejecución es humana.
+
+## Corrección atómica: ubicación SOS (2026-11-08)
+- Issue: #4; responsable del módulo: `@reydiazz`; corrección solicitada por el usuario y ejecutada por Codex en la rama existente `dev`.
+- Acción y resultado: mantener SOS presionado envía las coordenadas obtenidas del dispositivo al reporte que consume el mapa; si no hay GPS, informa el respaldo aproximado de la comunidad. Sin ninguna ubicación no envía. Es una posición capturada, no seguimiento en vivo.
+- Causa adicional: `SosButton` ignoraba `ok: false` y mostraba errores como confirmaciones verdes. Ahora reserva la confirmación para envío confirmado. Un pendiente distingue si realmente se guardó en el teléfono y aclara que todavía no aparece para los vecinos ni en el mapa.
+- Archivos propios: `EmergenciesScreen.tsx`, `SosButton.tsx`, `sos.test.cjs` y esta ficha. Se reutiliza el hook de mapas sin modificarlo; sin cambios de navegación, contratos compartidos, dependencias ni backend.
+- Evidencia: `node --test src/features/emergencies/sos.test.cjs src/features/emergencies/emergencies.test.cjs src/features/mapa/sesionMapa.test.cjs`: 30 pruebas pasan. `npm run typecheck`: pasa. Las pruebas nuevas ejecutan los componentes reales con GPS/hooks/red simulados; sustituyen una prueba anterior que copiaba lógica sin ejecutar la implementación.
+- Exportación: primer intento en sandbox falla con Hermes código 6 (limitación ya registrada en README). Repetición fuera del sandbox con `npm run export -- --output-dir artifacts/sos-export-verified`: Android, iOS y web exportados correctamente. Persisten advertencias de imágenes locales del CSS de Leaflet; no impiden la exportación. No se publicó ni desplegó.
+- Límites y siguiente paso: pendiente comprobar en teléfono con permiso concedido/denegado y con dos cuentas: enviar SOS, abrir Mapa sin filtro o con Emergencias y verificar la posición desde la otra cuenta. Los reportes antiguos conservan su ubicación registrada; esta corrección no los reubica. No se verificó una escritura real ni recepción entre dispositivos en esta revisión.
+- Propuesta para revisión y staging humano: `src/features/emergencies/EmergenciesScreen.tsx`, `src/features/emergencies/SosButton.tsx`, `src/features/emergencies/sos.test.cjs`, `docs/tareas/G04-emergencias.md`. Mensaje sugerido: `fix(emergencies): conectar SOS con GPS y corregir confirmaciones de envío`. No incluir los bundles de `artifacts/`.
