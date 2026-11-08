@@ -68,9 +68,9 @@ function AuthContent({ client, auth }: { client: SupabaseClient; auth: ReturnTyp
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.container}>
         <Text accessibilityRole="header" style={styles.title}>Sesión iniciada</Text>
         <Text>{identity.user.email}</Text>
-        <ProfilePanel key={identity.user.id} client={client} userId={identity.user.id} email={identity.user.email}
+        <ProfilePanel key={`profile:${identity.user.id}`} client={client} userId={identity.user.id} email={identity.user.email}
           onSaved={() => setCommunityVersion(value => value + 1)} />
-        <CommunityPanel key={identity.user.id} client={client} userId={identity.user.id} refreshVersion={communityVersion} />
+        <CommunityPanel key={`community:${identity.user.id}`} client={client} userId={identity.user.id} refreshVersion={communityVersion} />
         {auth.error && <Text accessibilityRole="alert">{auth.error}</Text>}
         <Button title={auth.pending ? 'Cerrando sesión…' : 'Cerrar sesión'} disabled={auth.pending} onPress={() => {
           setPassword('');

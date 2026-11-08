@@ -3,6 +3,8 @@
 Reto de El Comercio y UTP: conectar vecinos con productos y servicios cercanos, recomendaciones, ayuda sin dinero y coordinación durante emergencias. Nombre definitivo pendiente. La funcionalidad precede al acabado visual.
 
 ## Estado
+
+**Para continuar el issue #1 con otro agente:** leer [docs/CONTINUAR-ISSUE-1.md](docs/CONTINUAR-ISSUE-1.md). El Supabase existente tiene un esquema diferente y ya fue inspeccionado mediante dos diagnósticos aportados por el usuario. Falta reconciliarlo con el código local; **no aplicar las cuatro migraciones originales todavía**. La implementación local no equivale a integración terminada.
 - Stack acordado: React Native con Expo, TypeScript y Supabase.
 - Autenticación por correo y contraseña conectada a Supabase, con registro, inicio, persistencia y cierre implementados. Verificación completa con cuenta real y teléfono pendiente; ver [T01.1](docs/tareas/T01-1-autenticacion.md).
 - Entrada: index.ts registra App.tsx. Configuración: app.json. Nombre provisional.
@@ -61,7 +63,7 @@ Para verificar en teléfono: reinicia con `npm start -- --clear`, registra una c
 ## Retomar con cualquier agente
 Entrega este mensaje al iniciar una sesión con cualquier agente:
 
-> Lee AGENTS.md, README.md, docs/decisiones.md y docs/tareas/README.md. Identifica la etapa y el grupo activo. Informa acuerdos y bloqueos de la tarea asignada antes de editar. Respeta su alcance, las restricciones de Git y trabaja en una sola tarea.
+> Lee AGENTS.md, README.md, docs/decisiones.md y docs/tareas/README.md. Para el issue #1, lee también docs/CONTINUAR-ISSUE-1.md y continúa T01.7 desde sus evidencias guardadas. No repitas los diagnósticos ya aportados ni apliques las migraciones originales tal cual. Identifica la etapa, alcance y bloqueos antes de editar. Respeta las restricciones de Git y trabaja en una sola tarea.
 
 No supongas que todas las herramientas cargan automáticamente los mismos archivos. Esta entrada explícita permite compartir contexto; no se ha configurado ni probado la carga automática en cada herramienta.
 
