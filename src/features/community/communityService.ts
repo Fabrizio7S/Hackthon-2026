@@ -15,10 +15,11 @@ export function normalizeCommunityName(value: string): string {
 export function communityErrorMessage(error: unknown): string {
   const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : '';
   switch (code) {
-    case '42501': return 'Tu cuenta no está autorizada para crear una comunidad.';
-    case '23503': return 'Completa y guarda tu perfil antes de crear una comunidad.';
+    case '42501': return 'Tu cuenta no está autorizada para realizar esta acción.';
+    case '23503': return 'Completa y guarda tu perfil antes de continuar.';
     case '23505': return 'Ya perteneces a una comunidad. Actualiza para consultar tu pertenencia.';
-    case '22023': return 'Revisa el nombre de la comunidad: de 1 a 100 caracteres y una sola línea.';
+    case '22023': return 'Revisa el código o nombre ingresado.';
+    case 'P0002': return 'No encontramos una comunidad con ese código de invitación.';
     case '42883':
     case '42P01':
     case 'PGRST202': return 'Las comunidades todavía no están disponibles. Intenta más tarde.';
@@ -33,7 +34,14 @@ function membershipFrom(data: unknown, userId: string): Membership {
     || !('role' in data) || (data.role !== 'representative' && data.role !== 'member')) {
     throw new Error('Invalid membership response');
   }
-  return { user_id: data.user_id, community_id: data.community_id, community_name: data.community_name, role: data.role };
+  const inviteCode = 'invite_code' in data && typeof data.invite_code === 'string' ? data.invite_code : null;
+  return {
+    user_id: data.user_id,
+    community_id: data.community_id,
+    community_name: data.community_name,
+    role: data.role,
+    invite_code: inviteCode,
+  };
 }
 
 export function createCommunityService(client: SupabaseClient, userId: string) {
@@ -58,6 +66,17 @@ export function createCommunityService(client: SupabaseClient, userId: string) {
         const membership = membershipFrom(data, userId);
         if (membership.role !== 'representative') throw new Error('Invalid creation response');
         return membership;
+      } finally { creating = false; }
+    },
+    async joinByCode(code: string): Promise<Membership> {
+      if (creating) throw new Error('Join operation already running');
+      const cleanCode = code.trim().toUpperCase();
+      if (!cleanCode) throw new Error('Ingresa el código de invitación.');
+      creating = true;
+      try {
+        const { data, error } = await client.rpc('join_community_by_code', { p_code: cleanCode });
+        if (error) throw error;
+        return membershipFrom(data, userId);
       } finally { creating = false; }
     },
   };

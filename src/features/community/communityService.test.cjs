@@ -78,3 +78,21 @@ test('una denegación del backend no se presenta como creación confirmada', asy
   assert.match(communityErrorMessage({ code: '42501' }), /no está autorizada/);
   assert.equal(communityErrorMessage({ message: 'internal diagnostics' }).includes('internal diagnostics'), false);
 });
+
+test('joinByCode envía el código limpio y devuelve membresía', async () => {
+  let received;
+  const memberObj = { user_id: 'A', community_id: 'comm-1', community_name: 'San Fernando', role: 'member' };
+  const service = createCommunityService({ rpc: async (name, args) => {
+    received = { name, args };
+    return { data: memberObj, error: null };
+  } }, 'A');
+
+  await assert.rejects(service.joinByCode('   '), /Ingresa el código/);
+
+  const res = await service.joinByCode('  b57c03  ');
+  assert.equal(received.name, 'join_community_by_code');
+  assert.equal(received.args.p_code, 'B57C03');
+  assert.equal(res.community_id, 'comm-1');
+  assert.equal(res.role, 'member');
+});
+

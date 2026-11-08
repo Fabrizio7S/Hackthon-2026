@@ -58,9 +58,29 @@ export function useCommunity(client: SupabaseClient, userId: string, refreshVers
     }
   }
 
+  async function joinByCode(code: string) {
+    if (busy.current || loading || !data?.has_profile || data.membership) return;
+    const current = version.current;
+    busy.current = true;
+    setCreating(true);
+    setError(null);
+    try {
+      const membership = await service.joinByCode(code);
+      if (current === version.current) setData({ ...data, membership });
+    } catch (failure) {
+      if (current === version.current) setError(communityErrorMessage(failure));
+    } finally {
+      busy.current = false;
+      if (mounted.current) {
+        setCreating(false);
+        if (current !== version.current) setAttempt(value => value + 1);
+      }
+    }
+  }
+
   const identity = useMemo(() => toCommunityIdentity(userId, { loading, error, data }), [userId, loading, error, data]);
 
-  return { data, loading, creating, error, create, identity,
+  return { data, loading, creating, error, create, joinByCode, identity,
     refresh: () => { if (!busy.current) setAttempt(value => value + 1); },
   };
 }

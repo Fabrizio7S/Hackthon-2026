@@ -15,6 +15,7 @@ export type CommunityMembership = Readonly<{
   community_id: string;
   community_name: string;
   role: CommunityRole;
+  invite_code?: string | null;
 }>;
 
 /** Respuesta de get_my_community, conservada para evitar formatos incompatibles. */
@@ -65,7 +66,7 @@ export function toCommunityIdentity(userId: string, input: {
   return { status: 'member', userId,
     community: { id: membership.community_id, name: membership.community_name },
     membership: { user_id: membership.user_id, community_id: membership.community_id,
-      community_name: membership.community_name, role: membership.role },
+      community_name: membership.community_name, role: membership.role, invite_code: membership.invite_code },
     hasProfile: data.has_profile, canCreateCommunity: false,
     canInviteNeighbors: data.can_create && membership.role === 'representative', error: null };
 }

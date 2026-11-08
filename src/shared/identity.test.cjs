@@ -84,7 +84,7 @@ test('contrato de membresía copia solo sus campos y no conserva alias del SDK',
   const raw = { ...membership, internal_metadata: 'fixture' };
   const result = toCommunityIdentity('A', { loading: false, error: null, data: { ...data, membership: raw } });
   assert.equal(result.community.id, result.membership.community_id);
-  assert.equal(Object.keys(result.membership).sort().join(','), 'community_id,community_name,role,user_id');
+  assert.equal(Object.keys(result.membership).sort().join(','), 'community_id,community_name,invite_code,role,user_id');
   raw.role = 'member';
   assert.equal(result.membership.role, 'representative');
 });

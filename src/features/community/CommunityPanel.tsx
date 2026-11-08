@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { normalizeCommunityName } from './communityService';
 import { useCommunity } from './useCommunity';
@@ -19,6 +20,8 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
   const community = useCommunity(client, userId, refreshVersion);
   const identity = community.identity;
   const [name, setName] = useState('');
+  const [communityCode, setCommunityCode] = useState('');
+  const [copiedInvite, setCopiedInvite] = useState(false);
   const [validation, setValidation] = useState<string | null>(null);
   const [membersVersion, setMembersVersion] = useState(0);
   const refreshMembers = useCallback(() => setMembersVersion(value => value + 1), []);
@@ -73,11 +76,38 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
                     <Text style={styles.communityName}>{identity.community.name}</Text>
                     <Text style={styles.roleDescription}>
                       {identity.membership.role === 'representative'
-                        ? 'Eres el representante vecinal de este sector. Puedes invitar a otros vecinos por su código personal.'
+                        ? 'Eres el representante vecinal de este sector. Puedes invitar a otros vecinos por su código personal o compartir el código de la comunidad.'
                         : 'Eres integrante activo de esta comunidad.'}
                     </Text>
                   </View>
                 </View>
+
+                {identity.membership.role === 'representative' && identity.membership.invite_code && (
+                  <View style={styles.inviteCodeBox}>
+                    <View style={styles.inviteCodeHeader}>
+                      <Text style={styles.inviteCodeLabel}>CÓDIGO DE INVITACIÓN DIRECTA</Text>
+                      <View style={styles.inviteCodeBadge}>
+                        <Text style={styles.inviteCodeBadgeText}>COMUNIDAD</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.inviteCodeText}>{identity.membership.invite_code}</Text>
+                    <Text style={styles.inviteCodeDescription}>
+                      Comparte este código con tus vecinos para que se unan a la comunidad ingresándolo en su aplicación.
+                    </Text>
+                    <Pressable
+                      style={styles.buttonCopy}
+                      onPress={async () => {
+                        if (!identity.membership.invite_code) return;
+                        await Clipboard.setStringAsync(identity.membership.invite_code);
+                        setCopiedInvite(true);
+                        setTimeout(() => setCopiedInvite(false), 2000);
+                      }}
+                    >
+                      <Text style={styles.buttonCopyText}>{copiedInvite ? '¡Código copiado!' : 'Copiar código de comunidad'}</Text>
+                    </Pressable>
+                  </View>
+                )}
+
                 <MembersPanel key={`${userId}:${identity.community.id}`} client={client} refreshVersion={membersVersion} />
               </View>
             ) : identity.status === 'withoutCommunity' && (
@@ -85,39 +115,79 @@ export function CommunityPanel({ client, userId, refreshVersion, onMembershipRes
                 <Text style={styles.withoutTitle}>Todavía no perteneces a una comunidad.</Text>
                 {!identity.hasProfile ? (
                   <Text style={styles.helpText}>Completa y guarda tu perfil para continuar.</Text>
-                ) : !identity.canCreateCommunity ? (
-                  <View style={styles.infoBanner}>
-                    <Text style={styles.infoText}>
-                      Comparte tu código personal con tu representante vecinal para que te envíe una invitación de acceso.
-                    </Text>
-                  </View>
                 ) : (
-                  <View style={styles.createBox}>
-                    <Text style={styles.label}>Nombre de la comunidad a crear</Text>
-                    <TextInput
-                      accessibilityLabel="Nombre de la comunidad"
-                      style={styles.input}
-                      value={name}
-                      editable={!community.creating}
-                      placeholder="Ej. Vecinos Los Álamos"
-                      placeholderTextColor={colors.textMuted}
-                      onChangeText={value => {
-                        setName(value);
-                        setValidation(null);
-                      }}
-                      onSubmitEditing={() => { void create(); }}
-                    />
-                    {validation && <Text style={styles.errorText} accessibilityRole="alert">{validation}</Text>}
-                    <Pressable
-                      style={[styles.buttonPrimary, community.creating && styles.buttonDisabled]}
-                      disabled={community.creating}
-                      onPress={() => { void create(); }}
-                    >
-                      <Text style={styles.buttonPrimaryText}>
-                        {community.creating ? 'Creando…' : 'Crear comunidad vecinal'}
+                  <>
+                    <View style={styles.joinBox}>
+                      <Text style={styles.label}>Unirme con código de comunidad</Text>
+                      <Text style={styles.helpText}>
+                        Si tu representante te compartió el código de invitación de tu sector, ingrésalo aquí:
                       </Text>
-                    </Pressable>
-                  </View>
+                      <TextInput
+                        accessibilityLabel="Código de invitación de comunidad"
+                        style={styles.input}
+                        value={communityCode}
+                        maxLength={12}
+                        autoCapitalize="characters"
+                        editable={!community.creating}
+                        placeholder="Ej. B57C03"
+                        placeholderTextColor={colors.textMuted}
+                        onChangeText={val => setCommunityCode(val.toUpperCase().trim())}
+                        onSubmitEditing={() => {
+                          if (communityCode.trim()) {
+                            void community.joinByCode(communityCode.trim());
+                          }
+                        }}
+                      />
+                      <Pressable
+                        style={[styles.buttonPrimary, (!communityCode.trim() || community.creating) && styles.buttonDisabled]}
+                        disabled={!communityCode.trim() || community.creating}
+                        onPress={() => {
+                          if (communityCode.trim()) {
+                            void community.joinByCode(communityCode.trim());
+                          }
+                        }}
+                      >
+                        <Text style={styles.buttonPrimaryText}>
+                          {community.creating ? 'Uniéndome…' : 'Unirme a la comunidad'}
+                        </Text>
+                      </Pressable>
+                    </View>
+
+                    {!identity.canCreateCommunity ? (
+                      <View style={styles.infoBanner}>
+                        <Text style={styles.infoText}>
+                          También puedes compartir tu código personal con tu representante vecinal para que te envíe una invitación directa.
+                        </Text>
+                      </View>
+                    ) : (
+                      <View style={styles.createBox}>
+                        <Text style={styles.label}>O crear una nueva comunidad vecinal</Text>
+                        <TextInput
+                          accessibilityLabel="Nombre de la comunidad"
+                          style={styles.input}
+                          value={name}
+                          editable={!community.creating}
+                          placeholder="Ej. Vecinos Los Álamos"
+                          placeholderTextColor={colors.textMuted}
+                          onChangeText={value => {
+                            setName(value);
+                            setValidation(null);
+                          }}
+                          onSubmitEditing={() => { void create(); }}
+                        />
+                        {validation && <Text style={styles.errorText} accessibilityRole="alert">{validation}</Text>}
+                        <Pressable
+                          style={[styles.buttonSecondary, community.creating && styles.buttonDisabled]}
+                          disabled={community.creating}
+                          onPress={() => { void create(); }}
+                        >
+                          <Text style={styles.buttonSecondaryText}>
+                            {community.creating ? 'Creando…' : 'Crear comunidad vecinal'}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    )}
+                  </>
                 )}
               </View>
             )}
@@ -163,12 +233,68 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   memberBox: {
-    gap: 10,
+    gap: 12,
   },
   communityName: { fontSize: 26, lineHeight: 29, fontWeight: '800', letterSpacing: -0.8, color: colors.onDeep },
   roleDescription: { fontSize: 14, color: colors.onDeepMuted, lineHeight: 20 },
+  inviteCodeBox: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    padding: 14,
+    gap: 8,
+  },
+  inviteCodeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  inviteCodeLabel: {
+    fontSize: 11,
+    fontFamily: fonts.mono,
+    fontWeight: '700',
+    color: colors.primaryDeep,
+    letterSpacing: 0.8,
+  },
+  inviteCodeBadge: {
+    backgroundColor: colors.primarySurface,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  inviteCodeBadgeText: {
+    fontSize: 10,
+    fontFamily: fonts.mono,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  inviteCodeText: {
+    fontSize: 24,
+    fontFamily: fonts.mono,
+    fontWeight: '800',
+    letterSpacing: 3,
+    color: colors.text,
+  },
+  inviteCodeDescription: {
+    fontSize: 13,
+    color: colors.textMuted,
+    lineHeight: 18,
+  },
+  buttonCopy: {
+    backgroundColor: colors.primarySurface,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+  },
+  buttonCopyText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primary,
+  },
   withoutBox: {
-    gap: 10,
+    gap: 12,
   },
   withoutTitle: {
     fontSize: 15,
@@ -184,6 +310,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.text,
     lineHeight: 18,
+  },
+  joinBox: {
+    gap: 8,
+    backgroundColor: colors.surface,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   createBox: { gap: 10, backgroundColor: colors.surface, padding: 14, borderRadius: 16 },
   label: { fontSize: 14, fontWeight: '600', color: colors.text },
@@ -202,6 +336,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  buttonSecondary: {
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.background,
+    borderRadius: 14,
+    minHeight: 46,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonSecondaryText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
   buttonOutline: { borderWidth: 1.5, borderColor: colors.primary, backgroundColor: colors.background, borderRadius: 14, minHeight: 46, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
   buttonOutlineText: { color: colors.primary, fontSize: 14, fontWeight: '700' },
   plaque: { backgroundColor: colors.primaryDeep, borderRadius: 20, padding: 5 },
@@ -211,4 +360,3 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
-
