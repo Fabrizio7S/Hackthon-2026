@@ -80,12 +80,21 @@ function parseMyOffer(value: unknown): MyOffer | null {
 
 export function parseEmergency(value: unknown): Emergency {
   const r = obj(value);
+  const description = strOrNull(r.descripcion);
+  const authorName = strOrNull(r.autor_nombre);
+  // Lista, detalle y mapa usan el nombre autorizado que devuelve el servidor.
+  const sosDescription =
+    !bool(r.detalle_restringido) &&
+    description === '¡ALERTA SOS! Solicitud de auxilio urgente en el sector.' &&
+    authorName?.trim()
+      ? `¡ALERTA SOS! ${authorName.trim()} solicita auxilio urgente en el sector.`
+      : description;
   return {
     id: required(r.id, 'id'),
     category: oneOf(r.categoria, CATEGORIES, 'otro'),
     level: oneOf(r.nivel, LEVELS, 'media'),
     status: oneOf(r.estado, STATUSES, 'abierta'),
-    description: strOrNull(r.descripcion),
+    description: sosDescription,
     vulnerable: bool(r.es_persona_vulnerable),
     restricted: bool(r.detalle_restringido),
     lat: numOrNull(r.lat),
@@ -93,7 +102,7 @@ export function parseEmergency(value: unknown): Emergency {
     locationOrigin: oneOf(r.ubicacion_origen, ORIGINS, 'desconocido'),
     approximate: bool(r.ubicacion_aproximada) || r.ubicacion_origen === 'zona_comunidad',
     mine: bool(r.es_mio),
-    authorName: strOrNull(r.autor_nombre),
+    authorName,
     canManage: bool(r.puede_gestionar),
     offersCount: int(r.apoyos_ofrecidos),
     acceptedCount: int(r.apoyos_aceptados),

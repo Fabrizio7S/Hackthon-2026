@@ -125,6 +125,46 @@ test('solo conexión y sesión se reintentan más tarde', () => {
 
 // ---------- mapeadores ----------
 
+test('el mensaje SOS identifica al autor en alertas, detalle y mapa', () => {
+  for (const name of ['María Pérez', 'José Díaz']) {
+    const raw = {
+      id: 'sos',
+      descripcion: '¡ALERTA SOS! Solicitud de auxilio urgente en el sector.',
+      autor_nombre: ` ${name} `,
+      lat: -12.05,
+      lng: -77.04,
+    };
+    const expected = `¡ALERTA SOS! ${name} solicita auxilio urgente en el sector.`;
+    const feed = parseFeed({ community_id: 'c1', community_name: 'Barrio', items: [raw] });
+    assert.equal(feed.items[0].description, expected);
+    assert.equal(parseEmergencyDetail(raw).description, expected);
+    assert.equal(toEmergencyMapPoints(feed.items)[0].descripcion, expected);
+  }
+});
+
+test('SOS sin nombre conserva el mensaje y no personaliza reportes restringidos ni ordinarios', () => {
+  const description = '¡ALERTA SOS! Solicitud de auxilio urgente en el sector.';
+  for (const name of [null, '', '   ']) {
+    assert.equal(
+      parseEmergency({ id: 'sos', descripcion: description, autor_nombre: name }).description,
+      description,
+    );
+  }
+  assert.equal(
+    parseEmergency({
+      id: 'sos',
+      descripcion: description,
+      autor_nombre: 'Ana',
+      detalle_restringido: true,
+    }).description,
+    description,
+  );
+  assert.equal(
+    parseEmergency({ id: 'normal', descripcion: 'Sin agua', autor_nombre: 'Ana' }).description,
+    'Sin agua',
+  );
+});
+
 test('parseEmergency es defensivo con valores desconocidos y conserva la privacidad', () => {
   const e = parseEmergency({
     id: 'x',
